@@ -9,6 +9,7 @@
     "no-default-export": [false],
     "no-implicit-dependencies": [true, "dev"],
     "no-inferrable-types": [false],
+    "no-unsafe-any": [false],
     "one-line": [true, "open-brace", "check-whitespace"],
     "only-arrow-functions": [false],
     "prefer-function-over-method": [false],
