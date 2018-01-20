@@ -16,6 +16,7 @@ describe('Typescript', function() {
   describe('Basics', function() {
     const electraJs = new ElectraJs()
 
+    testMethodType('api#getCurrentPriceIn', electraJs.api.getCurrentPriceIn)
     testMethodType('getVersion', electraJs.getVersion)
   })
 })

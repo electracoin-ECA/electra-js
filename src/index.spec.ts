@@ -1,4 +1,4 @@
-// tslint:disable:typedef
+// tslint:disable
 
 import * as assert from 'assert'
 
