@@ -1,6 +1,6 @@
 # Electra JS
 
-> Javascript core allowing clients to interact with Electra blockchain.
+> Javascript API allowing clients to interact with Electra blockchain.
 
 [![npm](https://img.shields.io/npm/v/electra-js.svg?style=flat-square)](https://www.npmjs.com/package/electra-js)
 [![Travis](https://img.shields.io/travis/Electra-project/electra-js.svg?style=flat-square)](https://travis-ci.org/Electra-project/electra-js)
@@ -13,9 +13,29 @@
 
     npm i electra-js
 
-**Example**
+**Example (Javascript)**
 
-_Work in progress._
+```js
+const ElectraJs = require('electra-js')
+
+const electraJs = new ElectraJs()
+
+electraJs.api.getCurrentPriceIn('EUR', (priceInEur) => {
+  console.log(priceInEur)
+})
+```
+
+**Example (Typescript)**
+
+```typescript
+import ElectraJs from 'electra-js'
+
+const electraJs = new ElectraJs()
+
+// Inside an async function
+const priceInEur = await electraJs.api.getCurrentPriceIn('EUR')
+console.log(priceInEur)
+```
 
 ### API methods
 
