@@ -2,7 +2,7 @@
 
 import * as assert from 'assert'
 
-import ElectraJs from '..'
+import ElectraJs from '.'
 
 const electraJs = new ElectraJs()
 
