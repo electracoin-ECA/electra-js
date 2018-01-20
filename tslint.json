@@ -1,0 +1,20 @@
+{
+	"extends": "tslint:all",
+	"rules": {
+    "comment-format": [true, "check-space"],
+    "curly": [true, "ignore-same-line"],
+    "interface-name": [true, "never-prefix"],
+    "max-line-length": [true, 120],
+    "member-ordering": [false],
+    "no-default-export": [false],
+    "no-implicit-dependencies": [true, "dev"],
+    "no-inferrable-types": [false],
+    "one-line": [true, "open-brace", "check-whitespace"],
+    "only-arrow-functions": [false],
+    "prefer-function-over-method": [false],
+    "quotemark": [true, "single"],
+    "semicolon": [true, "never"],
+    "trailing-comma": [true],
+    "type-literal-delimiter": [false]
+  }
+}

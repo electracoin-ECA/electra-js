@@ -1,0 +1,69 @@
+{
+  "name": "electra-js",
+  "version": "0.0.1",
+  "description": "Javascript API middleware allowing clients to interact with Electra blockchain.",
+  "license": "MIT",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "engines": {
+    "node": "9.4.0",
+    "npm": "5.6.0"
+  },
+  "scripts": {
+    "build": "webpack --config webpack.prod.js && npm run check",
+    "check": "mocha test/index.js && mocha -r ts-node/register test/index.ts",
+    "start": "npm run watch",
+    "test": "npm run validate && npm run test:unit && npm run build",
+    "test:unit": "mocha -r ts-node/register src/**/*.spec.ts",
+    "validate": "npm run validate:lint && npm run validate:tsc",
+    "validate:lint": "tslint -p tsconfig.json",
+    "validate:tsc": "tsc -p tsconfig.json --noEmit --pretty",
+    "preversion": "npm run validate && npm run test:unit && npm run build",
+    "version": "node tasks/injectVersion && git add .",
+    "watch": "concurrently \"npm run watch:build\" \"npm run watch:validate\"",
+    "watch:build": "webpack --config webpack.dev.js --watch",
+    "watch:validate": "npm run validate:tsc -- -w"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@types/mocha": "^2.2.46",
+    "@types/node": "^9.3.0",
+    "awesome-typescript-loader": "^3.4.1",
+    "clean-webpack-plugin": "^0.1.17",
+    "concurrently": "^3.5.1",
+    "mocha": "^5.0.0",
+    "ts-node": "^4.1.0",
+    "tslint": "^5.9.1",
+    "typescript": "^2.6.2",
+    "uglifyjs-webpack-plugin": "^1.1.6",
+    "webpack": "^3.10.0",
+    "webpack-merge": "^4.1.1"
+  },
+  "author": {
+    "name": "Electra",
+    "email": "contact@inspired-beings.com",
+    "url": "https://electraproject.org"
+  },
+  "contributors": [
+    {
+      "name": "Ivan Gabriele",
+      "email": "ivan.gabriele@gmail.com",
+      "url": "https://www.ivangabriele.com"
+    }
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Electra-project/Electra-JS.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Electra-project/Electra-JS/issues"
+  },
+  "homepage": "https://github.com/Electra-project/Electra-JS#readme",
+  "keywords": [
+    "blockchain",
+    "eca",
+    "electra",
+    "javascript",
+    "typescript"
+  ]
+}
