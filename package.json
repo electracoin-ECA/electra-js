@@ -26,11 +26,13 @@
   },
   "dependencies": {
     "await-to-js": "^2.0.1",
-    "axios": "^0.17.1"
+    "axios": "^0.17.1",
+    "ramda": "^0.25.0"
   },
   "devDependencies": {
     "@types/mocha": "^2.2.46",
     "@types/node": "^9.3.0",
+    "@types/ramda": "^0.25.16",
     "awesome-typescript-loader": "^3.4.1",
     "clean-webpack-plugin": "^0.1.17",
     "concurrently": "^3.5.1",
