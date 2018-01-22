@@ -1,9 +1,9 @@
 import getCurrentPriceIn from './getCurrentPriceIn'
 
-export interface Api {
+export interface Utils {
   getCurrentPriceIn: typeof getCurrentPriceIn
 }
 
-export const api: Api = {
+export const utils: Utils = {
   getCurrentPriceIn
 }

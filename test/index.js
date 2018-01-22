@@ -20,7 +20,7 @@ describe('Javascript', function() {
 
     testMethodType('getVersion', electraJs.getVersion)
 
-    testMethodType('api#getCurrentPriceIn', electraJs.api.getCurrentPriceIn)
+    testMethodType('utils#getCurrentPriceIn', electraJs.utils.getCurrentPriceIn)
 
     testMethodType('wallet#check', electraJs.wallet.check)
     testMethodType('wallet#getAccount', electraJs.wallet.getAccount)

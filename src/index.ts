@@ -1,4 +1,4 @@
-import { api, Api } from './api'
+import { utils, Utils } from './utils'
 import Wallet, { RpcAuth } from './wallet'
 
 export interface Settings {
@@ -17,12 +17,12 @@ const VERSION: string = '__ELECTRA-JS_VERSION__'
  */
 export default class ElectraJs {
   /**
-   * List the extra API methods.
+   * Utility helpers.
    */
-  public api: Api = api
+  public utils: Utils = utils
 
   /**
-   * List the extra API methods.
+   * Wallet interactions.
    */
   public wallet: Wallet
 

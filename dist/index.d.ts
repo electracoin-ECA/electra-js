@@ -1,4 +1,4 @@
-import { Api } from './api';
+import { Utils } from './utils';
 import Wallet, { RpcAuth } from './wallet';
 export interface Settings {
     rpcAuth: RpcAuth;
@@ -9,11 +9,11 @@ export interface Settings {
  */
 export default class ElectraJs {
     /**
-     * List the extra API methods.
+     * Utility helpers.
      */
-    api: Api;
+    utils: Utils;
     /**
-     * List the extra API methods.
+     * Wallet interactions.
      */
     wallet: Wallet;
     constructor(settings: Settings);

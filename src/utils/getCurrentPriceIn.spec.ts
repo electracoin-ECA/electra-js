@@ -6,7 +6,7 @@ import getCurrentPriceIn from './getCurrentPriceIn'
 
 getCurrentPriceIn()
 
-describe('api/getCurrentPriceIn()', async function() {
+describe('utils/getCurrentPriceIn()', async function() {
   let usdPrice
 
   describe('WITH no parameter (= USD)', function() {
@@ -19,9 +19,9 @@ describe('api/getCurrentPriceIn()', async function() {
     })
   })
 
-  describe('WITH "EUR" parameter', function() {
+  describe('WITH "JPY" parameter', function() {
     it(`SHOULD return a different number`, function(done) {
-      getCurrentPriceIn('EUR').then(eurPrice => {
+      getCurrentPriceIn('JPY').then(eurPrice => {
         assert.strictEqual(typeof eurPrice, 'number')
         assert.notStrictEqual(eurPrice, usdPrice)
         done()
