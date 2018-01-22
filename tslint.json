@@ -6,6 +6,7 @@
     "interface-name": [true, "never-prefix"],
     "max-line-length": [true, 120],
     "member-ordering": [false],
+    "newline-per-chained-call": [false],
     "no-default-export": [false],
     "no-implicit-dependencies": [true, "dev"],
     "no-inferrable-types": [false],
