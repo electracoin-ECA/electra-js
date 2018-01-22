@@ -1,4 +1,10 @@
 import { api, Api } from './api'
+import Wallet, { RpcAuth } from './wallet'
+
+export interface Settings {
+  rpcAuth: RpcAuth,
+  rpcUri: string
+}
 
 /**
  * electra-js version
@@ -14,6 +20,15 @@ export default class ElectraJs {
    * List the extra API methods.
    */
   public api: Api = api
+
+  /**
+   * List the extra API methods.
+   */
+  public wallet: Wallet
+
+  public constructor(settings: Settings) {
+    this.wallet = new Wallet(settings.rpcUri, settings.rpcAuth)
+  }
 
   /**
    * Get the current version of ElectraJS.
