@@ -20,7 +20,10 @@
 ```js
 const ElectraJs = require('electra-js')
 
-const electraJs = new ElectraJs()
+const electraJs = new ElectraJs({
+  rpcAuth: { username: 'RPC_SERVER_USERNAME', password: 'RPC_SERVER_PASSWORD' },
+  rpcUri: 'RPC_SERVER_URI'
+})
 
 electraJs.api.getCurrentPriceIn('EUR', (priceInEur) => {
   console.log(priceInEur)
@@ -32,7 +35,10 @@ electraJs.api.getCurrentPriceIn('EUR', (priceInEur) => {
 ```typescript
 import ElectraJs from 'electra-js'
 
-const electraJs = new ElectraJs()
+const electraJs = new ElectraJs({
+  rpcAuth: { username: 'RPC_SERVER_USERNAME', password: 'RPC_SERVER_PASSWORD' },
+  rpcUri: 'RPC_SERVER_URI'
+})
 
 // Inside an async function
 const priceInEur = await electraJs.api.getCurrentPriceIn('EUR')
