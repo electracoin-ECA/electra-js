@@ -36,7 +36,7 @@ export default class Wallet {
   }
 
   /**
-   * Changes the wallet passphrase from <oldPassphrase> to <newPassphrase>.
+   * Change the wallet passphrase from <oldPassphrase> to <newPassphrase>.
    */
   public async changePassphrase(
     oldPassphrase: string,
@@ -46,7 +46,7 @@ export default class Wallet {
   }
 
   /**
-   * Check wallet for integrity.
+   * Check the wallet integrity.
    */
   public async check(): Promise<RpcMethodResult<'checkwallet'>> {
     return this.query('checkwallet', null)
@@ -106,14 +106,6 @@ export default class Wallet {
   }
 
   /**
-   * Make a public/private key pair.
-   * <prefix> is the optional preferred prefix for the public key.
-   */
-  public async makeKeyPair(prefix?: string): Promise<RpcMethodResult<'makekeypair'>> {
-    return this.query('makekeypair', prefix !== undefined ? [prefix] : null)
-  }
-
-  /**
    * List transactions.
    */
   public async listTransactions(
@@ -126,7 +118,7 @@ export default class Wallet {
 
   /**
    * List unspent transactions between <minConfirmations> and <maxConfirmations>,
-   * for the givens list of <address>.
+   * for the given list of <address> if specified.
    */
   public async listUnspent(
     minConfirmations: number = 1,
@@ -143,6 +135,14 @@ export default class Wallet {
    */
   public async lock(): Promise<RpcMethodResult<'walletlock'>> {
     return this.query('walletlock', null)
+  }
+
+  /**
+   * Make a public/private key pair.
+   * <prefix> is the optional preferred prefix for the public key.
+   */
+  public async makeKeyPair(prefix?: string): Promise<RpcMethodResult<'makekeypair'>> {
+    return this.query('makekeypair', prefix !== undefined ? [prefix] : null)
   }
 
   /**
@@ -165,7 +165,7 @@ export default class Wallet {
   }
 
   /**
-   * Get the <publicKey> info.
+   * Validate <publicKey> and get its info.
    */
   public async validatePublicKey(publicKey: string): Promise<RpcMethodResult<'validatepubkey'>> {
     return this.query('validatepubkey', Array.prototype.slice.call(arguments))

@@ -17,11 +17,11 @@ export default class Wallet {
      */
     private query<T>(method, params);
     /**
-     * Changes the wallet passphrase from <oldPassphrase> to <newPassphrase>.
+     * Change the wallet passphrase from <oldPassphrase> to <newPassphrase>.
      */
     changePassphrase(oldPassphrase: string, newPassphrase: string): Promise<RpcMethodResult<'walletpassphrasechange'>>;
     /**
-     * Check wallet for integrity.
+     * Check the wallet integrity.
      */
     check(): Promise<RpcMethodResult<'checkwallet'>>;
     /**
@@ -54,17 +54,12 @@ export default class Wallet {
      */
     listReceivedByAddress(minConfirmations?: number, includeEmpty?: boolean): Promise<RpcMethodResult<'listreceivedbyaddress'>>;
     /**
-     * Make a public/private key pair.
-     * <prefix> is the optional preferred prefix for the public key.
-     */
-    makeKeyPair(prefix?: string): Promise<RpcMethodResult<'makekeypair'>>;
-    /**
      * List transactions.
      */
     listTransactions(account?: string, count?: number, from?: number): Promise<RpcMethodResult<'listtransactions'>>;
     /**
      * List unspent transactions between <minConfirmations> and <maxConfirmations>,
-     * for the givens list of <address>.
+     * for the given list of <address> if specified.
      */
     listUnspent(minConfirmations?: number, maxConfirmations?: number, ...address: string[]): Promise<RpcMethodResult<'listunspent'>>;
     /**
@@ -73,6 +68,11 @@ export default class Wallet {
      * before being able to call any methods which require the wallet to be unlocked.
      */
     lock(): Promise<RpcMethodResult<'walletlock'>>;
+    /**
+     * Make a public/private key pair.
+     * <prefix> is the optional preferred prefix for the public key.
+     */
+    makeKeyPair(prefix?: string): Promise<RpcMethodResult<'makekeypair'>>;
     /**
      * Stores the wallet decryption key in memory for <timeout> second.
      * if <stakingonly> is true sending functions are disabled.
@@ -83,7 +83,7 @@ export default class Wallet {
      */
     validateAddress(address: string): Promise<RpcMethodResult<'validateaddress'>>;
     /**
-     * Get the <publicKey> info.
+     * Validate <publicKey> and get its info.
      */
     validatePublicKey(publicKey: string): Promise<RpcMethodResult<'validatepubkey'>>;
 }
