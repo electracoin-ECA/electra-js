@@ -12,15 +12,15 @@ const RPC_AUTH = {
 const RPC_URI = 'http://127.0.0.1:5788'
 
 describe('Rpc', function() {
+  // We skip the wallet tests in Travis CI for now
+  // TODO Integrate an Electra core build in Travis CI
+  if (process.env.NODE_ENV === 'travis') return
+
   const testAccount = 'Main'
   let testAddress: string
   let rpc: Rpc
 
   before(async function() {
-    // We skip the wallet tests in Travis CI for now
-    // TODO Integrate an Electra core build in Travis CI
-    if (process.env.NODE_ENV === 'travis') this.skip()
-
     rpc = new Rpc(RPC_URI, RPC_AUTH)
     testAddress = (await rpc.listReceivedByAddress())
       .filter(address => address.account === 'Main')
