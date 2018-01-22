@@ -41,7 +41,312 @@ console.log(priceInEur)
 
 ### API methods
 
-_Work in progress._
+> **Note**<br>
+> `<parameter>` is a mandatory parameter.<br>
+> `[parameter]` is an optional parameter.
+
+#### Utils
+
+**`utils.getCurrentPriceIn([currency])`**
+
+> Get the current price of ECA via CoinMarketCap.
+
+```
+Parameters:
+
+[currency] string    One of: 'AUD', 'BRL', 'CAD', 'CHF', 'CLP', 'CNY', 'CZK', 'DKK', 'EUR', 'GBP',
+                             'HKD', 'HUF', 'IDR', 'ILS', 'INR', 'JPY', 'KRW', 'MXN', 'MYR', 'NOK',
+                             'NZD', 'PHP', 'PKR', 'PLN', 'RUB', 'SEK', 'SGD', 'THB', 'TRY', 'TWD',
+                             'USD', 'ZAR'
+                     Optional. Default is 'USD'.
+
+Response:
+
+number
+```
+
+#### Wallet
+
+**`wallet.check([oldPassphrase], [newPassphrase])`**
+
+> Change the wallet passphrase from <oldPassphrase> to <newPassphrase>.
+
+```
+Parameters:
+
+[oldPassphrase] string
+[newPassphrase] string
+```
+
+_TODO Add the response._
+
+**`wallet.check()`**
+
+> Check the wallet integrity.
+
+```
+Response:
+
+Promise<{
+    'wallet check passed': boolean;
+}>
+```
+
+**`wallet.getAccount(<address>)`**
+
+> Get the account associated with the given address.
+
+```
+Parameters:
+
+[address] string
+
+Response:
+
+Promise<string>
+```
+
+**`wallet.getBalance()`**
+
+> Get the total available balance.
+
+```
+Response:
+
+Promise<number>
+```
+
+**`wallet.getDifficulty()`**
+
+> Get the difficulty as a multiple of the minimum difficulty.
+
+```
+Response:
+
+Promise<{
+    'proof-of-work': number;
+    'proof-of-stake': number;
+    'search-interval': number;
+}>
+```
+
+**`wallet.getInfo()`**
+
+> Get the current state info.
+
+```
+Response:
+
+Promise<{
+    version: string;
+    protocolversion: number;
+    walletversion: number;
+    balance: number;
+    newmint: number;
+    stake: number;
+    blocks: number;
+    timeoffset: number;
+    moneysupply: number;
+    connections: number;
+    proxy: string;
+    ip: string;
+    difficulty: {
+        'proof-of-work': number;
+        'proof-of-stake': number;
+    };
+    testnet: boolean;
+    keypoololdest: number;
+    keypoolsize: number;
+    paytxfee: number;
+    mininput: number;
+    unlocked_until: number;
+    errors: string;
+}>
+```
+
+**`wallet.getNewAddress([account])`**
+
+> Generate a new address for receiving payments.
+
+```
+Parameters:
+
+<account> string    Address label. Optional.
+
+Response:
+
+Promise<{
+    account: string;
+} | null>
+```
+
+**`wallet.listAddressGroupings()`**
+
+> Lists groups of addresses which have had their common ownership made public
+> by common use as inputs or as the resulting change in past transactions.
+
+```
+Response:
+
+Promise<[
+    0: string // Address
+    1: string // Ammount
+    2: string // Account (address label)
+][][]>
+```
+
+**`wallet.listReceivedByAddress([minConfirmations], [includeEmpty])`**
+
+> List receiving addresses data.
+
+```
+Parameters:
+
+[minConfirmations] number     Optional. Default to 1.
+[includeEmpty]     boolean    Optional. Default to false.
+
+Response:
+
+Promise<{
+    address: string;
+    account: string;
+    amount: number;
+    confirmations: number;
+}[]>
+```
+
+**`wallet.listTransactions([account], [count], [from])`**
+
+> List transactions.
+
+```
+Parameters:
+
+[account] string    Optional. Default to '*' (= all address labels).
+[count]   number    Optional. Default to 10.
+[from]    number    Optional. Default to 0.
+
+Response:
+
+Promise<{
+    account: string;
+    address: string;
+    category: string;
+    amount: number;
+    confirmations: number;
+    blockhash: string;
+    blockindex: number;
+    blocktime: number;
+    txid: string;
+    time: number;
+    timereceived: number;
+}[]>
+```
+
+**`wallet.listUnspent([minConfirmations], [maxConfirmations], [address, ...])`**
+
+> List unspent transactions between <minConfirmations> and <maxConfirmations>,
+> for the given list of <address> if specified.
+
+```
+Parameters:
+
+[minConfirmations] number    Optional. Default to 1.
+[maxConfirmations] number    Optional. Default to 9999999.
+[address]          string    Optional.
+
+Response:
+
+Promise<{
+    txid: string;
+    vout: number;
+    address: string;
+    account: string;
+    scriptPubKey: string;
+    amount: number;
+    confirmations: number;
+}[]>
+```
+
+**`wallet.lock()`**
+
+> Removes the wallet encryption key from memory, locking the wallet.
+> After calling this method, you will need to call walletpassphrase again
+> before being able to call any methods which require the wallet to be unlocked.
+
+_TODO Add the response._
+
+**`wallet.makeKeyPair([prefix])`**
+
+> Make a public/private key pair.
+
+```
+Parameters:
+
+[prefix] string    Optional. Preferred prefix for the public key.
+
+Response:
+
+Promise<{
+    PrivateKey: string;
+    PublicKey: string;
+}>
+```
+
+**`wallet.storePassphrase(<passphrase>, <timeout>, [stakingOnly])`**
+
+> List receiving addresses data.
+
+```
+Parameters:
+
+<passphrase>  string
+<timeout>     number     In seconds
+[stakingOnly] boolean    Optional. Default to true.
+```
+
+_TODO Add the response._
+
+**`wallet.validateAddress(<address>)`**
+
+> List receiving addresses data.
+
+```
+Parameters:
+
+<address> string
+
+Response:
+
+Promise<{
+    isvalid: boolean;
+    address?: string | undefined;
+    ismine?: boolean | undefined;
+    isscript?: boolean | undefined;
+    pubkey?: string | undefined;
+    iscompressed?: boolean | undefined;
+    account?: string | undefined;
+}>
+```
+
+**`wallet.validatePublicKey(<publicKey>)`**
+
+> List receiving addresses data.
+
+```
+Parameters:
+
+<publicKey> string
+
+Response:
+
+Promise<{
+    isvalid: boolean;
+    address?: string | undefined;
+    ismine?: boolean | undefined;
+    iscompressed?: boolean | undefined;
+}>
+```
 
 ## Contribute
 
@@ -59,7 +364,7 @@ Once you're all set up, you can start coding.
 
 will automatically start a "live" watch :
 
-- compiling the JS code (in `dist` folder),
+- compiling the JS code (in `build` folder),
 - checking the lint & typings validation.
 
 ### Files Structure
