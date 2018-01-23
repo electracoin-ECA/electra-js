@@ -1,17 +1,17 @@
 import { RpcMethodResult } from '../libs/rpc/types';
-export interface RpcAuth {
+export interface RpcServerAuth {
     username: string;
     password: string;
 }
 /**
- * Wallet related methods matching RPC commands.
+ * RPC server related methods matching RPC commands.
  */
-export default class Wallet {
+export default class RpcServer {
     /** Basic Authentication info for RPC calls. */
     private readonly auth;
     /** RPC server URI. */
     private readonly uri;
-    constructor(uri: string, auth: RpcAuth);
+    constructor(uri: string, auth: RpcServerAuth);
     /**
      * JSON-RCP query helper.
      */

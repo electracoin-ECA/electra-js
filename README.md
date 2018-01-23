@@ -25,7 +25,7 @@ const electraJs = new ElectraJs({
   rpcUri: 'RPC_SERVER_URI'
 })
 
-electraJs.api.getCurrentPriceIn('EUR', (priceInEur) => {
+electraJs.utils.getCurrentPriceIn('EUR', (priceInEur) => {
   console.log(priceInEur)
 })
 ```
@@ -41,7 +41,7 @@ const electraJs = new ElectraJs({
 })
 
 // Inside an async function
-const priceInEur = await electraJs.api.getCurrentPriceIn('EUR')
+const priceInEur = await electraJs.utils.getCurrentPriceIn('EUR')
 console.log(priceInEur)
 ```
 
@@ -51,29 +51,9 @@ console.log(priceInEur)
 > `<parameter>` is a mandatory parameter.<br>
 > `[parameter]` is an optional parameter.
 
-#### Utils
+#### RPC Server
 
-**`utils.getCurrentPriceIn([currency])`**
-
-> Get the current price of ECA via CoinMarketCap.
-
-```
-Parameters:
-
-[currency] string    One of: 'AUD', 'BRL', 'CAD', 'CHF', 'CLP', 'CNY', 'CZK', 'DKK', 'EUR', 'GBP',
-                             'HKD', 'HUF', 'IDR', 'ILS', 'INR', 'JPY', 'KRW', 'MXN', 'MYR', 'NOK',
-                             'NZD', 'PHP', 'PKR', 'PLN', 'RUB', 'SEK', 'SGD', 'THB', 'TRY', 'TWD',
-                             'USD', 'ZAR'
-                     Optional. Default is 'USD'.
-
-Response:
-
-number
-```
-
-#### Wallet
-
-**`wallet.check([oldPassphrase], [newPassphrase])`**
+**`rpcServer.check([oldPassphrase], [newPassphrase])`**
 
 > Change the wallet passphrase from <oldPassphrase> to <newPassphrase>.
 
@@ -86,7 +66,7 @@ Parameters:
 
 _TODO Add the response._
 
-**`wallet.check()`**
+**`rpcServer.check()`**
 
 > Check the wallet integrity.
 
@@ -98,7 +78,7 @@ Promise<{
 }>
 ```
 
-**`wallet.getAccount(<address>)`**
+**`rpcServer.getAccount(<address>)`**
 
 > Get the account associated with the given address.
 
@@ -112,7 +92,7 @@ Response:
 Promise<string>
 ```
 
-**`wallet.getBalance()`**
+**`rpcServer.getBalance()`**
 
 > Get the total available balance.
 
@@ -122,7 +102,7 @@ Response:
 Promise<number>
 ```
 
-**`wallet.getDifficulty()`**
+**`rpcServer.getDifficulty()`**
 
 > Get the difficulty as a multiple of the minimum difficulty.
 
@@ -136,7 +116,7 @@ Promise<{
 }>
 ```
 
-**`wallet.getInfo()`**
+**`rpcServer.getInfo()`**
 
 > Get the current state info.
 
@@ -170,7 +150,7 @@ Promise<{
 }>
 ```
 
-**`wallet.getNewAddress([account])`**
+**`rpcServer.getNewAddress([account])`**
 
 > Generate a new address for receiving payments.
 
@@ -186,7 +166,7 @@ Promise<{
 } | null>
 ```
 
-**`wallet.listAddressGroupings()`**
+**`rpcServer.listAddressGroupings()`**
 
 > Lists groups of addresses which have had their common ownership made public
 > by common use as inputs or as the resulting change in past transactions.
@@ -201,7 +181,7 @@ Promise<[
 ][][]>
 ```
 
-**`wallet.listReceivedByAddress([minConfirmations], [includeEmpty])`**
+**`rpcServer.listReceivedByAddress([minConfirmations], [includeEmpty])`**
 
 > List receiving addresses data.
 
@@ -221,7 +201,7 @@ Promise<{
 }[]>
 ```
 
-**`wallet.listTransactions([account], [count], [from])`**
+**`rpcServer.listTransactions([account], [count], [from])`**
 
 > List transactions.
 
@@ -249,7 +229,7 @@ Promise<{
 }[]>
 ```
 
-**`wallet.listUnspent([minConfirmations], [maxConfirmations], [address, ...])`**
+**`rpcServer.listUnspent([minConfirmations], [maxConfirmations], [address, ...])`**
 
 > List unspent transactions between <minConfirmations> and <maxConfirmations>,
 > for the given list of <address> if specified.
@@ -274,15 +254,15 @@ Promise<{
 }[]>
 ```
 
-**`wallet.lock()`**
+**`rpcServer.lock()`**
 
-> Removes the wallet encryption key from memory, locking the wallet.
+> Removes the wallet encryption key from memory, locking the rpcServer.
 > After calling this method, you will need to call walletpassphrase again
 > before being able to call any methods which require the wallet to be unlocked.
 
 _TODO Add the response._
 
-**`wallet.makeKeyPair([prefix])`**
+**`rpcServer.makeKeyPair([prefix])`**
 
 > Make a public/private key pair.
 
@@ -299,7 +279,7 @@ Promise<{
 }>
 ```
 
-**`wallet.storePassphrase(<passphrase>, <timeout>, [stakingOnly])`**
+**`rpcServer.storePassphrase(<passphrase>, <timeout>, [stakingOnly])`**
 
 > List receiving addresses data.
 
@@ -313,7 +293,7 @@ Parameters:
 
 _TODO Add the response._
 
-**`wallet.validateAddress(<address>)`**
+**`rpcServer.validateAddress(<address>)`**
 
 > List receiving addresses data.
 
@@ -335,7 +315,7 @@ Promise<{
 }>
 ```
 
-**`wallet.validatePublicKey(<publicKey>)`**
+**`rpcServer.validatePublicKey(<publicKey>)`**
 
 > List receiving addresses data.
 
@@ -352,6 +332,26 @@ Promise<{
     ismine?: boolean | undefined;
     iscompressed?: boolean | undefined;
 }>
+```
+
+#### Utilities
+
+**`utils.getCurrentPriceIn([currency])`**
+
+> Get the current price of ECA via CoinMarketCap.
+
+```
+Parameters:
+
+[currency] string    One of: 'AUD', 'BRL', 'CAD', 'CHF', 'CLP', 'CNY', 'CZK', 'DKK', 'EUR', 'GBP',
+                             'HKD', 'HUF', 'IDR', 'ILS', 'INR', 'JPY', 'KRW', 'MXN', 'MYR', 'NOK',
+                             'NZD', 'PHP', 'PKR', 'PLN', 'RUB', 'SEK', 'SGD', 'THB', 'TRY', 'TWD',
+                             'USD', 'ZAR'
+                     Optional. Default is 'USD'.
+
+Response:
+
+number
 ```
 
 ## Contribute

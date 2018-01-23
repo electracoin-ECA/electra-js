@@ -1,21 +1,21 @@
+import RpcServer, { RpcServerAuth } from './rpc-server';
 import { Utils } from './utils';
-import Wallet, { RpcAuth } from './wallet';
 export interface Settings {
-    rpcAuth: RpcAuth;
-    rpcUri: string;
+    rpcServerAuth?: RpcServerAuth;
+    rpcServerUri?: string;
 }
 /**
  * Main ElectraJS class.
  */
 export default class ElectraJs {
     /**
+     * RPC server interactions.
+     */
+    rpcServer: RpcServer;
+    /**
      * Utility helpers.
      */
     utils: Utils;
-    /**
-     * Wallet interactions.
-     */
-    wallet: Wallet;
     constructor(settings: Settings);
     /**
      * Get the current version of ElectraJS.

@@ -16,27 +16,27 @@ describe('Typescript', function() {
   describe('Basics', function() {
     // There is no need for real settings here since this test is only meant to check the methods existence.
     const electraJs = new ElectraJs({
-      rpcAuth: { username: '', password: '' },
-      rpcUri: ''
+      rpcServerAuth: { username: '', password: '' },
+      rpcServerUri: ''
     })
 
     testMethodType('getVersion', electraJs.getVersion)
 
-    testMethodType('utils#getCurrentPriceIn', electraJs.utils.getCurrentPriceIn)
+    testMethodType('rpcServer#check', electraJs.rpcServer.check)
+    testMethodType('rpcServer#getAccount', electraJs.rpcServer.getAccount)
+    testMethodType('rpcServer#getBalance', electraJs.rpcServer.getBalance)
+    testMethodType('rpcServer#getDifficulty', electraJs.rpcServer.getDifficulty)
+    testMethodType('rpcServer#getNewAddress', electraJs.rpcServer.getNewAddress)
+    testMethodType('rpcServer#listAddressGroupings', electraJs.rpcServer.listAddressGroupings)
+    testMethodType('rpcServer#listReceivedByAddress', electraJs.rpcServer.listReceivedByAddress)
+    testMethodType('rpcServer#makeKeyPair', electraJs.rpcServer.makeKeyPair)
+    testMethodType('rpcServer#listTransactions', electraJs.rpcServer.listTransactions)
+    testMethodType('rpcServer#listUnspent', electraJs.rpcServer.listUnspent)
+    testMethodType('rpcServer#lock', electraJs.rpcServer.lock)
+    testMethodType('rpcServer#storePassphrase', electraJs.rpcServer.storePassphrase)
+    testMethodType('rpcServer#validateAddress', electraJs.rpcServer.validateAddress)
+    testMethodType('rpcServer#validatePublicKey', electraJs.rpcServer.validatePublicKey)
 
-    testMethodType('wallet#check', electraJs.wallet.check)
-    testMethodType('wallet#getAccount', electraJs.wallet.getAccount)
-    testMethodType('wallet#getBalance', electraJs.wallet.getBalance)
-    testMethodType('wallet#getDifficulty', electraJs.wallet.getDifficulty)
-    testMethodType('wallet#getNewAddress', electraJs.wallet.getNewAddress)
-    testMethodType('wallet#listAddressGroupings', electraJs.wallet.listAddressGroupings)
-    testMethodType('wallet#listReceivedByAddress', electraJs.wallet.listReceivedByAddress)
-    testMethodType('wallet#makeKeyPair', electraJs.wallet.makeKeyPair)
-    testMethodType('wallet#listTransactions', electraJs.wallet.listTransactions)
-    testMethodType('wallet#listUnspent', electraJs.wallet.listUnspent)
-    testMethodType('wallet#lock', electraJs.wallet.lock)
-    testMethodType('wallet#storePassphrase', electraJs.wallet.storePassphrase)
-    testMethodType('wallet#validateAddress', electraJs.wallet.validateAddress)
-    testMethodType('wallet#validatePublicKey', electraJs.wallet.validatePublicKey)
+    testMethodType('utils#getCurrentPriceIn', electraJs.utils.getCurrentPriceIn)
   })
 })

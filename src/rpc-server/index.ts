@@ -6,21 +6,21 @@ import rpc from '../libs/rpc'
 
 import { RpcMethod, RpcMethodParams, RpcMethodResult } from '../libs/rpc/types'
 
-export interface RpcAuth {
+export interface RpcServerAuth {
   username: string
   password: string
 }
 
 /**
- * Wallet related methods matching RPC commands.
+ * RPC server related methods matching RPC commands.
  */
-export default class Wallet {
+export default class RpcServer {
   /** Basic Authentication info for RPC calls. */
-  private readonly auth: RpcAuth
+  private readonly auth: RpcServerAuth
   /** RPC server URI. */
   private readonly uri: string
 
-  public constructor(uri: string, auth: RpcAuth) {
+  public constructor(uri: string, auth: RpcServerAuth) {
     this.auth = auth
     this.uri = uri
   }

@@ -1,9 +1,9 @@
+import RpcServer, { RpcServerAuth } from './rpc-server'
 import { utils, Utils } from './utils'
-import Wallet, { RpcAuth } from './wallet'
 
 export interface Settings {
-  rpcAuth: RpcAuth,
-  rpcUri: string
+  rpcServerAuth?: RpcServerAuth,
+  rpcServerUri?: string
 }
 
 /**
@@ -17,17 +17,19 @@ const VERSION: string = '__ELECTRA-JS_VERSION__'
  */
 export default class ElectraJs {
   /**
+   * RPC server interactions.
+   */
+  public rpcServer: RpcServer
+
+  /**
    * Utility helpers.
    */
   public utils: Utils = utils
 
-  /**
-   * Wallet interactions.
-   */
-  public wallet: Wallet
-
   public constructor(settings: Settings) {
-    this.wallet = new Wallet(settings.rpcUri, settings.rpcAuth)
+    if (settings.rpcServerUri !== undefined && settings.rpcServerAuth !== undefined) {
+      this.rpcServer = new RpcServer(settings.rpcServerUri, settings.rpcServerAuth)
+    }
   }
 
   /**
