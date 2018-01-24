@@ -47,15 +47,15 @@ console.log(priceInEur)
 
 #### RPC Server
 
-**`rpcServer.check([oldPassphrase], [newPassphrase])`**
+**`rpcServer.check(<oldPassphrase>, <newPassphrase>)`**
 
 > Change the wallet passphrase from <oldPassphrase> to <newPassphrase>.
 
 ```
 Parameters:
 
-[oldPassphrase] string
-[newPassphrase] string
+<oldPassphrase> string
+<newPassphrase> string
 ```
 
 _TODO Add the response._
@@ -79,7 +79,7 @@ Promise<{
 ```
 Parameters:
 
-[address] string
+<address> string
 
 Response:
 
@@ -151,7 +151,7 @@ Promise<{
 ```
 Parameters:
 
-<account> string    Address label. Optional.
+[account] string    Address label. Optional.
 
 Response:
 
