@@ -5,10 +5,7 @@ import * as assert from 'assert'
 import ElectraJs from '.'
 
 describe('ElectraJs', function() {
-  const electraJs = new ElectraJs({
-    rpcAuth: { username: '', password: '' },
-    rpcUri: ''
-  })
+  const electraJs = new ElectraJs()
 
   describe(`#getVersion()`, function() {
     it(`SHOULD return the expected string`, function() {
