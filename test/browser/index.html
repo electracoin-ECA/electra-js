@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>ElectraJs Browser Compatibility Tests</title>
+  <link href="../../node_modules/mocha/mocha.css" rel="stylesheet" />
+</head>
+<body>
+  <!-- Mocha browser output -->
+  <div id="mocha"></div>
+
+  <!-- Vendors -->
+  <script src="../../node_modules/mocha/mocha.js"></script>
+  <script src="../../node_modules/chai/chai.js"></script>
+  <!-- Browser bundle of ElectraJs as a global library named "ElectraJs" -->
+  <script src="../../build/index.browser.js"></script>
+
+  <script>
+    // Allow assert globally
+    assert = chai.assert
+    // Mocha BDD interface
+    mocha.setup('bdd')
+  </script>
+
+  <!-- Tests -->
+  <!-- <script src="index.spec.js"></script> -->
+  <!-- <script src="../../src/index.spec.js"></script> -->
+  <script src="index.spec.js"></script>
+
+  <!-- Run script -->
+  <script>
+    mocha.run()
+  </script>
+</body>
+</html>

@@ -372,17 +372,22 @@ will automatically start a "live" watch :
 ```
 ├ build                 Development release
 ├ dist                  Production release (the one distributed via npm)
-│ ├ index.d.ts          - Types declarations for clients written in Typescript
-│ └ index.js            - Main bundle
+│ ├ index.d.ts            - Types declarations for clients written in Typescript
+│ └ index.js              - Main bundle
 ├ node_modules          Dependencies local installation directory
 ├ src                   The main directory
 ├ tasks                 Specific tasks run via the npm scripts
 ├ test                  Production release main bundle checkings (import/require tests)
-│ ├ index.js            - Javascript checkings
-│ └ index.ts            - Typescript checkings
+│ ├ browser               - Browser compatibility tests (tested via Selenium WebDriver)
+│ │ ├ index.html            - HTML container served by Express
+│ │ ├ index.spec.js         - Tests suite run within the browser
+│ │ └ index.ts              - CLI browser tests runner (checking for browser errors)
+│ ├ index.js              - Javascript checkings
+│ └ index.ts              - Typescript checkings
 ├ .editorconfig         Common IDE and Editors configuration
 ├ .gitignore            Files and directories ignored by Git
 ├ .npmignore            Files and directories ignored in the npm published package
+├ .npmrc                The npm workspace options
 ├ .travis.yml           Travis CI automated tests configuration
 ├ LICENSE               License
 ├ package-lock.json     Accurately versionned list of the npm dependencies tree

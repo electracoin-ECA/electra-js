@@ -5,6 +5,10 @@ node_js:
 
 env:
   - NODE_ENV=travis
+  - CHROME_DRIVER_PATH=/usr/local/bin/chromedriver
+
+addons:
+  - chrome: stable
 
 notifications:
   email: false
