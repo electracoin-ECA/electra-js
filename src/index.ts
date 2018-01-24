@@ -1,5 +1,5 @@
 import RpcServer, { RpcServerAuth } from './rpc-server'
-import { utils, Utils } from './utils'
+import webServices, { WebServices } from './web-services'
 
 export interface Settings {
   rpcServerAuth?: RpcServerAuth,
@@ -19,8 +19,8 @@ export default class ElectraJs {
   /** RPC server interactions. */
   public rpcServer: RpcServer
 
-  /** Utility helpers. */
-  public utils: Utils = utils
+  /** Web services. */
+  public webServices: WebServices = webServices
 
   public constructor(settings: Settings) {
     if (settings.rpcServerUri !== undefined && settings.rpcServerAuth !== undefined) {

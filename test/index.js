@@ -35,6 +35,6 @@ describe('Javascript', function() {
     testMethodType('rpcServer#validateAddress', electraJs.rpcServer.validateAddress)
     testMethodType('rpcServer#validatePublicKey', electraJs.rpcServer.validatePublicKey)
 
-    testMethodType('utils#getCurrentPriceIn', electraJs.utils.getCurrentPriceIn)
+    testMethodType('webServices#getCurrentPriceIn', electraJs.webServices.getCurrentPriceIn)
   })
 })

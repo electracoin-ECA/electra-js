@@ -4,9 +4,7 @@ import * as assert from 'assert'
 
 import getCurrentPriceIn from './getCurrentPriceIn'
 
-getCurrentPriceIn()
-
-describe('utils/getCurrentPriceIn()', async function() {
+describe('webServices#getCurrentPriceIn()', async function() {
   let usdPrice
 
   it(`SHOULD return a number with no parameter (= USD)`, function(done) {

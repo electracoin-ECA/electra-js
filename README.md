@@ -20,12 +20,9 @@
 ```js
 const ElectraJs = require('electra-js')
 
-const electraJs = new ElectraJs({
-  rpcAuth: { username: 'RPC_SERVER_USERNAME', password: 'RPC_SERVER_PASSWORD' },
-  rpcUri: 'RPC_SERVER_URI'
-})
+const electraJs = new ElectraJs()
 
-electraJs.utils.getCurrentPriceIn('EUR', (priceInEur) => {
+electraJs.webServices.getCurrentPriceIn('EUR', (priceInEur) => {
   console.log(priceInEur)
 })
 ```
@@ -35,13 +32,10 @@ electraJs.utils.getCurrentPriceIn('EUR', (priceInEur) => {
 ```typescript
 import ElectraJs from 'electra-js'
 
-const electraJs = new ElectraJs({
-  rpcAuth: { username: 'RPC_SERVER_USERNAME', password: 'RPC_SERVER_PASSWORD' },
-  rpcUri: 'RPC_SERVER_URI'
-})
+const electraJs = new ElectraJs()
 
 // Inside an async function
-const priceInEur = await electraJs.utils.getCurrentPriceIn('EUR')
+const priceInEur = await electraJs.webServices.getCurrentPriceIn('EUR')
 console.log(priceInEur)
 ```
 
@@ -334,9 +328,9 @@ Promise<{
 }>
 ```
 
-#### Utilities
+#### Web Services
 
-**`utils.getCurrentPriceIn([currency])`**
+**`webServices.getCurrentPriceIn([currency])`**
 
 > Get the current price of ECA via CoinMarketCap.
 
@@ -347,7 +341,7 @@ Parameters:
                              'HKD', 'HUF', 'IDR', 'ILS', 'INR', 'JPY', 'KRW', 'MXN', 'MYR', 'NOK',
                              'NZD', 'PHP', 'PKR', 'PLN', 'RUB', 'SEK', 'SGD', 'THB', 'TRY', 'TWD',
                              'USD', 'ZAR'
-                     Optional. Default is 'USD'.
+                     Optional. Default to 'USD'.
 
 Response:
 
