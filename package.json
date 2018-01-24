@@ -27,9 +27,11 @@
   "dependencies": {
     "await-to-js": "^2.0.1",
     "axios": "^0.17.1",
+    "bitcoinjs-lib": "^3.3.2",
     "ramda": "^0.25.0"
   },
   "devDependencies": {
+    "@types/bitcoinjs-lib": "^3.3.1",
     "@types/mocha": "^2.2.46",
     "@types/node": "^9.3.0",
     "@types/ramda": "^0.25.16",
