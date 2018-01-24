@@ -16,14 +16,10 @@ const VERSION: string = '__ELECTRA-JS_VERSION__'
  * Main ElectraJS class.
  */
 export default class ElectraJs {
-  /**
-   * RPC server interactions.
-   */
+  /** RPC server interactions. */
   public rpcServer: RpcServer
 
-  /**
-   * Utility helpers.
-   */
+  /** Utility helpers. */
   public utils: Utils = utils
 
   public constructor(settings: Settings) {
