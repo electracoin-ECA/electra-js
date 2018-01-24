@@ -22,7 +22,7 @@ export default class ElectraJs {
   /** Web services. */
   public webServices: WebServices = webServices
 
-  public constructor(settings: Settings) {
+  public constructor(settings: Settings = {}) {
     if (settings.rpcServerUri !== undefined && settings.rpcServerAuth !== undefined) {
       this.rpcServer = new RpcServer(settings.rpcServerUri, settings.rpcServerAuth)
     }
