@@ -11,7 +11,7 @@ const RPC_SERVER_AUTH = {
 }
 const RPC_SERVER_URI = 'http://127.0.0.1:5788'
 
-describe('Rpc', function() {
+describe('RpcServer', function() {
   // We skip the wallet tests in Travis CI for now
   // TODO Integrate an Electra core build in Travis CI
   if (process.env.NODE_ENV === 'travis') return
