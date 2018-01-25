@@ -28,11 +28,14 @@
   "dependencies": {
     "await-to-js": "^2.0.1",
     "axios": "^0.17.1",
+    "bigi": "^1.4.2",
+    "bip38": "^2.0.2",
     "bip39": "^2.5.0",
     "bitcoinjs-lib": "^3.3.2",
     "ramda": "^0.25.0"
   },
   "devDependencies": {
+    "@types/bip38": "^2.0.0",
     "@types/bip39": "^2.4.0",
     "@types/bitcoinjs-lib": "^3.3.1",
     "@types/express": "^4.11.0",
