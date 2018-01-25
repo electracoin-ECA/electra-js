@@ -4,6 +4,7 @@
     "comment-format": [true, "check-space"],
     "curly": [true, "ignore-same-line"],
     "interface-name": [true, "never-prefix"],
+    "linebreak-style": [false],
     "max-line-length": [true, 120],
     "member-ordering": [false],
     "newline-per-chained-call": [false],
