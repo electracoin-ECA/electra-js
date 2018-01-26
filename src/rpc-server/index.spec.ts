@@ -12,19 +12,22 @@ const RPC_SERVER_AUTH = {
 const RPC_SERVER_URI = 'http://127.0.0.1:5788'
 
 describe('RpcServer', function() {
-  // We skip the wallet tests in Travis CI for now
-  // TODO Integrate an Electra core build in Travis CI
-  if (process.env.NODE_ENV === 'travis') return
-
   const testAccount = 'Main'
   let testAddress: string
   let rpcServer: RpcServer
 
+  // We skip the wallet tests in Travis CI for now
+  // TODO Integrate an Electra core build in Travis CI
   before(async function() {
+    if (process.env.NODE_ENV === 'travis') this.skip()
+
     rpcServer = new RpcServer(RPC_SERVER_URI, RPC_SERVER_AUTH)
     testAddress = (await rpcServer.listReceivedByAddress())
       .filter(address => address.account === 'Main')
       [0].address
+  })
+  beforeEach(function() {
+    if (process.env.NODE_ENV === 'travis') this.skip()
   })
 
   describe('#check()', function() {
