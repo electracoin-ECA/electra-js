@@ -13,6 +13,7 @@
     "no-inferrable-types": [false],
     "no-null-keyword": [false],
     "no-unsafe-any": [false],
+    "no-void-expression": [true, "ignore-arrow-function-shorthand"],
     "one-line": [true, "open-brace", "check-whitespace"],
     "only-arrow-functions": [false],
     "prefer-function-over-method": [false],
