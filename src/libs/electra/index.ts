@@ -3,18 +3,12 @@
 import * as bip39 from 'bip39'
 import * as bitcoinJs from 'bitcoinjs-lib'
 
-import { Address } from './types'
+import { ECA_NETWORK } from '../../constants'
+
+import { WalletAddress } from '../../wallet/types'
 
 const CHAIN_CODE_BUFFER_SIZE: number = 32
 const ENTROPY_STRENGTH: number = 128
-
-const ECA_NETWORK: bitcoinJs.Network = {
-  bip32: { public: 0, private: 0 },
-  messagePrefix: '\u0018Electra very Signed Message:\n', // TODO Not sure about that yet !
-  pubKeyHash: 33,
-  scriptHash: 0, // TODO Find this parameter
-  wif: 161
-}
 
 /**
  * Electra blockchain functions.
@@ -30,17 +24,24 @@ export default class Electra {
   }
 
   /**
-   * Calculate the derivated key n (0-indexed) from a Highly Deterministic Wallet Master Node private key.
+   * Calculate the derived key n (0-indexed) from a Highly Deterministic Wallet Master Node private key.
    *
    * @see https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki#master-key-generation
    */
-  public static getDerivatedAddressFromMasterNodePrivateKey(privateKey: string, derivationIndex: number): Address {
+  public static getDerivedChainFromMasterNodePrivateKey(
+    privateKey: string,
+    walletIndex: number,
+    chainIndex: number
+  ): WalletAddress {
     const masterNode: bitcoinJs.HDNode = this.getMasterNodeFromPrivateKey(privateKey)
-    const derivatedNode: bitcoinJs.HDNode = masterNode.derive(derivationIndex)
+    const derivedNode: bitcoinJs.HDNode = masterNode.deriveHardened(walletIndex).derive(chainIndex)
 
     return {
-      hash: derivatedNode.getAddress(),
-      privateKey: derivatedNode.keyPair.toWIF()
+      hash: derivedNode.getAddress(),
+      isCiphered: false,
+      isHD: true,
+      label: null,
+      privateKey: derivedNode.keyPair.toWIF()
     }
   }
 
@@ -50,12 +51,15 @@ export default class Electra {
    *
    * @see https://en.bitcoin.it/wiki/Mnemonic_phrase
    */
-  public static getMasterNodeAddressFromMnemonic(mnemonic: string, mnemonicExtension?: string): Address {
+  public static getMasterNodeAddressFromMnemonic(mnemonic: string, mnemonicExtension?: string): WalletAddress {
     const masterNode: bitcoinJs.HDNode = this.getMasterNodeFromMnemonic(mnemonic, mnemonicExtension)
     const keyPair: bitcoinJs.ECPair = masterNode.keyPair
 
     return {
       hash: keyPair.getAddress(),
+      isCiphered: false,
+      isHD: true,
+      label: null,
       privateKey: keyPair.toWIF()
     }
   }
@@ -65,11 +69,14 @@ export default class Electra {
    *
    * @note This address can't be associated with a mnemonic and requires its private key to be recovered.
    */
-  public static getRandomAddress(): Address {
+  public static getRandomAddress(): WalletAddress {
     const keyPair: bitcoinJs.ECPair = bitcoinJs.ECPair.makeRandom({ network: ECA_NETWORK })
 
     return {
       hash: keyPair.getAddress(),
+      isCiphered: false,
+      isHD: false,
+      label: null,
       privateKey: keyPair.toWIF()
     }
   }
