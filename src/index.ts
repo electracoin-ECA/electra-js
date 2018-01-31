@@ -1,4 +1,5 @@
 import RpcServer, { RpcServerAuth } from './rpc-server'
+import Wallet from './wallet'
 import webServices, { WebServices } from './web-services'
 
 export interface Settings {
@@ -19,13 +20,19 @@ export default class ElectraJs {
   /** RPC server interactions. */
   public rpcServer: RpcServer
 
+  /** Wallet management. */
+  public wallet: Wallet
+
   /** Web services. */
-  public webServices: WebServices = webServices
+  public webServices: WebServices
 
   public constructor(settings: Settings = {}) {
     if (settings.rpcServerUri !== undefined && settings.rpcServerAuth !== undefined) {
       this.rpcServer = new RpcServer(settings.rpcServerUri, settings.rpcServerAuth)
     }
+
+    this.wallet = new Wallet()
+    this.webServices = webServices
   }
 
   /**
