@@ -4,6 +4,7 @@ import * as assert from 'assert'
 import * as bip39 from 'bip39'
 
 import Wallet from '.'
+import Electra from '../libs/electra/index'
 
 // These test variables reference the same HD wallet sample
 export const WALLET_TEST = {
@@ -57,8 +58,10 @@ describe('Wallet', function() {
     it(`#state SHOULD be "READY"`, () => { assert.strictEqual(wallet.state, 'READY') })
 
     it(`#addresses SHOULD be an array`, () => { assert.strictEqual(Array.isArray(wallet.addresses), true) })
-    it(`#addresses SHOULD contain 1 item`, () => { assert.strictEqual(wallet.addresses.length, 1) })
-    it(`#addresses SHOULD contain 1 item with a valid`, () => { assert.strictEqual(wallet.addresses.length, 1) })
+    it(`#addresses SHOULD contain 1 address`, () => { assert.strictEqual(wallet.addresses.length, 1) })
+    it(`#addresses first address SHOULD be resolvable`, () => {
+      assert.strictEqual(wallet.addresses[0].hash, Electra.getAddressHashFromPrivateKey(wallet.addresses[0].privateKey))
+    })
 
     it(`#mnemonic SHOULD be a string`, () => { assert.strictEqual(typeof wallet.mnemonic, 'string') })
     it(`#mnemonic SHOULD be a non-empty string`, () => { assert.strictEqual(wallet.mnemonic.length > 0, true) })
@@ -108,8 +111,8 @@ describe('Wallet', function() {
 
     it(`#addresses SHOULD be an array`, () => { assert.strictEqual(Array.isArray(wallet.addresses), true) })
     it(`#addresses SHOULD contain 1 address`, () => { assert.strictEqual(wallet.addresses.length, 1) })
-    it(`#addresses SHOULD contain 1 address with a valid hash`, () => {
-      assert.strictEqual(wallet.addresses.length, true)
+    it(`#addresses first address SHOULD be resolvable`, () => {
+      assert.strictEqual(wallet.addresses[0].hash, Electra.getAddressHashFromPrivateKey(wallet.addresses[0].privateKey))
     })
 
     it(`#mnemonic SHOULD throw an error`, () => { assert.throws(() => wallet.mnemonic) })
