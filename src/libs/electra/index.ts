@@ -92,6 +92,16 @@ export default class Electra {
   }
 
   /**
+   * Generate a crypto-random mnemonic, using a 128-bits entropy.
+   *
+   * @note A 128-bits entropy generates a 12 words mnemonic.
+   * @see https://github.com/bitcoinjs/bip39
+   */
+  public static validateMnemonic(mnemonic: string): boolean {
+    return bip39.validateMnemonic(mnemonic)
+  }
+
+  /**
    * Return an instance of Highly Deterministic Wallet Master Node from its mnemonic,
    * extended by the mnemonic extension if given.
    */
