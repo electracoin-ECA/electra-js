@@ -3,9 +3,6 @@ language: node_js
 node_js:
   - "9.4"
 
-env:
-  - NODE_ENV=travis
-
 before_install:
   - sudo apt-get install -qq google-chrome-stable
 
