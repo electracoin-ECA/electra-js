@@ -1,11 +1,7 @@
-import { OrNull } from '../types'
+import { Address, OrNull } from '../types'
 
-export interface WalletAddress {
-  hash: string
-  isCiphered: boolean
-  isHD: boolean
+export interface WalletAddress extends Address {
   label: OrNull<string>
-  privateKey: string
 }
 
 export interface WalletData {
