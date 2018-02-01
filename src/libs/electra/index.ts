@@ -5,7 +5,7 @@ import * as bitcoinJs from 'bitcoinjs-lib'
 
 import { ECA_NETWORK } from '../../constants'
 
-import { WalletAddress } from '../../wallet/types'
+import { Address } from '../../types'
 
 const CHAIN_CODE_BUFFER_SIZE: number = 32
 const ENTROPY_STRENGTH: number = 128
@@ -32,7 +32,7 @@ export default class Electra {
     privateKey: string,
     walletIndex: number,
     chainIndex: number
-  ): WalletAddress {
+  ): Address {
     const masterNode: bitcoinJs.HDNode = this.getMasterNodeFromPrivateKey(privateKey)
     const derivedNode: bitcoinJs.HDNode = masterNode.deriveHardened(walletIndex).derive(chainIndex)
 
@@ -40,7 +40,6 @@ export default class Electra {
       hash: derivedNode.getAddress(),
       isCiphered: false,
       isHD: true,
-      label: null,
       privateKey: derivedNode.keyPair.toWIF()
     }
   }
@@ -51,7 +50,7 @@ export default class Electra {
    *
    * @see https://en.bitcoin.it/wiki/Mnemonic_phrase
    */
-  public static getMasterNodeAddressFromMnemonic(mnemonic: string, mnemonicExtension?: string): WalletAddress {
+  public static getMasterNodeAddressFromMnemonic(mnemonic: string, mnemonicExtension?: string): Address {
     const masterNode: bitcoinJs.HDNode = this.getMasterNodeFromMnemonic(mnemonic, mnemonicExtension)
     const keyPair: bitcoinJs.ECPair = masterNode.keyPair
 
@@ -59,7 +58,6 @@ export default class Electra {
       hash: keyPair.getAddress(),
       isCiphered: false,
       isHD: true,
-      label: null,
       privateKey: keyPair.toWIF()
     }
   }
@@ -69,14 +67,13 @@ export default class Electra {
    *
    * @note This address can't be associated with a mnemonic and requires its private key to be recovered.
    */
-  public static getRandomAddress(): WalletAddress {
+  public static getRandomAddress(): Address {
     const keyPair: bitcoinJs.ECPair = bitcoinJs.ECPair.makeRandom({ network: ECA_NETWORK })
 
     return {
       hash: keyPair.getAddress(),
       isCiphered: false,
       isHD: false,
-      label: null,
       privateKey: keyPair.toWIF()
     }
   }
