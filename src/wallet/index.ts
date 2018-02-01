@@ -1,7 +1,11 @@
+import to from 'await-to-js'
+
 import Crypto from '../libs/crypto'
 import Electra from '../libs/electra'
+import webServices from '../web-services'
 
-import {  WalletAddress, WalletData, WalletState, WalletTransaction } from './types'
+import { Address } from '../types'
+import { WalletAddress, WalletData, WalletState, WalletTransaction } from './types'
 
 const WALLET_INDEX: number = 0
 
@@ -143,6 +147,8 @@ export default class Wallet {
       `)
     }
 
+    let chainIndex: number
+
     /*
       ----------------------------------
       STEP 1: MNEMONIC
@@ -167,7 +173,11 @@ export default class Wallet {
     */
 
     try {
-      this.MASTER_NODE_ADDRESS = Electra.getMasterNodeAddressFromMnemonic(mnemonic, mnemonicExtension)
+      const address: Address = Electra.getMasterNodeAddressFromMnemonic(mnemonic, mnemonicExtension)
+      this.MASTER_NODE_ADDRESS = {
+        ...address,
+        label: null
+      }
     }
     catch (err) { throw err }
 
@@ -176,14 +186,19 @@ export default class Wallet {
       STEP 3: CHAINS
     */
 
+    chainIndex = 0
     try {
-      let chainIndex: number = 0
       while (chainIndex++ < chainsCount) {
-        this.ADDRESSES.push(Electra.getDerivedChainFromMasterNodePrivateKey(
+        const address: Address = Electra.getDerivedChainFromMasterNodePrivateKey(
           this.MASTER_NODE_ADDRESS.privateKey,
           WALLET_INDEX,
           chainIndex
-        ))
+        )
+
+        this.ADDRESSES.push({
+          ...address,
+          label: null
+        })
       }
     }
     catch (err) { throw err }
@@ -359,5 +374,38 @@ export default class Wallet {
     this.TRANSACTIONS = []
 
     return this
+  }
+
+  /**
+   * Get the global wallet balance, or the <address> balance if specified.
+   */
+  public async getBalance(addressHash?: string): Promise<number> {
+    if (this.STATE === WalletState.EMPTY) {
+      throw new Error(`ElectraJs.Wallet: You can't #getBalance() from an empty wallet (#state = "EMPTY").`)
+    }
+
+    const addresses: WalletAddress[] = this.allAddresses
+
+    if (addressHash !== undefined) {
+      if (addresses.filter((address: WalletAddress) => address.hash === addressHash).length === 0) {
+        throw new Error(`ElectraJs.Wallet: You can't #getBalance() with an address not part of the current wallet.`)
+      }
+
+      // tslint:disable-next-line:no-shadowed-variable
+      const [err, balance] = await to(webServices.getBalanceFor(addressHash))
+      if (err !== undefined) throw err
+
+      return balance as number
+    }
+
+    let index: number = addresses.length
+    let balanceTotal: number = 0
+    while (--index >= 0) {
+      const [err, balance] = await to(webServices.getBalanceFor(this.allAddresses[index].hash))
+      if (err !== undefined || balance === undefined) throw err
+      balanceTotal += balance
+    }
+
+    return balanceTotal
   }
 }
