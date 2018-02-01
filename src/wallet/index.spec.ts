@@ -25,7 +25,7 @@ describe('Wallet', function() {
   let wallet: Wallet
 
   // TODO We need a more efficient lock() and unlock() strategy
-  this.timeout(20000)
+  this.timeout(30000)
 
   describe(`WHEN instantiating a new wallet`, () => {
     it(`new Wallet() SHOULD NOT throw any error`, () => { assert.doesNotThrow(() => wallet = new Wallet()) })
