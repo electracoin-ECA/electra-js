@@ -39,10 +39,10 @@ interface CoinMarketCapCoinInfo {
  */
 export default async function(currency: CoinMarketCapCurrency = 'USD'): Promise<number> {
   const [ err, res ] = await to(Axios.get<CoinMarketCapCoinInfo[]>(URI, { params: { convert: currency } }))
-  if (err) throw new Error(`api#getPriceIn(): ${err.message}`)
+  if (err) throw new Error(`api#webServices(): ${err.message}`)
 
   if (res === undefined || !Array.isArray(res.data) || res.data.length === 0) {
-    throw new Error(`api#getPriceIn(): We did't get the expected response from CoinMarketCap.`)
+    throw new Error(`api#webServices(): We did't get the expected response from CoinMarketCap.`)
   }
 
   const priceKey: keyof CoinMarketCapCoinInfo = `price_${currency.toLowerCase()}` as keyof CoinMarketCapCoinInfo
