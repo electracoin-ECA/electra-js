@@ -24,6 +24,8 @@ export default async function(address: string): Promise<number> {
   if (err) throw new Error(`webServices#getBalanceFor(): ${err.message}`)
 
   if (res === undefined || typeof res.data !== 'object' || typeof res.data.balance !== 'number') {
+    if (res !== undefined && typeof res.data === 'object') return 0
+
     throw new Error(`webServices#getBalanceFor(): We did't get the expected response from ElectraExplorer.`)
   }
 
