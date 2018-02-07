@@ -29,12 +29,12 @@ const {
 // As a result, the generated private keys are different and listed here.
 export const HD_WALLET_WITHOUT_MNEMONIC_EXTENSION_TEST = {
   chains: [
-    { hash: 'EdrLwe4T2zuyi42YZdFN68ozgbPovJbYdb', privateKey: 'QtMi7u7cjxQoBn4fQdNKWudNtEQUvNW6NL8e1oEUVwg4m1k1THJ3' },
-    { hash: 'EJvQUTKdi8K5brkAMuCpK1cZYJxtRH9dY5', privateKey: 'QsFf6FQP7rzUpTBzovmaveu6umekDTs9GB2X4JycE9Jg6fxYroXc' }
+    { hash: 'EMLhrYaSf8jn3BbVFHZYTFQGJd3Fps2vum', privateKey: 'QxB8fYQAeMPD1HDzjdno9dJB8Z4reT1UZzNcPRKmGgCwQ1brDpK3' },
+    { hash: 'EdrLwe4T2zuyi42YZdFN68ozgbPovJbYdb', privateKey: 'QtMi7u7cjxQoBn4fQdNKWudNtEQUvNW6NL8e1oEUVwg4m1k1THJ3' }
   ],
   masterNode: {
-    hash: 'EHtiQTEnQnbF4w6qwFV2vZ5rCKdcvSTbK4',
-    privateKey: 'QqwHWeqEQx1yxTM4NHmhB16GxZ8HKDQhV5h9KMqHgZjBJD1wxNBq'
+    hash: 'EgLq5EkwdkyNVf9jxXSm6zuwUtnZhsgcMs',
+    privateKey: 'QuHd7Pov2yYqz8ixAoXQJaTaEdYaVPFJ6zo4sHhYzFnjyXZGyKvj'
   },
 }
 
@@ -87,7 +87,7 @@ describe('Wallet', function() {
 
   describe(`WHEN generating the same wallet (W1) WITHOUT <mnemonic>, <mnemonicExtension>, <chainsCount>`, () => {
     it(`#generate() SHOULD NOT throw any error`, () => {
-      assert.doesNotThrow(() => wallet.generate(HD_PASSPHRASE_TEST))
+      assert.doesNotThrow(() => wallet.generate())
     })
   })
 
@@ -114,7 +114,7 @@ describe('Wallet', function() {
     it.skip(`#unlock() SHOULD not throw any error`, () => { assert.doesNotThrow(() => wallet.unlock(HD_PASSPHRASE_TEST)) })
     it.skip(`#isLocked SHOULD be FALSE`, () => { assert.strictEqual(wallet.isLocked, false) })
 
-    it(`#generate() SHOULD throw an error`, () => { assert.throws(() => wallet.generate(HD_PASSPHRASE_TEST)) })
+    it(`#generate() SHOULD throw an error`, () => { assert.throws(() => wallet.generate()) })
   })
 
   describe(`WHEN resetting the same wallet (W1)`, () => {
@@ -140,10 +140,10 @@ describe('Wallet', function() {
 
   describe(`WHEN generating the same wallet (W2) WITH <mnemonic> WITHOUT <mnemonicExtension>, <chainsCount>`, () => {
     it(`#generate() SHOULD throw an error WITH an invalid mnemonic`, () => {
-      assert.throws(() => wallet.generate(HD_PASSPHRASE_TEST, HD_MNEMONIC_TEST.substr(1)))
+      assert.throws(() => wallet.generate(HD_MNEMONIC_TEST.substr(1)))
     })
     it(`#generate() SHOULD NOT throw any error WITH a valid mnemonic`, () => {
-      assert.doesNotThrow(() => wallet.generate(HD_PASSPHRASE_TEST, HD_MNEMONIC_TEST))
+      assert.doesNotThrow(() => wallet.generate(HD_MNEMONIC_TEST))
     })
   })
 
@@ -170,7 +170,7 @@ describe('Wallet', function() {
     it.skip(`#unlock() SHOULD not throw any error`, () => { assert.doesNotThrow(() => wallet.unlock(HD_PASSPHRASE_TEST)) })
     it.skip(`#isLocked SHOULD be FALSE`, () => { assert.strictEqual(wallet.isLocked, false) })
 
-    it(`#generate() SHOULD throw an error`, () => { assert.throws(() => wallet.generate(HD_PASSPHRASE_TEST)) })
+    it(`#generate() SHOULD throw an error`, () => { assert.throws(() => wallet.generate()) })
   })
 
   describe(`WHEN resetting the same wallet (W2)`, () => {
@@ -196,10 +196,10 @@ describe('Wallet', function() {
 
   describe(`WHEN generating the same wallet (W3) WITH <mnemonic>, <mnemonicExtension> WITHOUT <chainsCount>`, () => {
     it(`#generate() SHOULD throw an error WITH an invalid mnemonic`, () => {
-      assert.throws(() => wallet.generate(HD_PASSPHRASE_TEST, HD_MNEMONIC_TEST.substr(1), HD_MNEMONIC_EXTENSION_TEST))
+      assert.throws(() => wallet.generate(HD_MNEMONIC_TEST.substr(1), HD_MNEMONIC_EXTENSION_TEST))
     })
     it(`#generate() SHOULD NOT throw any error WITH a valid mnemonic`, () => {
-      assert.doesNotThrow(() => wallet.generate(HD_PASSPHRASE_TEST, HD_MNEMONIC_TEST, HD_MNEMONIC_EXTENSION_TEST))
+      assert.doesNotThrow(() => wallet.generate(HD_MNEMONIC_TEST, HD_MNEMONIC_EXTENSION_TEST))
     })
   })
 
@@ -226,7 +226,7 @@ describe('Wallet', function() {
     it.skip(`#unlock() SHOULD not throw any error`, () => { assert.doesNotThrow(() => wallet.unlock(HD_PASSPHRASE_TEST)) })
     it.skip(`#isLocked SHOULD be FALSE`, () => { assert.strictEqual(wallet.isLocked, false) })
 
-    it(`#generate() SHOULD throw an error`, () => { assert.throws(() => wallet.generate(HD_PASSPHRASE_TEST)) })
+    it(`#generate() SHOULD throw an error`, () => { assert.throws(() => wallet.generate()) })
   })
 
   describe(`WHEN resetting the same wallet (W3)`, () => {
@@ -252,10 +252,10 @@ describe('Wallet', function() {
 
   describe(`WHEN generating the same wallet (W4) WITH <mnemonic>, <mnemonicExtension>, <chainsCount>`, () => {
     it(`#generate() SHOULD throw an error WITH an invalid mnemonic`, () => {
-      assert.throws(() => wallet.generate(HD_PASSPHRASE_TEST, HD_MNEMONIC_TEST.substr(1), HD_MNEMONIC_EXTENSION_TEST, 2))
+      assert.throws(() => wallet.generate(HD_MNEMONIC_TEST.substr(1), HD_MNEMONIC_EXTENSION_TEST, 2))
     })
     it(`#generate() SHOULD NOT throw any error WITH a valid mnemonic`, () => {
-      assert.doesNotThrow(() => wallet.generate(HD_PASSPHRASE_TEST, HD_MNEMONIC_TEST, HD_MNEMONIC_EXTENSION_TEST, 2))
+      assert.doesNotThrow(() => wallet.generate(HD_MNEMONIC_TEST, HD_MNEMONIC_EXTENSION_TEST, 2))
     })
   })
 
@@ -291,7 +291,7 @@ describe('Wallet', function() {
     it.skip(`#unlock() SHOULD not throw any error`, () => { assert.doesNotThrow(() => wallet.unlock(HD_PASSPHRASE_TEST)) })
     it.skip(`#isLocked SHOULD be FALSE`, () => { assert.strictEqual(wallet.isLocked, false) })
 
-    it(`#generate() SHOULD throw an error`, () => { assert.throws(() => wallet.generate(HD_PASSPHRASE_TEST)) })
+    it(`#generate() SHOULD throw an error`, () => { assert.throws(() => wallet.generate()) })
   })
 
   describe(`WHEN resetting the same wallet (W4)`, () => {
