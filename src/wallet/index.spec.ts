@@ -52,10 +52,10 @@ if (([
   HD_PASSPHRASE_TEST,
 ] as any).includes(undefined)) {
   console.error('Error: You forgot to fill value(s) in your ".env" test wallet data. Please check ".env.sample".')
-  process.exit()
+  process.exit(1)
 }
 
-describe.only('Wallet', function() {
+describe('Wallet', function() {
   let wallet: Wallet
 
   // TODO We need a more efficient lock() and unlock() strategy
