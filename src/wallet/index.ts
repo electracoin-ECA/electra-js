@@ -393,7 +393,7 @@ export default class Wallet {
 
       // tslint:disable-next-line:no-shadowed-variable
       const [err, balance] = await to(webServices.getBalanceFor(addressHash))
-      if (err !== undefined) throw err
+      if (err !== null) throw err
 
       return balance as number
     }
@@ -402,7 +402,7 @@ export default class Wallet {
     let balanceTotal: number = 0
     while (--index >= 0) {
       const [err, balance] = await to(webServices.getBalanceFor(this.allAddresses[index].hash))
-      if (err !== undefined || balance === undefined) throw err
+      if (err !== null || balance === undefined) throw err
       balanceTotal += balance
     }
 
