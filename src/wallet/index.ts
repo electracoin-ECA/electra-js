@@ -313,11 +313,18 @@ export default class Wallet {
    * If the wallet #state is READY, it will add the private key to the existing one(s).
    */
   public importAddress(address: WalletAddress, passphrase?: string, isHDMasterNode: boolean = false): this {
+    if (isHDMasterNode && this.MASTER_NODE_ADDRESS !== undefined) {
+      throw new Error(`ElectraJs.Wallet:
+        You can't #importAddress() of a HD Master Node into wallet that already has one.
+        Do you want to #reset() it first ?
+      `)
+    }
+
     // Decipher the PK is necessary
     if (address.isCiphered) {
       if (passphrase === undefined) {
         throw new Error(`ElectraJs.Wallet:
-          You can't #import() a ciphered private key without specifying the passphrase param.
+          You can't #importAddress() with a ciphered private key without specifying the <passphrase>.
         `)
       }
 
