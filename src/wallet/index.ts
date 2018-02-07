@@ -139,7 +139,7 @@ export default class Wallet {
    *
    * TODO Figure out a way to validate provided mnemonics using different specs (words list & entropy strength).
    */
-  public generate(passphrase: string, mnemonic?: string, mnemonicExtension?: string, chainsCount: number = 1): this {
+  public generate(mnemonic?: string, mnemonicExtension?: string, chainsCount: number = 1): this {
     if (this.STATE === WalletState.READY) {
       throw new Error(`ElectraJs.Wallet:
         The #generate() method can't be called on an already ready wallet (#state = "READY").
