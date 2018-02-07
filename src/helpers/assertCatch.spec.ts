@@ -2,10 +2,18 @@
 
 import * as assert from 'assert'
 
-import isBrowser from './isBrowser'
+import assertCatch from './assertCatch'
 
-describe('helpers/isBrowser()', function() {
-  it(`SHOULD return FALSE`, function() {
-    assert.strictEqual(isBrowser(), false)
+function failIfTrue(isTrue) {
+  return new Promise((resolve, reject) => isTrue ? reject() : resolve())
+}
+
+describe('helpers/assertCatch()', function() {
+  it(`SHOULD return TRUE`, async function() {
+    assert.strictEqual(await assertCatch(() => failIfTrue(true)), true)
+  })
+
+  it(`SHOULD return FALSE`, async function() {
+    assert.strictEqual(await assertCatch(() => failIfTrue(false)), false)
   })
 })
