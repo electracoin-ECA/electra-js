@@ -186,9 +186,9 @@ export default class Wallet {
       STEP 3: CHAINS
     */
 
-    chainIndex = 0
+    chainIndex = -1
     try {
-      while (chainIndex++ < chainsCount) {
+      while (++chainIndex < chainsCount) {
         const address: Address = Electra.getDerivedChainFromMasterNodePrivateKey(
           this.MASTER_NODE_ADDRESS.privateKey,
           WALLET_INDEX,
