@@ -5,7 +5,7 @@ import Axios, { AxiosRequestConfig } from 'axios'
 
 import { JsonRpcRequest, JsonRpcResponse, RpcMethod, RpcMethodParams, RpcMethodResult } from './types'
 
-export interface RpcServerAuth {
+export interface RpcAuth {
   username: string
   password: string
 }
@@ -19,13 +19,13 @@ const CONFIG_DEFAULT: AxiosRequestConfig = {
 /**
  * RPC server related methods matching RPC commands.
  */
-export default class RpcServer {
+export default class Rpc {
   /** Basic Authentication info for RPC calls. */
-  private readonly auth: RpcServerAuth
+  private readonly auth: RpcAuth
   /** RPC server URI. */
   private readonly uri: string
 
-  public constructor(uri: string, auth: RpcServerAuth) {
+  public constructor(uri: string, auth: RpcAuth) {
     this.auth = auth
     this.uri = uri
   }
