@@ -1,5 +1,6 @@
 import to from 'await-to-js'
 
+import tryCatch from '../helpers/tryCatch'
 import Crypto from '../libs/crypto'
 import Electra from '../libs/electra'
 import Rpc from '../libs/rpc'
@@ -7,8 +8,10 @@ import webServices from '../web-services'
 
 import { Settings } from '..'
 import { Address } from '../types'
-import { WalletAddress, WalletData, WalletState, WalletTransaction } from './types'
+import { WalletAddress, WalletData, WalletStakingInfo, WalletState, WalletTransaction } from './types'
 
+// tslint:disable-next-line:no-magic-numbers
+const ONE_YEAR_IN_SECONDS: number = 60 * 60 * 24 * 365
 const WALLET_INDEX: number = 0
 
 /**
@@ -109,7 +112,7 @@ export default class Wallet {
   }
 
   /** RPC Server instance.  */
-  private rpc: Rpc | undefined
+  private readonly rpc: Rpc | undefined
 
   /** Wallet state. */
   private STATE: WalletState = WalletState.EMPTY
@@ -137,6 +140,7 @@ export default class Wallet {
   public constructor(settings: Settings = {}) {
     if (settings.rpcServerUri !== undefined && settings.rpcServerAuth !== undefined) {
       this.rpc = new Rpc(settings.rpcServerUri, settings.rpcServerAuth)
+      this.STATE = WalletState.READY
     }
   }
 
@@ -227,6 +231,14 @@ export default class Wallet {
       throw new Error(`ElectraJs.Wallet: The #lock() method can only be called on a ready wallet (#state = "READY").`)
     }
 
+    if (this.rpc !== undefined) {
+      const [err] = tryCatch(this.rpc.lock.bind(this))
+      if (err !== null) throw err
+      this.IS_LOCKED = true
+
+      return
+    }
+
     try {
       if (this.MASTER_NODE_ADDRESS !== undefined && !this.MASTER_NODE_ADDRESS.isCiphered) {
         this.MASTER_NODE_ADDRESS.privateKey = Crypto.cipherPrivateKey(this.MASTER_NODE_ADDRESS.privateKey, passphrase)
@@ -259,9 +271,17 @@ export default class Wallet {
   /**
    * Unlock the wallet, that is, decipher all the private keys.
    */
-  public unlock(passphrase: string): void {
+  public unlock(passphrase: string, forStakingOnly: boolean = true): void {
     if (this.STATE !== WalletState.READY) {
       throw new Error(`ElectraJs.Wallet: The #unlock() method can only be called on a ready wallet (#state = "READY").`)
+    }
+
+    if (this.rpc !== undefined) {
+      const [err] = tryCatch(() => (this.rpc as Rpc).unlock(passphrase, ONE_YEAR_IN_SECONDS, forStakingOnly))
+      if (err !== null) throw err
+      this.IS_LOCKED = false
+
+      return
     }
 
     try {
@@ -425,5 +445,19 @@ export default class Wallet {
     }
 
     return balanceTotal
+  }
+
+  /**
+   * Get the current staking calculated data.
+   */
+  public async getStakingInfo(): Promise<WalletStakingInfo> {
+    const [err, res] = await to((this.rpc as Rpc).getStakingInfo())
+    if (err !== null || res === undefined) throw err
+
+    return {
+      networkWeight: res.netstakeweight,
+      nextRewardIn: res.expectedtime,
+      weight: res.weight
+    }
   }
 }
