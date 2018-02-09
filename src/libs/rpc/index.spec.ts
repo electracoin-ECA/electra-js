@@ -11,8 +11,8 @@ const RPC_SERVER_AUTH = {
 }
 const RPC_SERVER_URI = 'http://127.0.0.1:5788'
 
-describe.only('Rpc', function() {
-  const testAccount = 'Test'
+describe('Rpc', function() {
+  let testAccount: string
   let testAddress: string
   let rpc: Rpc
 
@@ -22,9 +22,11 @@ describe.only('Rpc', function() {
     if (process.env.NODE_ENV === 'travis') this.skip()
 
     rpc = new Rpc(RPC_SERVER_URI, RPC_SERVER_AUTH)
-    testAddress = (await rpc.listReceivedByAddress())
-      .filter(address => address.account === testAccount)
-      [0].address
+    const address = (await rpc.listReceivedByAddress())
+      .filter(address => address.amount > 0)
+      [0]
+    testAccount = address.account
+    testAddress = address.address
   })
   beforeEach(function() {
     if (process.env.NODE_ENV === 'travis') this.skip()
@@ -150,7 +152,6 @@ describe.only('Rpc', function() {
       assert.strictEqual(typeof transactions[0].txid, 'string')
       assert.strictEqual(typeof transactions[0].vout, 'number')
       assert.strictEqual(typeof transactions[0].address, 'string')
-      assert.strictEqual(typeof transactions[0].account, 'string')
       assert.strictEqual(typeof transactions[0].scriptPubKey, 'string')
       assert.strictEqual(typeof transactions[0].amount, 'number')
       assert.strictEqual(typeof transactions[0].confirmations, 'number')
