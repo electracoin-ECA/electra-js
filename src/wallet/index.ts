@@ -1,6 +1,5 @@
 import to from 'await-to-js'
 
-import tryCatch from '../helpers/tryCatch'
 import Crypto from '../libs/crypto'
 import Electra from '../libs/electra'
 import Rpc from '../libs/rpc'
@@ -226,13 +225,13 @@ export default class Wallet {
   /**
    * Lock the wallet, that is, cipher all the private keys.
    */
-  public lock(passphrase: string): void {
+  public async lock(passphrase: string): Promise<void> {
     if (this.STATE !== WalletState.READY) {
       throw new Error(`ElectraJs.Wallet: The #lock() method can only be called on a ready wallet (#state = "READY").`)
     }
 
     if (this.rpc !== undefined) {
-      const [err] = tryCatch(this.rpc.lock.bind(this))
+      const [err] = await to(this.rpc.lock())
       if (err !== null) throw err
       this.IS_LOCKED = true
 
@@ -271,13 +270,13 @@ export default class Wallet {
   /**
    * Unlock the wallet, that is, decipher all the private keys.
    */
-  public unlock(passphrase: string, forStakingOnly: boolean = true): void {
+  public async unlock(passphrase: string, forStakingOnly: boolean = true): Promise<void> {
     if (this.STATE !== WalletState.READY) {
       throw new Error(`ElectraJs.Wallet: The #unlock() method can only be called on a ready wallet (#state = "READY").`)
     }
 
     if (this.rpc !== undefined) {
-      const [err] = tryCatch(() => (this.rpc as Rpc).unlock(passphrase, ONE_YEAR_IN_SECONDS, forStakingOnly))
+      const [err] = await to(this.rpc.unlock(passphrase, ONE_YEAR_IN_SECONDS, forStakingOnly))
       if (err !== null) throw err
       this.IS_LOCKED = false
 
