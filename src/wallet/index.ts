@@ -6,6 +6,7 @@ import Rpc from '../libs/rpc'
 import webServices from '../web-services'
 
 import { Settings } from '..'
+import { RpcMethodResult } from '../libs/rpc/types'
 import { Address } from '../types'
 import { WalletAddress, WalletData, WalletStakingInfo, WalletState, WalletTransaction } from './types'
 
@@ -139,7 +140,6 @@ export default class Wallet {
   public constructor(settings: Settings = {}) {
     if (settings.rpcServerUri !== undefined && settings.rpcServerAuth !== undefined) {
       this.rpc = new Rpc(settings.rpcServerUri, settings.rpcServerAuth)
-      this.STATE = WalletState.READY
     }
   }
 
@@ -153,12 +153,54 @@ export default class Wallet {
    *
    * TODO Figure out a way to validate provided mnemonics using different specs (words list & entropy strength).
    */
-  public generate(mnemonic?: string, mnemonicExtension?: string, chainsCount: number = 1): this {
+  public async generate(
+    mnemonic?: string,
+    mnemonicExtension?: string,
+    chainsCount: number = 1,
+    passphrase?: string
+  ): Promise<this> {
     if (this.STATE === WalletState.READY) {
       throw new Error(`ElectraJs.Wallet:
         The #generate() method can't be called on an already ready wallet (#state = "READY").
         You need to #reset() it first, then #initialize() it again in order to #generate() a new one.
       `)
+    }
+
+    if (this.rpc !== undefined) {
+      if (passphrase === undefined) {
+        throw new Error(`ElectraJs.Wallet:
+          The #generate() method can't be called in an RPC Server context without specifying the <passphrase>.
+        `)
+      }
+
+      // We prevent any unlocking error by locking it first.
+      try { await this.rpc.lock() }
+      catch (err) { /* We ignore the error here in case the wallet was already locked. */ }
+
+      try {
+        const addressesGroups: RpcMethodResult<'listaddressgroupings'> = await this.rpc.listAddressGroupings()
+        const randomAddresses: Array<Partial<WalletAddress>> = addressesGroups[0].map((addressGroup: string[]) => ({
+          hash: addressGroup[0],
+          isCiphered: false,
+          isHD: false,
+          // tslint:disable-next-line:no-magic-numbers
+          label: addressGroup[2]
+        }))
+
+        await this.rpc.unlock(passphrase)
+
+        let i: number = randomAddresses.length
+        while (--i >= 0) {
+          randomAddresses[i].privateKey = await this.rpc.getPrivateKey(randomAddresses[i].hash as string)
+        }
+      }
+      catch (err) {
+        throw err
+      }
+
+      this.STATE = WalletState.READY
+
+      return this
     }
 
     let chainIndex: number
