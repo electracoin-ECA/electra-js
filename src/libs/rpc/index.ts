@@ -15,6 +15,8 @@ const CONFIG_DEFAULT: AxiosRequestConfig = {
     'Content-Type': 'application/json'
   }
 }
+// tslint:disable-next-line:no-magic-numbers
+const ONE_YEAR_IN_SECONDS: number = 60 * 60 * 24 * 365
 
 /**
  * RPC server related methods matching RPC commands.
@@ -104,6 +106,13 @@ export default class Rpc {
   }
 
   /**
+   * Get the current staking info.
+   */
+  public async getStakingInfo(): Promise<RpcMethodResult<'getstakinginfo'>> {
+    return this.query('getstakinginfo', null)
+  }
+
+  /**
    * Lists groups of addresses which have had their common ownership made public
    * by common use as inputs or as the resulting change in past transactions.
    */
@@ -168,6 +177,18 @@ export default class Rpc {
   public async storePassphrase(
     passphrase: string,
     timeout: number,
+    stakingOnly: boolean = true
+  ): Promise<RpcMethodResult<'walletpassphrase'>> {
+    return this.query('walletpassphrase', Array.prototype.slice.call(arguments))
+  }
+
+  /**
+   * Stores the wallet decryption key in memory for <timeout> seconds.
+   * If [stakingOnly] is TRUE, sending functions are disabled.
+   */
+  public async unlock(
+    passphrase: string,
+    timeout: number = ONE_YEAR_IN_SECONDS,
     stakingOnly: boolean = true
   ): Promise<RpcMethodResult<'walletpassphrase'>> {
     return this.query('walletpassphrase', Array.prototype.slice.call(arguments))
