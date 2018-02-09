@@ -1,9 +1,9 @@
-import { RpcServerAuth } from './libs/rpc'
+import { RpcAuth } from './libs/rpc'
 import Wallet from './wallet'
 import webServices, { WebServices } from './web-services'
 
 export interface Settings {
-  rpcServerAuth?: RpcServerAuth,
+  rpcServerAuth?: RpcAuth,
   rpcServerUri?: string
 }
 
