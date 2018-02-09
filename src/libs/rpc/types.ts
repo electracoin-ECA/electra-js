@@ -18,7 +18,7 @@ export interface RpcMethods {
   createrawtransaction: any
   decoderawtransaction: any
   decodescript: any
-  dumpprivkey: any
+  dumpprivkey: string
   dumpwallet: any
   getaccount: string
   getaccountaddress: any
@@ -119,7 +119,7 @@ export interface RpcMethods {
   help: OrNull<{
     command: RpcMethod
   }>
-  importprivkey: {}
+  importprivkey: void
   importwallet: any
   keypoolrefill: any
   /** @deprecated */
@@ -191,8 +191,8 @@ export interface RpcMethods {
     iscompressed?: boolean
   }
   verifymessage: any
-  walletlock: {}
-  walletpassphrase: {}
+  walletlock: void
+  walletpassphrase: void
   walletpassphrasechange: any
 }
 
