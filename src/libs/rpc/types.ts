@@ -99,7 +99,19 @@ export interface RpcMethods {
   getrawtransaction: any
   getreceivedbyaccount: any
   getreceivedbyaddress: any
-  getstakinginfo: any
+  getstakinginfo: {
+    enabled: boolean
+    staking: boolean
+    errors: string
+    currentblocksize: number
+    currentblocktx: number
+    pooledtx: number
+    difficulty: number
+    'search-interval': number
+    weight: number
+    netstakeweight: number
+    expectedtime: number
+  }
   getsubsidy: any
   gettransaction: any
   getwork: any
@@ -179,8 +191,8 @@ export interface RpcMethods {
     iscompressed?: boolean
   }
   verifymessage: any
-  walletlock: any
-  walletpassphrase: any
+  walletlock: {}
+  walletpassphrase: {}
   walletpassphrasechange: any
 }
 
