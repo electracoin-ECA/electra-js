@@ -119,7 +119,7 @@ export interface RpcMethods {
   help: OrNull<{
     command: RpcMethod
   }>
-  importprivkey: any
+  importprivkey: {}
   importwallet: any
   keypoolrefill: any
   /** @deprecated */
