@@ -106,6 +106,13 @@ export default class Rpc {
   }
 
   /**
+   * Get the private key of <addressHash>.
+   */
+  public async getPrivateKey(addressHash: string): Promise<RpcMethodResult<'dumpprivkey'>> {
+    return this.query('dumpprivkey', Array.prototype.slice.call(arguments))
+  }
+
+  /**
    * Get the current staking info.
    */
   public async getStakingInfo(): Promise<RpcMethodResult<'getstakinginfo'>> {
