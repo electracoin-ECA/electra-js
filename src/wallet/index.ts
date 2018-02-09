@@ -339,11 +339,11 @@ export default class Wallet {
   }
 
   /**
-   * Import a WIF private key into the wallet.
+   * Import a ramdomly generated (legacy) WIF private key into the wallet.
    * If the wallet #state is EMPTY, it will generate the wallet (=> READY).
    * If the wallet #state is READY, it will add the private key to the existing one(s).
    */
-  public importAddress(address: WalletAddress, passphrase?: string, isHDMasterNode: boolean = false): this {
+  public importRandomAddress(address: WalletAddress, passphrase?: string, isHDMasterNode: boolean = false): this {
     if (isHDMasterNode && this.MASTER_NODE_ADDRESS !== undefined) {
       throw new Error(`ElectraJs.Wallet:
         You can't #importAddress() of a HD Master Node into wallet that already has one.
