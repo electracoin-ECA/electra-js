@@ -340,57 +340,43 @@ export default class Wallet {
 
   /**
    * Import a ramdomly generated (legacy) WIF private key into the wallet.
-   * If the wallet #state is EMPTY, it will generate the wallet (=> READY).
-   * If the wallet #state is READY, it will add the private key to the existing one(s).
+   * If the [passphrase] is not defined, the <privateKey> MUST be given deciphered.
+   * If the [passphrase] is defined, the <privateKey> MUST be given ciphered.
    */
-  public importRandomAddress(address: WalletAddress, passphrase?: string, isHDMasterNode: boolean = false): this {
-    if (isHDMasterNode && this.MASTER_NODE_ADDRESS !== undefined) {
+  public importRandomAddress(privateKey: string, passphrase?: string): this {
+    if (this.STATE !== WalletState.READY) {
       throw new Error(`ElectraJs.Wallet:
-        You can't #importAddress() of a HD Master Node into wallet that already has one.
-        Do you want to #reset() it first ?
+        The #importRandomAddress() method can only be called on a ready wallet (#state = "READY").
       `)
     }
 
-    // Decipher the PK is necessary
-    if (address.isCiphered) {
-      if (passphrase === undefined) {
-        throw new Error(`ElectraJs.Wallet:
-          You can't #importAddress() with a ciphered private key without specifying the <passphrase>.
-        `)
-      }
+    const address: Partial<WalletAddress> = {
+      isHD: false,
+      label: null,
+      privateKey
+    }
 
+    // Decipher the private key is necessary
+    if (passphrase !== undefined) {
       try {
-        address.privateKey = Crypto.decipherPrivateKey(address.privateKey, passphrase)
-        address.isCiphered = false
+        address.privateKey = Crypto.decipherPrivateKey(privateKey, passphrase)
       }
       catch (err) {
         throw err
       }
     }
 
+    address.isCiphered = false
+
     // Get the address hash
     try {
-      address.hash = Electra.getAddressHashFromPrivateKey(address.privateKey)
+      address.hash = Electra.getAddressHashFromPrivateKey(address.privateKey as string)
     }
     catch (err) {
       throw err
     }
 
-    if (isHDMasterNode) {
-      if (this.state === WalletState.READY && this.isHD) {
-        throw new Error(`ElectraJs.Wallet:
-          You can #import() another Wallet HD Master Node. Only one Master Node can be set.
-          Maybe you want to #reset() it before doing that ?
-        `)
-      }
-
-      address.isHD = true
-      this.MASTER_NODE_ADDRESS = address
-
-      return this
-    }
-
-    this.RANDOM_ADDRESSES.push(address)
+    this.RANDOM_ADDRESSES.push(address as WalletAddress)
 
     return this
   }
