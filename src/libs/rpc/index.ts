@@ -113,6 +113,13 @@ export default class Rpc {
   }
 
   /**
+   * Get the current staking info.
+   */
+  public async importPrivateKey(privateKey: string): Promise<RpcMethodResult<'importprivkey'>> {
+    return this.query('importprivkey', Array.prototype.slice.call(arguments))
+  }
+
+  /**
    * Lists groups of addresses which have had their common ownership made public
    * by common use as inputs or as the resulting change in past transactions.
    */
