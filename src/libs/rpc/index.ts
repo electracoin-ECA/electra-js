@@ -171,18 +171,6 @@ export default class Rpc {
   }
 
   /**
-   * Stores the wallet decryption key in memory for <timeout> second.
-   * if <stakingonly> is true sending functions are disabled.
-   */
-  public async storePassphrase(
-    passphrase: string,
-    timeout: number,
-    stakingOnly: boolean = true
-  ): Promise<RpcMethodResult<'walletpassphrase'>> {
-    return this.query('walletpassphrase', Array.prototype.slice.call(arguments))
-  }
-
-  /**
    * Stores the wallet decryption key in memory for <timeout> seconds.
    * If [stakingOnly] is TRUE, sending functions are disabled.
    */
