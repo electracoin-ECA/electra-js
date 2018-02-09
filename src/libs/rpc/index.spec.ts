@@ -3,7 +3,7 @@
 import * as assert from 'assert'
 import * as crypto from 'crypto'
 
-import RpcServer from '.'
+import Rpc from '.'
 
 const RPC_SERVER_AUTH = {
   username: 'user',
@@ -11,19 +11,19 @@ const RPC_SERVER_AUTH = {
 }
 const RPC_SERVER_URI = 'http://127.0.0.1:5788'
 
-describe('RpcServer', function() {
-  const testAccount = 'Main'
+describe.only('Rpc', function() {
+  const testAccount = 'Test'
   let testAddress: string
-  let rpcServer: RpcServer
+  let rpc: Rpc
 
   // We skip the wallet tests in Travis CI for now
   // TODO Integrate an Electra core build in Travis CI
   before(async function() {
     if (process.env.NODE_ENV === 'travis') this.skip()
 
-    rpcServer = new RpcServer(RPC_SERVER_URI, RPC_SERVER_AUTH)
-    testAddress = (await rpcServer.listReceivedByAddress())
-      .filter(address => address.account === 'Main')
+    rpc = new Rpc(RPC_SERVER_URI, RPC_SERVER_AUTH)
+    testAddress = (await rpc.listReceivedByAddress())
+      .filter(address => address.account === testAccount)
       [0].address
   })
   beforeEach(function() {
@@ -32,28 +32,28 @@ describe('RpcServer', function() {
 
   describe('#check()', function() {
     it(`SHOULD succesfully check the wallet`, async function() {
-      const res = await rpcServer.check()
+      const res = await rpc.check()
       assert.strictEqual(res['wallet check passed'], true)
     })
   })
 
   describe('#getAccount()', function() {
     it(`SHOULD return "${testAccount}" with my "${testAccount}" account address`, async function() {
-      const account = await rpcServer.getAccount(testAddress)
+      const account = await rpc.getAccount(testAddress)
       assert.strictEqual(account, testAccount)
     })
   })
 
   describe('#getBalance()', function() {
     it(`SHOULD return a number`, async function() {
-      const balance = await rpcServer.getBalance()
+      const balance = await rpc.getBalance()
       assert.strictEqual(typeof balance, 'number')
     })
   })
 
   describe('#getDifficulty()', function() {
     it(`SHOULD return the expected types`, async function() {
-      const difficulty = await rpcServer.getDifficulty()
+      const difficulty = await rpc.getDifficulty()
       assert.strictEqual(typeof difficulty['proof-of-work'], 'number')
       assert.strictEqual(typeof difficulty['proof-of-stake'], 'number')
       assert.strictEqual(typeof difficulty['search-interval'], 'number')
@@ -62,7 +62,7 @@ describe('RpcServer', function() {
 
   describe('#getInfo()', function() {
     it(`SHOULD return the expected types`, async function() {
-      const info = await rpcServer.getInfo()
+      const info = await rpc.getInfo()
       assert.strictEqual(typeof info.version, 'string')
       assert.strictEqual(typeof info.protocolversion, 'number')
       assert.strictEqual(typeof info.walletversion, 'number')
@@ -89,21 +89,21 @@ describe('RpcServer', function() {
 
   describe('#getNewAddress()', function() {
     it.skip(`SHOULD return a string`, async function() {
-      const newAddress = await rpcServer.getNewAddress()
+      const newAddress = await rpc.getNewAddress()
       assert.strictEqual(typeof newAddress, 'string')
     })
 
     const account = crypto.randomBytes(20).toString('hex')
     it.skip(`SHOULD create an address labeled "${account}"`, async function() {
-      await rpcServer.getNewAddress(account)
-      const res = await rpcServer.listReceivedByAddress(1, true)
+      await rpc.getNewAddress(account)
+      const res = await rpc.listReceivedByAddress(1, true)
       assert.notStrictEqual(res.filter(address => address.account === account).length, 0)
     })
   })
 
   describe('#listAddressGroupings()', function() {
     it(`SHOULD return the expected types`, async function() {
-      const res = await rpcServer.listAddressGroupings()
+      const res = await rpc.listAddressGroupings()
       assert.strictEqual(typeof res[0][0][0], 'string')
       assert.strictEqual(typeof res[0][0][1], 'number')
       assert.strictEqual(typeof res[0][0][2], 'string')
@@ -112,7 +112,7 @@ describe('RpcServer', function() {
 
   describe('#listReceivedByAddress()', function() {
     it(`SHOULD return the expected types`, async function() {
-      const res = await rpcServer.listReceivedByAddress()
+      const res = await rpc.listReceivedByAddress()
       assert.strictEqual(typeof res[0].address, 'string')
       assert.strictEqual(typeof res[0].account, 'string')
       assert.strictEqual(typeof res[0].amount, 'number')
@@ -122,7 +122,7 @@ describe('RpcServer', function() {
 
   describe('#listTransactions()', function() {
     it(`SHOULD return the expected types`, async function() {
-      const transactions = await rpcServer.listTransactions()
+      const transactions = await rpc.listTransactions()
       assert.strictEqual(typeof transactions[0].account, 'string')
       assert.strictEqual(typeof transactions[0].address, 'string')
       assert.strictEqual(typeof transactions[0].category, 'string')
@@ -136,7 +136,7 @@ describe('RpcServer', function() {
     })
 
     it(`SHOULD all be related to "${testAccount}" account`, async function() {
-      const transactions = await rpcServer.listTransactions(testAccount)
+      const transactions = await rpc.listTransactions(testAccount)
       assert.strictEqual(
         transactions.length,
         transactions.filter(transaction => transaction.account === testAccount).length
@@ -146,7 +146,7 @@ describe('RpcServer', function() {
 
   describe('#listUnspent()', function() {
     it(`SHOULD return the expected types`, async function() {
-      const transactions = await rpcServer.listUnspent()
+      const transactions = await rpc.listUnspent()
       assert.strictEqual(typeof transactions[0].txid, 'string')
       assert.strictEqual(typeof transactions[0].vout, 'number')
       assert.strictEqual(typeof transactions[0].address, 'string')
@@ -159,7 +159,7 @@ describe('RpcServer', function() {
 
   describe('#makeKeyPair()', function() {
     it(`SHOULD return the expected strings and lengths`, async function() {
-      const keyPair = await rpcServer.makeKeyPair()
+      const keyPair = await rpc.makeKeyPair()
       assert.strictEqual(typeof keyPair.PrivateKey, 'string')
       assert.strictEqual(typeof keyPair.PublicKey, 'string')
       assert.strictEqual(keyPair.PrivateKey.length, 558)
@@ -169,7 +169,7 @@ describe('RpcServer', function() {
 
   describe('#validateAddress()', function() {
     it(`SHOULD return the expected result with my "${testAccount}" account address`, async function() {
-      const info = await rpcServer.validateAddress(testAddress)
+      const info = await rpc.validateAddress(testAddress)
       assert.strictEqual(info.isvalid, true)
       assert.strictEqual(info.address, testAddress)
       assert.strictEqual(info.ismine, true)
@@ -181,7 +181,7 @@ describe('RpcServer', function() {
 
     const fakeAddress = 'ERgSYfQ3xySNcZDwsVeyWW3XpfLAhj3fzT'
     it(`SHOULD return isvalid as FALSE with '${fakeAddress}' address`, async function() {
-      const info = await rpcServer.validateAddress(fakeAddress)
+      const info = await rpc.validateAddress(fakeAddress)
       assert.strictEqual(info.isvalid, false)
     })
   })
@@ -192,7 +192,7 @@ describe('RpcServer', function() {
         '04dbc8fe17d5214b4ed9ec1250db65091c0f1e988b27de0984967812cf2eb6107',
         'b4d95d890956eeb1510bec969e0e8b64bbdb3dd2374ddf81fbb1855d742c6470c'
       ].join('')
-      const info = await rpcServer.validatePublicKey(publicKey)
+      const info = await rpc.validatePublicKey(publicKey)
       assert.strictEqual(info.isvalid, true)
       assert.strictEqual(info.address, 'EHQXmjpWxbw7BvCX4CBp6XfSHxaAe6YAFw')
       assert.strictEqual(info.ismine, false)
@@ -200,7 +200,7 @@ describe('RpcServer', function() {
     })
 
     it(`SHOULD return isvalid as FALSE with a fake public key`, async function() {
-      const info = await rpcServer.validatePublicKey('1234567890abcdef')
+      const info = await rpc.validatePublicKey('1234567890abcdef')
       assert.strictEqual(info.isvalid, false)
     })
   })

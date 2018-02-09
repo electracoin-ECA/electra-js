@@ -2,8 +2,10 @@ import to from 'await-to-js'
 
 import Crypto from '../libs/crypto'
 import Electra from '../libs/electra'
+import Rpc from '../libs/rpc'
 import webServices from '../web-services'
 
+import { Settings } from '..'
 import { Address } from '../types'
 import { WalletAddress, WalletData, WalletState, WalletTransaction } from './types'
 
@@ -106,6 +108,9 @@ export default class Wallet {
     return this.MNEMONIC
   }
 
+  /** RPC Server instance.  */
+  private rpc: Rpc | undefined
+
   /** Wallet state. */
   private STATE: WalletState = WalletState.EMPTY
   /**
@@ -127,6 +132,12 @@ export default class Wallet {
     }
 
     return this.TRANSACTIONS
+  }
+
+  public constructor(settings: Settings = {}) {
+    if (settings.rpcServerUri !== undefined && settings.rpcServerAuth !== undefined) {
+      this.rpc = new Rpc(settings.rpcServerUri, settings.rpcServerAuth)
+    }
   }
 
   /**
