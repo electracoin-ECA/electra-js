@@ -12,8 +12,6 @@ import Electra from '../libs/electra/index'
 dotenv.config()
 
 const {
-  CUSTOM_ADDRESS_HASH_TEST,
-  CUSTOM_ADDRESS_PRIVATE_KEY_TEST,
   HD_CHAIN_1_HASH_TEST,
   HD_CHAIN_1_PRIVATE_KEY_TEST,
   HD_CHAIN_2_HASH_TEST,
@@ -23,6 +21,8 @@ const {
   HD_MNEMONIC_EXTENSION_TEST,
   HD_MNEMONIC_TEST,
   HD_PASSPHRASE_TEST,
+  RANDOM_ADDRESS_HASH_TEST,
+  RANDOM_ADDRESS_PRIVATE_KEY_TEST,
 } = process.env
 
 // This HD wallet i seeded by the same wallet mnemonic than the one above, but without the mnemonic extension.
@@ -39,8 +39,6 @@ export const HD_WALLET_WITHOUT_MNEMONIC_EXTENSION_TEST = {
 }
 
 if (([
-  CUSTOM_ADDRESS_HASH_TEST,
-  CUSTOM_ADDRESS_PRIVATE_KEY_TEST,
   HD_CHAIN_1_HASH_TEST,
   HD_CHAIN_1_PRIVATE_KEY_TEST,
   HD_CHAIN_2_HASH_TEST,
@@ -50,6 +48,8 @@ if (([
   HD_MNEMONIC_EXTENSION_TEST,
   HD_MNEMONIC_TEST,
   HD_PASSPHRASE_TEST,
+  RANDOM_ADDRESS_HASH_TEST,
+  RANDOM_ADDRESS_PRIVATE_KEY_TEST,
 ] as any).includes(undefined)) {
   console.error('Error: You forgot to fill value(s) in your ".env" test wallet data. Please check ".env.sample".')
   process.exit(1)
@@ -70,7 +70,7 @@ describe('Wallet', function() {
 
     it(`#addresses SHOULD throw an error`, () => { assert.throws(() => wallet.addresses) })
     it(`#allAddresses SHOULD throw an error`, () => { assert.throws(() => wallet.allAddresses) })
-    it(`#customAddresses SHOULD throw an error`, () => { assert.throws(() => wallet.customAddresses) })
+    it(`#randomAddresses SHOULD throw an error`, () => { assert.throws(() => wallet.randomAddresses) })
     it(`#isHD SHOULD throw an error`, () => { assert.throws(() => wallet.isHD) })
     it(`#isLocked SHOULD throw an error`, () => { assert.throws(() => wallet.isLocked) })
     it(`#mnemonic SHOULD throw an error`, () => { assert.throws(() => wallet.mnemonic) })
@@ -126,7 +126,7 @@ describe('Wallet', function() {
 
     it(`#addresses SHOULD throw an error`, () => { assert.throws(() => wallet.addresses) })
     it(`#allAddresses SHOULD throw an error`, () => { assert.throws(() => wallet.allAddresses) })
-    it(`#customAddresses SHOULD throw an error`, () => { assert.throws(() => wallet.customAddresses) })
+    it(`#randomAddresses SHOULD throw an error`, () => { assert.throws(() => wallet.randomAddresses) })
     it(`#isHD SHOULD throw an error`, () => { assert.throws(() => wallet.isHD) })
     it(`#isLocked SHOULD throw an error`, () => { assert.throws(() => wallet.isLocked) })
     it(`#mnemonic SHOULD throw an error`, () => { assert.throws(() => wallet.mnemonic) })
@@ -182,7 +182,7 @@ describe('Wallet', function() {
 
     it(`#addresses SHOULD throw an error`, () => { assert.throws(() => wallet.addresses) })
     it(`#allAddresses SHOULD throw an error`, () => { assert.throws(() => wallet.allAddresses) })
-    it(`#customAddresses SHOULD throw an error`, () => { assert.throws(() => wallet.customAddresses) })
+    it(`#randomAddresses SHOULD throw an error`, () => { assert.throws(() => wallet.randomAddresses) })
     it(`#isHD SHOULD throw an error`, () => { assert.throws(() => wallet.isHD) })
     it(`#isLocked SHOULD throw an error`, () => { assert.throws(() => wallet.isLocked) })
     it(`#mnemonic SHOULD throw an error`, () => { assert.throws(() => wallet.mnemonic) })
@@ -238,7 +238,7 @@ describe('Wallet', function() {
 
     it(`#addresses SHOULD throw an error`, () => { assert.throws(() => wallet.addresses) })
     it(`#allAddresses SHOULD throw an error`, () => { assert.throws(() => wallet.allAddresses) })
-    it(`#customAddresses SHOULD throw an error`, () => { assert.throws(() => wallet.customAddresses) })
+    it(`#randomAddresses SHOULD throw an error`, () => { assert.throws(() => wallet.randomAddresses) })
     it(`#isHD SHOULD throw an error`, () => { assert.throws(() => wallet.isHD) })
     it(`#isLocked SHOULD throw an error`, () => { assert.throws(() => wallet.isLocked) })
     it(`#mnemonic SHOULD throw an error`, () => { assert.throws(() => wallet.mnemonic) })
@@ -303,7 +303,7 @@ describe('Wallet', function() {
 
     it(`#addresses SHOULD throw an error`, () => { assert.throws(() => wallet.addresses) })
     it(`#allAddresses SHOULD throw an error`, () => { assert.throws(() => wallet.allAddresses) })
-    it(`#customAddresses SHOULD throw an error`, () => { assert.throws(() => wallet.customAddresses) })
+    it(`#randomAddresses SHOULD throw an error`, () => { assert.throws(() => wallet.randomAddresses) })
     it(`#isHD SHOULD throw an error`, () => { assert.throws(() => wallet.isHD) })
     it(`#isLocked SHOULD throw an error`, () => { assert.throws(() => wallet.isLocked) })
     it(`#mnemonic SHOULD throw an error`, () => { assert.throws(() => wallet.mnemonic) })

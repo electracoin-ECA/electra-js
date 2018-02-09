@@ -12,8 +12,6 @@ import { HD_WALLET_WITHOUT_MNEMONIC_EXTENSION_TEST } from '../../wallet/index.sp
 dotenv.config()
 
 const {
-  CUSTOM_ADDRESS_HASH_TEST,
-  CUSTOM_ADDRESS_PRIVATE_KEY_TEST,
   HD_CHAIN_1_HASH_TEST,
   HD_CHAIN_1_PRIVATE_KEY_TEST,
   HD_CHAIN_2_HASH_TEST,
@@ -23,11 +21,11 @@ const {
   HD_MNEMONIC_EXTENSION_TEST,
   HD_MNEMONIC_TEST,
   HD_PASSPHRASE_TEST,
+  RANDOM_ADDRESS_HASH_TEST,
+  RANDOM_ADDRESS_PRIVATE_KEY_TEST,
 } = process.env
 
 if (([
-  CUSTOM_ADDRESS_HASH_TEST,
-  CUSTOM_ADDRESS_PRIVATE_KEY_TEST,
   HD_CHAIN_1_HASH_TEST,
   HD_CHAIN_1_PRIVATE_KEY_TEST,
   HD_CHAIN_2_HASH_TEST,
@@ -37,6 +35,8 @@ if (([
   HD_MNEMONIC_EXTENSION_TEST,
   HD_MNEMONIC_TEST,
   HD_PASSPHRASE_TEST,
+  RANDOM_ADDRESS_HASH_TEST,
+  RANDOM_ADDRESS_PRIVATE_KEY_TEST,
 ] as any).includes(undefined)) {
   console.error('Error: You forgot to fill value(s) in your ".env" test wallet data. Please check ".env.sample".')
   process.exit(1)

@@ -24,24 +24,24 @@ export default class Wallet {
     return this.ADDRESSES
   }
 
-  /** List of the wallet non-HD (custom) and HD addresses. */
+  /** List of the wallet non-HD (random) and HD addresses. */
   public get allAddresses(): WalletAddress[] {
     if (this.STATE !== WalletState.READY) {
       throw new Error(`ElectraJs.Wallet: #allAddresses are only available when the #state is "READY".`)
     }
 
-    return [...this.addresses, ...this.customAddresses]
+    return [...this.addresses, ...this.randomAddresses]
   }
 
-  /** List of the wallet custom (non-HD) addresses. */
-  private CUSTOM_ADDRESSES: WalletAddress[] = []
-  /** List of the wallet custom (non-HD) addresses. */
-  public get customAddresses(): WalletAddress[] {
+  /** List of the wallet random (non-HD) addresses. */
+  private RANDOM_ADDRESSES: WalletAddress[] = []
+  /** List of the wallet random (non-HD) addresses. */
+  public get randomAddresses(): WalletAddress[] {
     if (this.STATE !== WalletState.READY) {
-      throw new Error(`ElectraJs.Wallet: The #customAddresses are only available when the #state is "READY".`)
+      throw new Error(`ElectraJs.Wallet: The #randomAddresses are only available when the #state is "READY".`)
     }
 
-    return this.CUSTOM_ADDRESSES
+    return this.RANDOM_ADDRESSES
   }
 
   /**
@@ -57,7 +57,7 @@ export default class Wallet {
     return Boolean(this.MASTER_NODE_ADDRESS)
   }
 
-  /** List of the wallet custom (non-HD) addresses. */
+  /** List of the wallet random (non-HD) addresses. */
   private IS_LOCKED: boolean = false
   /**
    * Is this wallet locked ?
@@ -112,7 +112,7 @@ export default class Wallet {
    * Wallet state.
    * This state can be one of:
    * - EMPTY, when it has just been instanciated or reset ;
-   * - READY, when it has been generated, or seeded with custom (non-HD) private keys imports.
+   * - READY, when it has been generated, or seeded with random (non-HD) private keys imports.
    */
   public get state(): WalletState {
     return this.STATE
@@ -229,12 +229,12 @@ export default class Wallet {
         return address
       })
 
-      this.CUSTOM_ADDRESSES = this.CUSTOM_ADDRESSES.map((customAddress: WalletAddress) => {
-        if (!customAddress.isCiphered) {
-          customAddress.privateKey = Crypto.cipherPrivateKey(customAddress.privateKey, passphrase)
+      this.RANDOM_ADDRESSES = this.RANDOM_ADDRESSES.map((randomAddress: WalletAddress) => {
+        if (!randomAddress.isCiphered) {
+          randomAddress.privateKey = Crypto.cipherPrivateKey(randomAddress.privateKey, passphrase)
         }
 
-        return customAddress
+        return randomAddress
       })
     }
     catch (err) { throw err }
@@ -266,12 +266,12 @@ export default class Wallet {
         return address
       })
 
-      this.CUSTOM_ADDRESSES = this.CUSTOM_ADDRESSES.map((customAddress: WalletAddress) => {
-        if (customAddress.isCiphered) {
-          customAddress.privateKey = Crypto.decipherPrivateKey(customAddress.privateKey, passphrase)
+      this.RANDOM_ADDRESSES = this.RANDOM_ADDRESSES.map((randomAddress: WalletAddress) => {
+        if (randomAddress.isCiphered) {
+          randomAddress.privateKey = Crypto.decipherPrivateKey(randomAddress.privateKey, passphrase)
         }
 
-        return customAddress
+        return randomAddress
       })
     }
     catch (err) { throw err }
@@ -302,8 +302,8 @@ export default class Wallet {
 
     return {
       chainsCount: this.ADDRESSES.length,
-      customAddresses: this.CUSTOM_ADDRESSES,
-      masterNodeAddress: this.MASTER_NODE_ADDRESS !== undefined ? this.MASTER_NODE_ADDRESS : null
+      masterNodeAddress: this.MASTER_NODE_ADDRESS !== undefined ? this.MASTER_NODE_ADDRESS : null,
+      randomAddresses: this.RANDOM_ADDRESSES
     }
   }
 
@@ -359,7 +359,7 @@ export default class Wallet {
       return this
     }
 
-    this.CUSTOM_ADDRESSES.push(address)
+    this.RANDOM_ADDRESSES.push(address)
 
     return this
   }
@@ -376,7 +376,7 @@ export default class Wallet {
     delete this.MNEMONIC
 
     this.ADDRESSES = []
-    this.CUSTOM_ADDRESSES = []
+    this.RANDOM_ADDRESSES = []
     this.STATE = WalletState.EMPTY
     this.TRANSACTIONS = []
 

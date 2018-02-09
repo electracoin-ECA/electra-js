@@ -6,8 +6,8 @@ export interface WalletAddress extends Address {
 
 export interface WalletData {
   chainsCount: number
-  customAddresses: WalletAddress[]
   masterNodeAddress: OrNull<WalletAddress>
+  randomAddresses: WalletAddress[]
 }
 
 export interface WalletTransaction {
