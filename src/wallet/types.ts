@@ -18,6 +18,12 @@ export interface WalletTransaction {
   toAddress: WalletAddress
 }
 
+export interface WalletStakingInfo {
+  networkWeight: number
+  nextRewardIn: number // in seconds
+  weight: number
+}
+
 export enum WalletState {
   EMPTY = 'EMPTY',
   READY = 'READY'
