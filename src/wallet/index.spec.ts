@@ -80,9 +80,13 @@ describe('Wallet', function() {
     it(`#getBalance() SHOULD throw an error`, async () => {
       assert.strictEqual(await assertCatch(() => wallet.getBalance()), true)
     })
-    it(`#lock() SHOULD throw an error`, () => { assert.throws(() => wallet.lock(HD_PASSPHRASE_TEST)) })
+    it(`#lock() SHOULD throw an error`, async () => {
+      assert.strictEqual(await assertCatch(() => wallet.lock(HD_PASSPHRASE_TEST)), true)
+    })
     it(`#reset() SHOULD throw an error`, () => { assert.throws(() => wallet.reset()) })
-    it(`#unlock() SHOULD throw an error`, () => { assert.throws(() => wallet.unlock(HD_PASSPHRASE_TEST)) })
+    it(`#unlock() SHOULD throw an error`, async () => {
+      assert.strictEqual(await assertCatch(() => wallet.unlock(HD_PASSPHRASE_TEST)), true)
+    })
   })
 
   describe(`WHEN generating the same wallet (W1) WITHOUT <mnemonic>, <mnemonicExtension>, <chainsCount>`, () => {
@@ -100,6 +104,9 @@ describe('Wallet', function() {
       assert.strictEqual(wallet.addresses[0].hash, Electra.getAddressHashFromPrivateKey(wallet.addresses[0].privateKey))
     })
 
+    it(`#allAddresses SHOULD be an array`, () => { assert.strictEqual(Array.isArray(wallet.allAddresses), true) })
+    it(`#allAddresses SHOULD contain 1 address`, () => { assert.strictEqual(wallet.allAddresses.length, 1) })
+
     it(`#mnemonic SHOULD be a string`, () => { assert.strictEqual(typeof wallet.mnemonic, 'string') })
     it(`#mnemonic SHOULD be a non-empty string`, () => { assert.strictEqual(wallet.mnemonic.length > 0, true) })
     it(`#mnemonic SHOULD be a 12-words string`, () => { assert.strictEqual(wallet.mnemonic.split(' ').length, 12) })
@@ -109,12 +116,46 @@ describe('Wallet', function() {
     it(`#getBalance() SHOULD return a number`, async () => { assert.strictEqual(typeof await wallet.getBalance(), 'number') })
 
     it(`#isLocked SHOULD be FALSE`, () => { assert.strictEqual(wallet.isLocked, false) })
-    it.skip(`#lock() SHOULD NOT throw any error`, () => { assert.doesNotThrow(() => wallet.lock(HD_PASSPHRASE_TEST)) })
+    it.skip(`#lock() SHOULD not throw any error`, async () => {
+      assert.strictEqual(await assertCatch(() => wallet.lock(HD_PASSPHRASE_TEST)), false)
+    })
     it.skip(`#isLocked SHOULD be TRUE`, () => { assert.strictEqual(wallet.isLocked, true) })
-    it.skip(`#unlock() SHOULD not throw any error`, () => { assert.doesNotThrow(() => wallet.unlock(HD_PASSPHRASE_TEST)) })
+    it.skip(`#unlock() SHOULD not throw any error`, async () => {
+      assert.strictEqual(await assertCatch(() => wallet.unlock(HD_PASSPHRASE_TEST)), false)
+    })
     it.skip(`#isLocked SHOULD be FALSE`, () => { assert.strictEqual(wallet.isLocked, false) })
 
     it(`#generate() SHOULD throw an error`, () => { assert.throws(() => wallet.generate()) })
+  })
+
+  describe(`WHEN importing a random address to the same wallet (W1) WITH a deciphered private key`, () => {
+    it(`#importRandomAddress() SHOULD NOT throw any error`, () => {
+      assert.doesNotThrow(() => wallet.importRandomAddress(RANDOM_ADDRESS_PRIVATE_KEY_TEST))
+    })
+  })
+
+  describe(`AFTER importing a random address to the same wallet (W1) WITH a deciphered private key`, () => {
+    it(`#state SHOULD be "READY"`, () => { assert.strictEqual(wallet.state, 'READY') })
+
+    it(`#randomAddresses SHOULD be an array`, () => { assert.strictEqual(Array.isArray(wallet.randomAddresses), true) })
+    it(`#randomAddresses SHOULD contain 1 address`, () => { assert.strictEqual(wallet.randomAddresses.length, 1) })
+    it(`#randomAddresses first address hash SHOULD be different from the first HD address`, () => {
+      assert.notStrictEqual(wallet.randomAddresses[0].hash, wallet.addresses[0].hash)
+    })
+    it(`#randomAddresses first address hash SHOULD have the expected properties`, () => {
+      assert.strictEqual(wallet.randomAddresses[0].isCiphered, false)
+      assert.strictEqual(wallet.randomAddresses[0].isHD, false)
+      assert.strictEqual(wallet.randomAddresses[0].label, null)
+    })
+    it(`#randomAddresses first address SHOULD be resolvable`, () => {
+      assert.strictEqual(wallet.randomAddresses[0].hash, Electra.getAddressHashFromPrivateKey(wallet.randomAddresses[0].privateKey))
+    })
+    it(`#randomAddresses first address hash SHOULD be the expected one`, () => {
+      assert.strictEqual(wallet.randomAddresses[0].hash, RANDOM_ADDRESS_HASH_TEST)
+    })
+
+    it(`#allAddresses SHOULD be an array`, () => { assert.strictEqual(Array.isArray(wallet.allAddresses), true) })
+    it(`#allAddresses SHOULD contain 2 addresses`, () => { assert.strictEqual(wallet.allAddresses.length, 2) })
   })
 
   describe(`WHEN resetting the same wallet (W1)`, () => {
@@ -133,9 +174,13 @@ describe('Wallet', function() {
     it(`#transactions SHOULD throw an error`, () => { assert.throws(() => wallet.transactions) })
 
     it(`#export() SHOULD throw an error`, () => { assert.throws(() => wallet.export()) })
-    it(`#lock() SHOULD throw an error`, () => { assert.throws(() => wallet.lock(HD_PASSPHRASE_TEST)) })
+    it(`#lock() SHOULD throw an error`, async () => {
+      assert.strictEqual(await assertCatch(() => wallet.lock(HD_PASSPHRASE_TEST)), true)
+    })
     it(`#reset() SHOULD throw an error`, () => { assert.throws(() => wallet.reset()) })
-    it(`#unlock() SHOULD throw an error`, () => { assert.throws(() => wallet.unlock(HD_PASSPHRASE_TEST)) })
+    it(`#unlock() SHOULD throw an error`, async () => {
+      assert.strictEqual(await assertCatch(() => wallet.unlock(HD_PASSPHRASE_TEST)), true)
+    })
   })
 
   describe(`WHEN generating the same wallet (W2) WITH <mnemonic> WITHOUT <mnemonicExtension>, <chainsCount>`, () => {
@@ -162,12 +207,19 @@ describe('Wallet', function() {
       assert.strictEqual(wallet.addresses[0].hash, HD_WALLET_WITHOUT_MNEMONIC_EXTENSION_TEST.chains[0].hash)
     })
 
+    it(`#allAddresses SHOULD be an array`, () => { assert.strictEqual(Array.isArray(wallet.allAddresses), true) })
+    it(`#allAddresses SHOULD contain 1 address`, () => { assert.strictEqual(wallet.allAddresses.length, 1) })
+
     it(`#mnemonic SHOULD throw an error`, () => { assert.throws(() => wallet.mnemonic) })
 
     it(`#isLocked SHOULD be FALSE`, () => { assert.strictEqual(wallet.isLocked, false) })
-    it.skip(`#lock() SHOULD NOT throw any error`, () => { assert.doesNotThrow(() => wallet.lock(HD_PASSPHRASE_TEST)) })
+    it.skip(`#lock() SHOULD not throw any error`, async () => {
+      assert.strictEqual(await assertCatch(() => wallet.lock(HD_PASSPHRASE_TEST)), false)
+    })
     it.skip(`#isLocked SHOULD be TRUE`, () => { assert.strictEqual(wallet.isLocked, true) })
-    it.skip(`#unlock() SHOULD not throw any error`, () => { assert.doesNotThrow(() => wallet.unlock(HD_PASSPHRASE_TEST)) })
+    it.skip(`#unlock() SHOULD not throw any error`, async () => {
+      assert.strictEqual(await assertCatch(() => wallet.unlock(HD_PASSPHRASE_TEST)), false)
+    })
     it.skip(`#isLocked SHOULD be FALSE`, () => { assert.strictEqual(wallet.isLocked, false) })
 
     it(`#generate() SHOULD throw an error`, () => { assert.throws(() => wallet.generate()) })
@@ -189,9 +241,13 @@ describe('Wallet', function() {
     it(`#transactions SHOULD throw an error`, () => { assert.throws(() => wallet.transactions) })
 
     it(`#export() SHOULD throw an error`, () => { assert.throws(() => wallet.export()) })
-    it(`#lock() SHOULD throw an error`, () => { assert.throws(() => wallet.lock(HD_PASSPHRASE_TEST)) })
+    it(`#lock() SHOULD throw an error`, async () => {
+      assert.strictEqual(await assertCatch(() => wallet.lock(HD_PASSPHRASE_TEST)), true)
+    })
     it(`#reset() SHOULD throw an error`, () => { assert.throws(() => wallet.reset()) })
-    it(`#unlock() SHOULD throw an error`, () => { assert.throws(() => wallet.unlock(HD_PASSPHRASE_TEST)) })
+    it(`#unlock() SHOULD throw an error`, async () => {
+      assert.strictEqual(await assertCatch(() => wallet.unlock(HD_PASSPHRASE_TEST)), true)
+    })
   })
 
   describe(`WHEN generating the same wallet (W3) WITH <mnemonic>, <mnemonicExtension> WITHOUT <chainsCount>`, () => {
@@ -218,12 +274,19 @@ describe('Wallet', function() {
       assert.strictEqual(wallet.addresses[0].hash, HD_CHAIN_1_HASH_TEST)
     })
 
+    it(`#allAddresses SHOULD be an array`, () => { assert.strictEqual(Array.isArray(wallet.allAddresses), true) })
+    it(`#allAddresses SHOULD contain 1 address`, () => { assert.strictEqual(wallet.allAddresses.length, 1) })
+
     it(`#mnemonic SHOULD throw an error`, () => { assert.throws(() => wallet.mnemonic) })
 
     it(`#isLocked SHOULD be FALSE`, () => { assert.strictEqual(wallet.isLocked, false) })
-    it.skip(`#lock() SHOULD NOT throw any error`, () => { assert.doesNotThrow(() => wallet.lock(HD_PASSPHRASE_TEST)) })
+    it.skip(`#lock() SHOULD not throw any error`, async () => {
+      assert.strictEqual(await assertCatch(() => wallet.lock(HD_PASSPHRASE_TEST)), false)
+    })
     it.skip(`#isLocked SHOULD be TRUE`, () => { assert.strictEqual(wallet.isLocked, true) })
-    it.skip(`#unlock() SHOULD not throw any error`, () => { assert.doesNotThrow(() => wallet.unlock(HD_PASSPHRASE_TEST)) })
+    it.skip(`#unlock() SHOULD not throw any error`, async () => {
+      assert.strictEqual(await assertCatch(() => wallet.unlock(HD_PASSPHRASE_TEST)), false)
+    })
     it.skip(`#isLocked SHOULD be FALSE`, () => { assert.strictEqual(wallet.isLocked, false) })
 
     it(`#generate() SHOULD throw an error`, () => { assert.throws(() => wallet.generate()) })
@@ -245,9 +308,13 @@ describe('Wallet', function() {
     it(`#transactions SHOULD throw an error`, () => { assert.throws(() => wallet.transactions) })
 
     it(`#export() SHOULD throw an error`, () => { assert.throws(() => wallet.export()) })
-    it(`#lock() SHOULD throw an error`, () => { assert.throws(() => wallet.lock(HD_PASSPHRASE_TEST)) })
+    it(`#lock() SHOULD throw an error`, async () => {
+      assert.strictEqual(await assertCatch(() => wallet.lock(HD_PASSPHRASE_TEST)), true)
+    })
     it(`#reset() SHOULD throw an error`, () => { assert.throws(() => wallet.reset()) })
-    it(`#unlock() SHOULD throw an error`, () => { assert.throws(() => wallet.unlock(HD_PASSPHRASE_TEST)) })
+    it(`#unlock() SHOULD throw an error`, async () => {
+      assert.strictEqual(await assertCatch(() => wallet.unlock(HD_PASSPHRASE_TEST)), true)
+    })
   })
 
   describe(`WHEN generating the same wallet (W4) WITH <mnemonic>, <mnemonicExtension>, <chainsCount>`, () => {
@@ -283,12 +350,19 @@ describe('Wallet', function() {
       assert.strictEqual(wallet.addresses[1].hash, HD_CHAIN_2_HASH_TEST)
     })
 
+    it(`#allAddresses SHOULD be an array`, () => { assert.strictEqual(Array.isArray(wallet.allAddresses), true) })
+    it(`#allAddresses SHOULD contain 2 addresses`, () => { assert.strictEqual(wallet.allAddresses.length, 2) })
+
     it(`#mnemonic SHOULD throw an error`, () => { assert.throws(() => wallet.mnemonic) })
 
     it(`#isLocked SHOULD be FALSE`, () => { assert.strictEqual(wallet.isLocked, false) })
-    it.skip(`#lock() SHOULD NOT throw any error`, () => { assert.doesNotThrow(() => wallet.lock(HD_PASSPHRASE_TEST)) })
+    it.skip(`#lock() SHOULD not throw any error`, async () => {
+      assert.strictEqual(await assertCatch(() => wallet.lock(HD_PASSPHRASE_TEST)), false)
+    })
     it.skip(`#isLocked SHOULD be TRUE`, () => { assert.strictEqual(wallet.isLocked, true) })
-    it.skip(`#unlock() SHOULD not throw any error`, () => { assert.doesNotThrow(() => wallet.unlock(HD_PASSPHRASE_TEST)) })
+    it.skip(`#unlock() SHOULD not throw any error`, async () => {
+      assert.strictEqual(await assertCatch(() => wallet.unlock(HD_PASSPHRASE_TEST)), false)
+    })
     it.skip(`#isLocked SHOULD be FALSE`, () => { assert.strictEqual(wallet.isLocked, false) })
 
     it(`#generate() SHOULD throw an error`, () => { assert.throws(() => wallet.generate()) })
@@ -310,8 +384,12 @@ describe('Wallet', function() {
     it(`#transactions SHOULD throw an error`, () => { assert.throws(() => wallet.transactions) })
 
     it(`#export() SHOULD throw an error`, () => { assert.throws(() => wallet.export()) })
-    it(`#lock() SHOULD throw an error`, () => { assert.throws(() => wallet.lock(HD_PASSPHRASE_TEST)) })
+    it(`#lock() SHOULD throw an error`, async () => {
+      assert.strictEqual(await assertCatch(() => wallet.lock(HD_PASSPHRASE_TEST)), true)
+    })
     it(`#reset() SHOULD throw an error`, () => { assert.throws(() => wallet.reset()) })
-    it(`#unlock() SHOULD throw an error`, () => { assert.throws(() => wallet.unlock(HD_PASSPHRASE_TEST)) })
+    it(`#unlock() SHOULD throw an error`, async () => {
+      assert.strictEqual(await assertCatch(() => wallet.unlock(HD_PASSPHRASE_TEST)), true)
+    })
   })
 })
