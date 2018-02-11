@@ -284,6 +284,8 @@ export default class Wallet {
       throw new Error(`ElectraJs.Wallet: The #lock() method can only be called on a ready wallet (#state = "READY").`)
     }
 
+    if (this.IS_LOCKED) return
+
     if (this.rpc !== undefined) {
       try {
         await this.rpc.lock()
@@ -335,6 +337,8 @@ export default class Wallet {
     if (this.STATE !== WalletState.READY) {
       throw new Error(`ElectraJs.Wallet: The #unlock() method can only be called on a ready wallet (#state = "READY").`)
     }
+
+    if (!this.IS_LOCKED) return
 
     if (this.rpc !== undefined) {
       const [err] = await to(this.rpc.unlock(passphrase, ONE_YEAR_IN_SECONDS, forStakingOnly))
