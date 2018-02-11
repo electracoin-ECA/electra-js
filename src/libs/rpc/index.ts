@@ -193,7 +193,7 @@ export default class Rpc {
     timeout: number = ONE_YEAR_IN_SECONDS,
     stakingOnly: boolean = true
   ): Promise<RpcMethodResult<'walletpassphrase'>> {
-    return this.query('walletpassphrase', Array.prototype.slice.call(arguments))
+    return this.query('walletpassphrase', [passphrase, timeout, stakingOnly])
   }
 
   /**
