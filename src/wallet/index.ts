@@ -285,8 +285,15 @@ export default class Wallet {
     }
 
     if (this.rpc !== undefined) {
-      const [err] = await to(this.rpc.lock())
-      if (err !== null) throw err
+      try {
+        await this.rpc.lock()
+      }
+      catch (err) {
+        // If there is an error, this is surely because the wallet has never been encrypted
+        [err] = await to(this.rpc.encryptWallet(passphrase))
+        if (err !== null) throw err
+      }
+
       this.IS_LOCKED = true
 
       return
@@ -490,6 +497,10 @@ export default class Wallet {
    * Get the current staking calculated data.
    */
   public async getStakingInfo(): Promise<WalletStakingInfo> {
+    if (this.STATE === WalletState.EMPTY) {
+      throw new Error(`ElectraJs.Wallet: You can't #getStakingInfo() from an empty wallet (#state = "EMPTY").`)
+    }
+
     const [err, res] = await to((this.rpc as Rpc).getStakingInfo())
     if (err !== null || res === undefined) throw err
 
