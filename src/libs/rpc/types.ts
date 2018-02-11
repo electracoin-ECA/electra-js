@@ -149,13 +149,13 @@ export interface RpcMethods {
     timereceived: number
   }>
   listunspent: Array<{
-    account?: string
-    address: string
-    amount: number
-    confirmations: number
-    scriptPubKey: string
     txid: string
     vout: number
+    address: string
+    account?: string
+    scriptPubKey: string
+    amount: number
+    confirmations: number
   }>
   makekeypair: {
     PrivateKey: string
