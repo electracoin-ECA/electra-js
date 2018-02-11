@@ -9,35 +9,52 @@
 
 [![NSP Status](https://nodesecurity.io/orgs/ivan-gabriele/projects/e8f9941a-7742-4aac-8754-931af71f1e3f/badge)](https://nodesecurity.io/orgs/ivan-gabriele/projects/e8f9941a-7742-4aac-8754-931af71f1e3f)
 
-## Integrate
+## Getting Started
 
 ### Install
 
     npm i electra-js
 
-**Example (Javascript)**
+### Light Wallet VS Hard Wallet
 
-```js
-const ElectraJs = require('electra-js')
+All the wallet methods are contained within the composed method `.wallet` of the instanciated `ElectraJs` class.
 
-const electraJs = new ElectraJs()
+**Case A: Light Wallet**
 
-electraJs.webServices.getCurrentPriceIn('EUR', (priceInEur) => {
-  console.log(priceInEur)
-})
-```
-
-**Example (Typescript)**
+In the case of a light wallet (listening and broadcasting to the blockchain via public web-services), you only need to instanciate ElectraJs without any setting:
 
 ```typescript
 import ElectraJs from 'electra-js'
 
 const electraJs = new ElectraJs()
 
-// Inside an async function
-const priceInEur = await electraJs.webServices.getCurrentPriceIn('EUR')
-console.log(priceInEur)
+// We can then call electraJs.wallet.anyWalletMethod(...) to start using it.
 ```
+
+**Case B: Hard Wallet**
+
+
+In the case of a hard wallet, that is utilizing the deamon RPC server, you need to specify the RPC server settings during the ElectraJs instanciation:
+
+```typescript
+import ElectraJs from 'electra-js'
+
+const electraJs = new ElectraJs({
+  rpcServerAuth: {
+    username: 'user',
+    password: 'pass'
+  },
+  rpcServerUri: ''
+})
+
+// We can then call electraJs.wallet.anyWalletMethod(...) to start using it.
+```
+
+### States
+
+The wallet can bear 2 states: `EMPTY` or `READY`. It will always start as `EMPTY` once intanciated.
+
+The first wallet method that **MUST** be called in any case is `electraJs.wallet.generate()` (described afterwards).
 
 ### API methods
 
@@ -45,287 +62,158 @@ console.log(priceInEur)
 > `<parameter>` is a mandatory parameter.<br>
 > `[parameter]` is an optional parameter.
 
-#### RPC Server
+#### Wallet
 
-**`rpcServer.check(<oldPassphrase>, <newPassphrase>)`**
+**`wallet.addresses`**
 
-> Change the wallet passphrase from <oldPassphrase> to <newPassphrase>.
+> List of the wallet HD addresses.
 
-```
-Parameters:
-
-<oldPassphrase> string
-<newPassphrase> string
-```
-
-_TODO Add the response._
-
-**`rpcServer.check()`**
-
-> Check the wallet integrity.
-
-```
+```txt
 Response:
 
-Promise<{
-    'wallet check passed': boolean;
+Array<{
+  hash: string
+  isCiphered: boolean
+  isHD: boolean
+  label: string
+  privateKey: string
 }>
 ```
 
-**`rpcServer.getAccount(<address>)`**
+**`wallet.allAddresses`**
 
-> Get the account associated with the given address.
+> List of the wallet non-HD (random) and HD addresses.
 
+```txt
+Response:
+
+Array<{
+  hash: string
+  isCiphered: boolean
+  isHD: boolean
+  label: string
+  privateKey: string
+}>
 ```
+
+**`wallet.isHD`**
+
+> Is this a HD wallet ?
+
+```txt
+Response:
+
+boolean
+```
+
+**`wallet.isLocked`**
+
+> Is this wallet locked ?
+
+```txt
+Response:
+
+boolean
+```
+
+**`wallet.mnemonic`**
+
+> Wallet HD Mnenonic.<br>
+> ONLY available when generating a brand new Wallet, which happens after calling #generate() with an undefined <mnemonic> parameter on a Wallet instance with an "EMPTY" #state.
+
+```txt
+Response:
+
+string
+```
+
+**`wallet.randomAddresses`**
+
+> List of the wallet non-HD (random) addresses.
+
+```txt
+Response:
+
+Array<{
+  hash: string
+  isCiphered: boolean
+  isHD: boolean
+  label: string
+  privateKey: string
+}>
+```
+
+**`wallet.state`**
+
+> Wallet current state.
+
+```txt
+Response:
+
+'EMPTY' | 'READY'
+```
+
+**`wallet.transactions`**
+
+> List of the wallet transactions.
+
+```txt
+Response:
+
+Array<{
+  amount: number
+  date: number // Unix timestamp in seconds
+  fromAddressHash: string
+  hash: string
+  toAddressHash: string
+}>
+```
+
+**`wallet.generate([mnemonic], [mnemonicExtension], [chainsCount])`**
+
+> Generate an HD wallet from either the provided mnemonic seed, or a randomly generated one, including ‒ at least ‒ the first derived chain address.<br>
+> In case the [mnemonicExtension] is specified, it MUST be encoded in UTF-8 using NFKD.<br>
+> The method can only be called when the wallet #state is 'EMPTY' and will set its #state to 'READY' if successful.
+
+```txt
 Parameters:
 
-<address> string
+[mnemonic]          string  The 12 words mnemomic. Optional.
+                            A new one will be generated and accessible via #mnemonic getter if not provided.
+[mnemonicExtension] string  The mnemonic extension. Optional.
+[chainsCount]       number  Number of chain addresses already generated. Optional. Default to 1.
 
 Response:
 
-Promise<string>
+Promise<void>
 ```
 
-**`rpcServer.getBalance()`**
+**`wallet.getBalance([addressHash])`**
 
-> Get the total available balance.
+> Get the global wallet balance, or the <address> balance if specified.
 
-```
+```txt
+Parameters:
+
+[addressHash]   string  A wallet chain or random address hash. Optional.
+
 Response:
 
 Promise<number>
 ```
 
-**`rpcServer.getDifficulty()`**
+**`wallet.reset()`**
 
-> Get the difficulty as a multiple of the minimum difficulty.
+> Reset the current wallet properties and switch the #state to "EMPTY".
 
-```
-Response:
-
-Promise<{
-    'proof-of-work': number;
-    'proof-of-stake': number;
-    'search-interval': number;
-}>
-```
-
-**`rpcServer.getInfo()`**
-
-> Get the current state info.
-
-```
-Response:
-
-Promise<{
-    version: string;
-    protocolversion: number;
-    walletversion: number;
-    balance: number;
-    newmint: number;
-    stake: number;
-    blocks: number;
-    timeoffset: number;
-    moneysupply: number;
-    connections: number;
-    proxy: string;
-    ip: string;
-    difficulty: {
-        'proof-of-work': number;
-        'proof-of-stake': number;
-    };
-    testnet: boolean;
-    keypoololdest: number;
-    keypoolsize: number;
-    paytxfee: number;
-    mininput: number;
-    unlocked_until: number;
-    errors: string;
-}>
-```
-
-**`rpcServer.getNewAddress([account])`**
-
-> Generate a new address for receiving payments.
-
-```
+```txt
 Parameters:
 
-[account] string    Address label. Optional.
+N/A
 
 Response:
 
-Promise<{
-    account: string;
-} | null>
-```
-
-**`rpcServer.listAddressGroupings()`**
-
-> Lists groups of addresses which have had their common ownership made public
-> by common use as inputs or as the resulting change in past transactions.
-
-```
-Response:
-
-Promise<[
-    0: string // Address
-    1: string // Ammount
-    2: string // Account (address label)
-][][]>
-```
-
-**`rpcServer.listReceivedByAddress([minConfirmations], [includeEmpty])`**
-
-> List receiving addresses data.
-
-```
-Parameters:
-
-[minConfirmations] number     Optional. Default to 1.
-[includeEmpty]     boolean    Optional. Default to false.
-
-Response:
-
-Promise<{
-    address: string;
-    account: string;
-    amount: number;
-    confirmations: number;
-}[]>
-```
-
-**`rpcServer.listTransactions([account], [count], [from])`**
-
-> List transactions.
-
-```
-Parameters:
-
-[account] string    Optional. Default to '*' (= all address labels).
-[count]   number    Optional. Default to 10.
-[from]    number    Optional. Default to 0.
-
-Response:
-
-Promise<{
-    account: string;
-    address: string;
-    category: string;
-    amount: number;
-    confirmations: number;
-    blockhash: string;
-    blockindex: number;
-    blocktime: number;
-    txid: string;
-    time: number;
-    timereceived: number;
-}[]>
-```
-
-**`rpcServer.listUnspent([minConfirmations], [maxConfirmations], [address, ...])`**
-
-> List unspent transactions between <minConfirmations> and <maxConfirmations>,
-> for the given list of <address> if specified.
-
-```
-Parameters:
-
-[minConfirmations] number    Optional. Default to 1.
-[maxConfirmations] number    Optional. Default to 9999999.
-[address]          string    Optional.
-
-Response:
-
-Promise<{
-    txid: string;
-    vout: number;
-    address: string;
-    account: string;
-    scriptPubKey: string;
-    amount: number;
-    confirmations: number;
-}[]>
-```
-
-**`rpcServer.lock()`**
-
-> Removes the wallet encryption key from memory, locking the rpcServer.
-> After calling this method, you will need to call walletpassphrase again
-> before being able to call any methods which require the wallet to be unlocked.
-
-_TODO Add the response._
-
-**`rpcServer.makeKeyPair([prefix])`**
-
-> Make a public/private key pair.
-
-```
-Parameters:
-
-[prefix] string    Optional. Preferred prefix for the public key.
-
-Response:
-
-Promise<{
-    PrivateKey: string;
-    PublicKey: string;
-}>
-```
-
-**`rpcServer.storePassphrase(<passphrase>, <timeout>, [stakingOnly])`**
-
-> List receiving addresses data.
-
-```
-Parameters:
-
-<passphrase>  string
-<timeout>     number     In seconds
-[stakingOnly] boolean    Optional. Default to true.
-```
-
-_TODO Add the response._
-
-**`rpcServer.validateAddress(<address>)`**
-
-> List receiving addresses data.
-
-```
-Parameters:
-
-<address> string
-
-Response:
-
-Promise<{
-    isvalid: boolean;
-    address?: string | undefined;
-    ismine?: boolean | undefined;
-    isscript?: boolean | undefined;
-    pubkey?: string | undefined;
-    iscompressed?: boolean | undefined;
-    account?: string | undefined;
-}>
-```
-
-**`rpcServer.validatePublicKey(<publicKey>)`**
-
-> List receiving addresses data.
-
-```
-Parameters:
-
-<publicKey> string
-
-Response:
-
-Promise<{
-    isvalid: boolean;
-    address?: string | undefined;
-    ismine?: boolean | undefined;
-    iscompressed?: boolean | undefined;
-}>
+void
 ```
 
 #### Web Services
