@@ -23,6 +23,10 @@ const {
   HD_PASSPHRASE_TEST,
   RANDOM_ADDRESS_HASH_TEST,
   RANDOM_ADDRESS_PRIVATE_KEY_TEST,
+  RPC_SERVER_PASSWORD_TEST,
+  RPC_SERVER_URI_TEST,
+  RPC_SERVER_USERNAME_TEST,
+  RPC_WALLET_PASSPHRASE_TEST,
 } = process.env
 
 // This HD wallet i seeded by the same wallet mnemonic than the one above, but without the mnemonic extension.
@@ -50,6 +54,10 @@ if (([
   HD_PASSPHRASE_TEST,
   RANDOM_ADDRESS_HASH_TEST,
   RANDOM_ADDRESS_PRIVATE_KEY_TEST,
+  RPC_SERVER_PASSWORD_TEST,
+  RPC_SERVER_URI_TEST,
+  RPC_SERVER_USERNAME_TEST,
+  RPC_WALLET_PASSPHRASE_TEST,
 ] as any).includes(undefined)) {
   console.error('Error: You forgot to fill value(s) in your ".env" test wallet data. Please check ".env.sample".')
   process.exit(1)
