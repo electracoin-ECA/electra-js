@@ -20,6 +20,7 @@ export interface RpcMethods {
   decodescript: any
   dumpprivkey: string
   dumpwallet: any
+  encryptwallet: void
   getaccount: string
   getaccountaddress: any
   getaddressesbyaccount: any
