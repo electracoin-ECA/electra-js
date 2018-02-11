@@ -120,7 +120,7 @@ export default class Rpc {
   }
 
   /**
-   * Get the current staking info.
+   * Import a new address private key.
    */
   public async importPrivateKey(privateKey: string): Promise<RpcMethodResult<'importprivkey'>> {
     return this.query('importprivkey', Array.prototype.slice.call(arguments))
