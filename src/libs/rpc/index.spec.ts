@@ -26,7 +26,7 @@ if (([
   process.exit(1)
 }
 
-describe.only('Rpc', function() {
+describe('Rpc', function() {
   let testAccount: string
   let testAddress: string
   let rpc: Rpc
