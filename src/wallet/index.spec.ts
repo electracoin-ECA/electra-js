@@ -63,17 +63,17 @@ if (([
   process.exit(1)
 }
 
-describe('Wallet', function() {
+describe('Wallet (light)', function() {
   let wallet: Wallet
 
   // TODO We need a more efficient lock() and unlock() strategy
   this.timeout(30000)
 
-  describe(`WHEN instantiating a new wallet`, () => {
+  describe(`WHEN instantiating a new wallet (W1)`, () => {
     it(`new Wallet() SHOULD NOT throw any error`, () => { assert.doesNotThrow(() => wallet = new Wallet()) })
   })
 
-  describe(`AFTER instantiating this new wallet`, () => {
+  describe(`AFTER instantiating this new wallet (W1)`, () => {
     it(`#state SHOULD be "EMPTY"`, () => { assert.strictEqual(wallet.state, 'EMPTY') })
 
     it(`#addresses SHOULD throw an error`, () => { assert.throws(() => wallet.addresses) })
@@ -399,5 +399,103 @@ describe('Wallet', function() {
     it(`#unlock() SHOULD throw an error`, async () => {
       assert.strictEqual(await assertCatch(() => wallet.unlock(HD_PASSPHRASE_TEST)), true)
     })
+  })
+})
+
+describe('Wallet (hard)', function() {
+  let wallet: Wallet
+
+  beforeEach(function() {
+    if (process.env.NODE_ENV === 'travis') this.skip()
+  })
+
+  describe(`WHEN instantiating a new wallet WITH an RPC Server`, () => {
+    it(`new Wallet() SHOULD NOT throw any error`, () => {
+      assert.doesNotThrow(() => wallet = new Wallet({
+        rpcServerAuth: {
+          username: RPC_SERVER_USERNAME_TEST,
+          password: RPC_SERVER_PASSWORD_TEST
+        },
+        rpcServerUri: RPC_SERVER_URI_TEST
+      }))
+    })
+  })
+
+  describe(`AFTER instantiating this new wallet`, () => {
+    it(`#state SHOULD be "EMPTY"`, () => { assert.strictEqual(wallet.state, 'EMPTY') })
+
+    it(`#addresses SHOULD throw an error`, () => { assert.throws(() => wallet.addresses) })
+    it(`#allAddresses SHOULD throw an error`, () => { assert.throws(() => wallet.allAddresses) })
+    it(`#randomAddresses SHOULD throw an error`, () => { assert.throws(() => wallet.randomAddresses) })
+    it(`#isHD SHOULD throw an error`, () => { assert.throws(() => wallet.isHD) })
+    it(`#isLocked SHOULD throw an error`, () => { assert.throws(() => wallet.isLocked) })
+    it(`#mnemonic SHOULD throw an error`, () => { assert.throws(() => wallet.mnemonic) })
+    it(`#transactions SHOULD throw an error`, () => { assert.throws(() => wallet.transactions) })
+
+    it(`#export() SHOULD throw an error`, () => { assert.throws(() => wallet.export()) })
+    it(`#getBalance() SHOULD throw an error`, async () => {
+      assert.strictEqual(await assertCatch(() => wallet.getBalance()), true)
+    })
+    it(`#lock() SHOULD throw an error`, async () => {
+      assert.strictEqual(await assertCatch(() => wallet.lock(RPC_WALLET_PASSPHRASE_TEST)), true)
+    })
+    it(`#reset() SHOULD throw an error`, () => { assert.throws(() => wallet.reset()) })
+    it(`#unlock() SHOULD throw an error`, async () => {
+      assert.strictEqual(await assertCatch(() => wallet.unlock(RPC_WALLET_PASSPHRASE_TEST)), true)
+    })
+  })
+
+  describe(`WHEN generating the same wallet WITH <mnemonic>, <mnemonicExtension>, <chainsCount>`, () => {
+    it(`#generate() SHOULD NOT throw any error`, async () => {
+      assert.strictEqual(await assertCatch(() => wallet.generate(HD_MNEMONIC_TEST, HD_MNEMONIC_EXTENSION_TEST, 2)), false)
+    })
+  })
+
+  describe(`AFTER generating the same wallet`, () => {
+    it(`#state SHOULD be "READY"`, () => { assert.strictEqual(wallet.state, 'READY') })
+
+    it(`#addresses SHOULD be an array`, () => { assert.strictEqual(Array.isArray(wallet.addresses), true) })
+    it(`#addresses SHOULD contain 2 addresses`, () => { assert.strictEqual(wallet.addresses.length, 2) })
+    it(`#addresses first address SHOULD be resolvable`, () => {
+      assert.strictEqual(wallet.addresses[0].hash, Electra.getAddressHashFromPrivateKey(wallet.addresses[0].privateKey))
+    })
+    it(`#addresses first address private key SHOULD be the expected one`, () => {
+      assert.strictEqual(wallet.addresses[0].privateKey, HD_CHAIN_1_PRIVATE_KEY_TEST)
+    })
+    it(`#addresses first address hash SHOULD be the expected one`, () => {
+      assert.strictEqual(wallet.addresses[0].hash, HD_CHAIN_1_HASH_TEST)
+    })
+    it(`#addresses second address SHOULD be resolvable`, () => {
+      assert.strictEqual(wallet.addresses[1].hash, Electra.getAddressHashFromPrivateKey(wallet.addresses[1].privateKey))
+    })
+    it(`#addresses second address private key SHOULD be the expected one`, () => {
+      assert.strictEqual(wallet.addresses[1].privateKey, HD_CHAIN_2_PRIVATE_KEY_TEST)
+    })
+    it(`#addresses second address hash SHOULD be the expected one`, () => {
+      assert.strictEqual(wallet.addresses[1].hash, HD_CHAIN_2_HASH_TEST)
+    })
+
+    it(`#allAddresses SHOULD be an array`, () => { assert.strictEqual(Array.isArray(wallet.allAddresses), true) })
+    it(`#allAddresses SHOULD contain at least 2 addresses`, () => { assert.strictEqual(wallet.allAddresses.length >= 2, true) })
+
+    it(`#randomAddresses SHOULD be an array`, () => { assert.strictEqual(Array.isArray(wallet.randomAddresses), true) })
+
+    it(`#mnemonic SHOULD throw an error`, () => { assert.throws(() => wallet.mnemonic) })
+
+    it(`#isLocked SHOULD be TRUE`, () => { assert.strictEqual(wallet.isLocked, false) })
+    it(`#unlock() SHOULD not throw any error`, async () => {
+      assert.strictEqual(await assertCatch(() => wallet.unlock(HD_PASSPHRASE_TEST)), false)
+    })
+    it(`#isLocked SHOULD be FALSE`, () => { assert.strictEqual(wallet.isLocked, false) })
+    it(`#lock() SHOULD not throw any error`, async () => {
+      assert.strictEqual(await assertCatch(() => wallet.lock(HD_PASSPHRASE_TEST)), false)
+    })
+    it(`#isLocked SHOULD be TRUE`, () => { assert.strictEqual(wallet.isLocked, true) })
+    it(`#unlock() SHOULD not throw any error`, async () => {
+      assert.strictEqual(await assertCatch(() => wallet.unlock(HD_PASSPHRASE_TEST)), false)
+    })
+    it(`#isLocked SHOULD be FALSE`, () => { assert.strictEqual(wallet.isLocked, false) })
+
+    it(`#generate() SHOULD throw an error`, async () => { assert.strictEqual(await assertCatch(() => wallet.generate()), true) })
   })
 })
