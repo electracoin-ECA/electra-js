@@ -13,14 +13,12 @@ const {
   RPC_SERVER_PASSWORD_TEST,
   RPC_SERVER_URI_TEST,
   RPC_SERVER_USERNAME_TEST,
-  RPC_WALLET_PASSPHRASE_TEST,
 } = process.env
 
 if (([
   RPC_SERVER_PASSWORD_TEST,
   RPC_SERVER_URI_TEST,
   RPC_SERVER_USERNAME_TEST,
-  RPC_WALLET_PASSPHRASE_TEST,
 ] as any).includes(undefined)) {
   console.error('Error: You forgot to fill value(s) in your ".env" test wallet data. Please check ".env.sample".')
   process.exit(1)
