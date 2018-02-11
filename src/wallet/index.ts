@@ -144,20 +144,16 @@ export default class Wallet {
   }
 
   /**
-   * Generate an HD wallet from either the provided mnemonic seed, or a randmly generated one,
+   * Generate an HD wallet from either the provided mnemonic seed, or a randomly generated one,
    * including ‒ at least ‒ the first derived address.
    *
-   * @note In case the <mnemonicExtension> is specified, it MUST be encoded in UTF-8 using NFKD.
+   * @note In case the [mnemonicExtension] is specified, it MUST be encoded in UTF-8 using NFKD.
    *
    * @see https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki#wordlist
    *
    * TODO Figure out a way to validate provided mnemonics using different specs (words list & entropy strength).
    */
-  public async generate(
-    mnemonic?: string,
-    mnemonicExtension?: string,
-    chainsCount: number = 1
-  ): Promise<this> {
+  public async generate(mnemonic?: string, mnemonicExtension?: string, chainsCount: number = 1): Promise<void> {
     if (this.STATE === WalletState.READY) {
       throw new Error(`ElectraJs.Wallet:
         The #generate() method can't be called on an already ready wallet (#state = "READY").
@@ -268,12 +264,10 @@ export default class Wallet {
 
       this.STATE = WalletState.READY
 
-      return this
+      return
     }
 
     this.STATE = WalletState.READY
-
-    return this
   }
 
   /**
@@ -407,7 +401,7 @@ export default class Wallet {
    * If the [passphrase] is not defined, the <privateKey> MUST be given deciphered.
    * If the [passphrase] is defined, the <privateKey> MUST be given ciphered.
    */
-  public importRandomAddress(privateKey: string, passphrase?: string): this {
+  public importRandomAddress(privateKey: string, passphrase?: string): void {
     if (this.STATE !== WalletState.READY) {
       throw new Error(`ElectraJs.Wallet:
         The #importRandomAddress() method can only be called on a ready wallet (#state = "READY").
@@ -441,14 +435,12 @@ export default class Wallet {
     }
 
     this.RANDOM_ADDRESSES.push(address as WalletAddress)
-
-    return this
   }
 
   /**
    * Reset the current wallet properties and switch the #state to "EMPTY".
    */
-  public reset(): Wallet {
+  public reset(): void {
     if (this.STATE === WalletState.EMPTY) {
       throw new Error(`ElectraJs.Wallet: You can't #reset() a wallet that is already empty (#state = "EMPTY").`)
     }
@@ -460,8 +452,6 @@ export default class Wallet {
     this.RANDOM_ADDRESSES = []
     this.STATE = WalletState.EMPTY
     this.TRANSACTIONS = []
-
-    return this
   }
 
   /**
