@@ -71,6 +71,13 @@ export default class Rpc {
   }
 
   /**
+   * Encrypt the wallet with <passphrase>.
+   */
+  public async encryptWallet(passphrase: string): Promise<RpcMethodResult<'encryptwallet'>> {
+    return this.query('encryptwallet', [passphrase])
+  }
+
+  /**
    * Get the account associated with the given address.
    */
   public async getAccount(address: string): Promise<RpcMethodResult<'getaccount'>> {
