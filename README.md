@@ -44,7 +44,7 @@ const electraJs = new ElectraJs({
     username: 'user',
     password: 'pass'
   },
-  rpcServerUri: ''
+  rpcServerUri: 'http://127.0.0.1:5788'
 })
 
 // We can then call electraJs.wallet.anyWalletMethod(...) to start using it.
@@ -56,13 +56,15 @@ The wallet can bear 2 states: `EMPTY` or `READY`. It will always start as `EMPTY
 
 The first wallet method that **MUST** be called in any case is `electraJs.wallet.generate()` (described afterwards).
 
-### API methods
+### API
 
 > **Note**<br>
 > `<parameter>` is a mandatory parameter.<br>
 > `[parameter]` is an optional parameter.
 
 #### Wallet
+
+_**Getters:**_
 
 **`wallet.addresses`**
 
@@ -169,6 +171,29 @@ Array<{
 }>
 ```
 
+_**Methods:**_
+
+**`wallet.export([unsafe])`**
+
+> Export wallet data with ciphered private keys, or unciphered if <unsafe> is set to TRUE.
+
+_See [EIP-0001](https://github.com/Electra-project/Electra-Improvement-Proposals/issues/2#issuecomment-364407902)._
+
+```txt
+Parameters:
+
+<unsafe>    boolean Export the wallet with its private keys deciphered if TRUE. Optional. Default to FALSE.
+
+Response:
+
+[
+  VERSION_INTEGER,
+  CHAINS_COUNT_INTEGER,
+  HIERARCHICAL_DETERMINISTIC_MASTER_NODE_PRIVATE_KEY_STRING,
+  RANDOM_ADDRESSES_PRIVATE_KEYS_STRING_ARRAY
+]
+```
+
 **`wallet.generate([mnemonic], [mnemonicExtension], [chainsCount])`**
 
 > Generate an HD wallet from either the provided mnemonic seed, or a randomly generated one, including ‒ at least ‒ the first derived chain address.<br>
@@ -202,6 +227,21 @@ Response:
 Promise<number>
 ```
 
+**`wallet.lock(<passphrase>, [forStakingOnly])`**
+
+> Lock the wallet, that is cipher all its private keys.
+
+```txt
+Parameters:
+
+<passphrase>        string  Wallet encryption passphrase.
+<forStakingOnly>    boolean Optional. Default to TRUE.
+
+Response:
+
+Promise<void>
+```
+
 **`wallet.reset()`**
 
 > Reset the current wallet properties and switch the #state to "EMPTY".
@@ -214,6 +254,20 @@ N/A
 Response:
 
 void
+```
+
+**`wallet.unlock(<passphrase>)`**
+
+> Unlock the wallet, that is decipher all its private keys.
+
+```txt
+Parameters:
+
+<passphrase>    string  Wallet encryption passphrase.
+
+Response:
+
+Promise<void>
 ```
 
 #### Web Services
