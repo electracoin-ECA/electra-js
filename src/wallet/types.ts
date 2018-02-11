@@ -12,10 +12,10 @@ export interface WalletData {
 
 export interface WalletTransaction {
   amount: number
-  hash: string
   date: number // Unix timestamp in seconds
-  fromAddress: WalletAddress
-  toAddress: WalletAddress
+  fromAddressHash: string
+  hash: string
+  toAddressHash: string
 }
 
 export interface WalletStakingInfo {
