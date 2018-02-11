@@ -156,8 +156,7 @@ export default class Wallet {
   public async generate(
     mnemonic?: string,
     mnemonicExtension?: string,
-    chainsCount: number = 1,
-    passphrase?: string
+    chainsCount: number = 1
   ): Promise<this> {
     if (this.STATE === WalletState.READY) {
       throw new Error(`ElectraJs.Wallet:
@@ -165,50 +164,6 @@ export default class Wallet {
         You need to #reset() it first, then #initialize() it again in order to #generate() a new one.
       `)
     }
-
-    /*
-      ----------------------------------
-      RPC SERVER
-    */
-
-    if (this.rpc !== undefined) {
-      if (passphrase === undefined) {
-        throw new Error(`ElectraJs.Wallet:
-          The #generate() method can't be called in an RPC Server context without specifying the <passphrase>.
-        `)
-      }
-
-      // We prevent any unlocking error by locking it first.
-      try { await this.rpc.lock() }
-      catch (err) { /* We ignore the error here in case the wallet was already locked. */ }
-
-      try {
-        const addressesGroups: RpcMethodResult<'listaddressgroupings'> = await this.rpc.listAddressGroupings()
-        const randomAddresses: Array<Partial<WalletAddress>> = addressesGroups.map((addressGroup: string[][]) => ({
-          hash: addressGroup[0][0],
-          isCiphered: false,
-          isHD: false,
-          // tslint:disable-next-line:no-magic-numbers
-          label: addressGroup[0][2]
-        }))
-
-        await this.rpc.unlock(passphrase, ONE_YEAR_IN_SECONDS, false)
-
-        let i: number = randomAddresses.length
-        while (--i >= 0) {
-          randomAddresses[i].privateKey = await this.rpc.getPrivateKey(randomAddresses[i].hash as string)
-        }
-      }
-      catch (err) {
-        throw err
-      }
-
-      this.STATE = WalletState.READY
-
-      return this
-    }
-
-    let chainIndex: number
 
     /*
       ----------------------------------
@@ -247,7 +202,7 @@ export default class Wallet {
       STEP 3: CHAINS
     */
 
-    chainIndex = -1
+    let chainIndex: number = -1
     try {
       while (++chainIndex < chainsCount) {
         const address: Address = Electra.getDerivedChainFromMasterNodePrivateKey(
@@ -263,6 +218,58 @@ export default class Wallet {
       }
     }
     catch (err) { throw err }
+
+    /*
+      ----------------------------------
+      RPC SERVER
+    */
+
+    if (this.rpc !== undefined) {
+      let i: number
+
+      try {
+        // We try to import the HD addresses into the RPC deamon
+        i = this.ADDRESSES.length
+        while (--i >= 0) {
+          try { await this.rpc.importPrivateKey(this.ADDRESSES[i].privateKey) }
+          catch (err) { /* We ignore this error in case the private key is already registered by the RPC deamon. */ }
+        }
+
+        // We get all the existing addresses from the current RPC deamon
+        const addressesGroups: RpcMethodResult<'listaddressgroupings'> = await this.rpc.listAddressGroupings()
+
+        // We filter out the known HD addresses, including the Master Node one
+        const randomAddresses: Array<Partial<WalletAddress>> = addressesGroups
+          .filter((addressGroup: string[][]) =>
+            this.ADDRESSES.filter((address: WalletAddress) => address.hash === addressGroup[0][0]).length === 0
+            && addressGroup[0][0] !== (this.MASTER_NODE_ADDRESS as WalletAddress).hash
+          )
+          // We can know save the left addresses as "random" ones,
+          .map(
+            (addressGroup: string[][]) => ({
+              hash: addressGroup[0][0],
+              isCiphered: false,
+              isHD: false,
+              // tslint:disable-next-line:no-magic-numbers
+              label: addressGroup[0][2]
+            }),
+            []
+          )
+
+        // and retrieve their respective private key
+        i = randomAddresses.length
+        while (--i >= 0) {
+          randomAddresses[i].privateKey = await this.rpc.getPrivateKey(randomAddresses[i].hash as string)
+        }
+      }
+      catch (err) {
+        throw err
+      }
+
+      this.STATE = WalletState.READY
+
+      return this
+    }
 
     this.STATE = WalletState.READY
 
