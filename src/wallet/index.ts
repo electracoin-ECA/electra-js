@@ -221,7 +221,7 @@ export default class Wallet {
 
     /*
       ----------------------------------
-      RPC SERVER
+      STEP 4: RPC SERVER
     */
 
     if (this.rpc !== undefined) {
