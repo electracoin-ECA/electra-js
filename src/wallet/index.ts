@@ -166,6 +166,11 @@ export default class Wallet {
       `)
     }
 
+    /*
+      ----------------------------------
+      RPC SERVER
+    */
+
     if (this.rpc !== undefined) {
       if (passphrase === undefined) {
         throw new Error(`ElectraJs.Wallet:
@@ -179,15 +184,15 @@ export default class Wallet {
 
       try {
         const addressesGroups: RpcMethodResult<'listaddressgroupings'> = await this.rpc.listAddressGroupings()
-        const randomAddresses: Array<Partial<WalletAddress>> = addressesGroups[0].map((addressGroup: string[]) => ({
-          hash: addressGroup[0],
+        const randomAddresses: Array<Partial<WalletAddress>> = addressesGroups.map((addressGroup: string[][]) => ({
+          hash: addressGroup[0][0],
           isCiphered: false,
           isHD: false,
           // tslint:disable-next-line:no-magic-numbers
-          label: addressGroup[2]
+          label: addressGroup[0][2]
         }))
 
-        await this.rpc.unlock(passphrase)
+        await this.rpc.unlock(passphrase, ONE_YEAR_IN_SECONDS, false)
 
         let i: number = randomAddresses.length
         while (--i >= 0) {
