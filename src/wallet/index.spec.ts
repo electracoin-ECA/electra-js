@@ -26,7 +26,6 @@ const {
   RPC_SERVER_PASSWORD_TEST,
   RPC_SERVER_URI_TEST,
   RPC_SERVER_USERNAME_TEST,
-  RPC_WALLET_PASSPHRASE_TEST,
 } = process.env
 
 // This HD wallet i seeded by the same wallet mnemonic than the one above, but without the mnemonic extension.
@@ -57,7 +56,6 @@ if (([
   RPC_SERVER_PASSWORD_TEST,
   RPC_SERVER_URI_TEST,
   RPC_SERVER_USERNAME_TEST,
-  RPC_WALLET_PASSPHRASE_TEST,
 ] as any).includes(undefined)) {
   console.error('Error: You forgot to fill value(s) in your ".env" test wallet data. Please check ".env.sample".')
   process.exit(1)
@@ -437,11 +435,11 @@ describe('Wallet (hard)', function() {
       assert.strictEqual(await assertCatch(() => wallet.getBalance()), true)
     })
     it(`#lock() SHOULD throw an error`, async () => {
-      assert.strictEqual(await assertCatch(() => wallet.lock(RPC_WALLET_PASSPHRASE_TEST)), true)
+      assert.strictEqual(await assertCatch(() => wallet.lock(HD_PASSPHRASE_TEST)), true)
     })
     it(`#reset() SHOULD throw an error`, () => { assert.throws(() => wallet.reset()) })
     it(`#unlock() SHOULD throw an error`, async () => {
-      assert.strictEqual(await assertCatch(() => wallet.unlock(RPC_WALLET_PASSPHRASE_TEST)), true)
+      assert.strictEqual(await assertCatch(() => wallet.unlock(HD_PASSPHRASE_TEST)), true)
     })
   })
 
