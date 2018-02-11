@@ -2,16 +2,31 @@
 
 import * as assert from 'assert'
 import * as crypto from 'crypto'
+import * as dotenv from 'dotenv'
 
 import Rpc from '.'
 
-const RPC_SERVER_AUTH = {
-  username: 'user',
-  password: 'pass'
-}
-const RPC_SERVER_URI = 'http://127.0.0.1:5788'
+// Loads ".env" variables into process.env properties
+dotenv.config()
 
-describe('Rpc', function() {
+const {
+  RPC_SERVER_PASSWORD_TEST,
+  RPC_SERVER_URI_TEST,
+  RPC_SERVER_USERNAME_TEST,
+  RPC_WALLET_PASSPHRASE_TEST,
+} = process.env
+
+if (([
+  RPC_SERVER_PASSWORD_TEST,
+  RPC_SERVER_URI_TEST,
+  RPC_SERVER_USERNAME_TEST,
+  RPC_WALLET_PASSPHRASE_TEST,
+] as any).includes(undefined)) {
+  console.error('Error: You forgot to fill value(s) in your ".env" test wallet data. Please check ".env.sample".')
+  process.exit(1)
+}
+
+describe.only('Rpc', function() {
   let testAccount: string
   let testAddress: string
   let rpc: Rpc
@@ -21,7 +36,10 @@ describe('Rpc', function() {
   before(async function() {
     if (process.env.NODE_ENV === 'travis') this.skip()
 
-    rpc = new Rpc(RPC_SERVER_URI, RPC_SERVER_AUTH)
+    rpc = new Rpc(RPC_SERVER_URI_TEST, {
+      username: RPC_SERVER_USERNAME_TEST,
+      password: RPC_SERVER_PASSWORD_TEST
+    })
     const address = (await rpc.listReceivedByAddress())
       .filter(address => address.amount > 0)
       [0]
