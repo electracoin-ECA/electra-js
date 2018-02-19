@@ -18,6 +18,7 @@ const VERSION: string = '__ELECTRA-JS_VERSION__'
  * Main ElectraJS class.
  */
 export default class ElectraJs {
+  /** Electra blockchain specific constants. */
   public readonly constants: typeof constants = constants
 
   /** Wallet management. */
