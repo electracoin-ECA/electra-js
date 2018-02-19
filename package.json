@@ -13,7 +13,7 @@
     "build": "webpack --config webpack.prod.js && npm run check",
     "check": "mocha test/index.js && mocha -r ts-node/register test/index.ts",
     "start": "npm run watch",
-    "test": " npm run validate && npm run test:unit && npm run test:browser && npm run build",
+    "test": "npm run validate && npm run test:unit && npm run test:browser && npm run build",
     "test:browser": "webpack --config webpack.test.js && mocha -r ts-node/register test/browser/index.ts",
     "test:unit": "mocha -r ts-node/register src/**/*.spec.ts",
     "validate": "npm run validate:lint && npm run validate:tsc",
@@ -57,7 +57,7 @@
     "ts-node": "^4.1.0",
     "tslint": "^5.9.1",
     "typescript": "^2.7.2",
-    "uglifyjs-webpack-plugin": "^1.1.8",
+    "uglifyjs-webpack-plugin": "^1.2.0",
     "webpack": "^3.11.0",
     "webpack-merge": "^4.1.1"
   },
