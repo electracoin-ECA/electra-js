@@ -8,7 +8,7 @@ import webServices from '../web-services'
 import { Settings } from '..'
 import { RpcMethodResult } from '../libs/rpc/types'
 import { Address } from '../types'
-import { WalletAddress, WalletData, WalletStakingInfo, WalletState, WalletTransaction } from './types'
+import { WalletAddress, WalletData, WalletLockState, WalletStakingInfo, WalletState, WalletTransaction } from './types'
 
 // tslint:disable-next-line:no-magic-numbers
 const ONE_YEAR_IN_SECONDS: number = 60 * 60 * 24 * 365
@@ -63,17 +63,17 @@ export default class Wallet {
   }
 
   /** List of the wallet random (non-HD) addresses. */
-  private IS_LOCKED: boolean = false
+  private LOCK_STATE: WalletLockState
   /**
    * Is this wallet locked ?
    * The wallet is considered as locked when all its addresses private keys are currently ciphered.
    */
-  public get isLocked(): boolean {
+  public get lockState(): WalletLockState {
     if (this.STATE !== WalletState.READY) {
       throw new Error(`ElectraJs.Wallet: #isLocked is only available when the #state is "READY".`)
     }
 
-    return this.IS_LOCKED
+    return this.LOCK_STATE
   }
 
   /**
@@ -246,7 +246,7 @@ export default class Wallet {
       throw new Error(`ElectraJs.Wallet: The #lock() method can only be called on a ready wallet (#state = "READY").`)
     }
 
-    if (this.IS_LOCKED) return
+    if (this.LOCK_STATE === WalletLockState.LOCKED) return
 
     if (this.rpc !== undefined) {
       try {
@@ -258,7 +258,7 @@ export default class Wallet {
         if (err !== null) throw err
       }
 
-      this.IS_LOCKED = true
+      this.LOCK_STATE = WalletLockState.LOCKED
 
       return
     }
@@ -289,7 +289,7 @@ export default class Wallet {
     // Locking the wallet should delete any stored mnemonic
     if (this.MNEMONIC !== undefined) delete this.MNEMONIC
 
-    this.IS_LOCKED = true
+    this.LOCK_STATE = WalletLockState.LOCKED
   }
 
   /**
@@ -300,15 +300,23 @@ export default class Wallet {
       throw new Error(`ElectraJs.Wallet: The #unlock() method can only be called on a ready wallet (#state = "READY").`)
     }
 
-    if (!this.IS_LOCKED) return
-
     if (this.rpc !== undefined) {
-      const [err] = await to(this.rpc.unlock(passphrase, ONE_YEAR_IN_SECONDS, forStakingOnly))
-      if (err !== null) throw err
-      this.IS_LOCKED = false
+      if (
+        !forStakingOnly && this.LOCK_STATE === WalletLockState.STAKING
+        || forStakingOnly && this.LOCK_STATE === WalletLockState.UNLOCKED
+      ) {
+        const [err1] = await to(this.lock(passphrase))
+        if (err1 !== null) throw err1
+      }
+
+      const [err2] = await to(this.rpc.unlock(passphrase, ONE_YEAR_IN_SECONDS, forStakingOnly))
+      if (err2 !== null) throw err2
+      this.LOCK_STATE = forStakingOnly ? WalletLockState.STAKING : WalletLockState.UNLOCKED
 
       return
     }
+
+    if (this.LOCK_STATE === WalletLockState.UNLOCKED) return
 
     try {
       if (this.MASTER_NODE_ADDRESS !== undefined && this.MASTER_NODE_ADDRESS.isCiphered) {
@@ -333,7 +341,7 @@ export default class Wallet {
     }
     catch (err) { throw err }
 
-    this.IS_LOCKED = false
+    this.LOCK_STATE = WalletLockState.UNLOCKED
   }
 
   /**
@@ -344,16 +352,16 @@ export default class Wallet {
       throw new Error(`ElectraJs.Wallet: The #export() method can only be called on a ready wallet (#state = "READY").`)
     }
 
-    if (!this.IS_LOCKED && !unsafe) {
+    if (this.LOCK_STATE === WalletLockState.UNLOCKED && !unsafe) {
       throw new Error(`ElectraJs.Wallet:
         The wallet is currently unlocked. Exporting it would thus export the private keys in clear.
-        Either #lock() it first, or set the <force> parameter to TRUE if you want to export the unlocked version.
+        Either #lock() it first, or set the <unsafe> parameter to TRUE if you want to export the unlocked version.
       `)
     }
 
-    if (this.IS_LOCKED && unsafe) {
+    if (this.LOCK_STATE === WalletLockState.LOCKED && unsafe) {
       throw new Error(`ElectraJs.Wallet:
-        The wallet is currently locked. You need to #unlock() it first to export its unlocked version.
+        The wallet is currently locked. You need to #unlock() it first to export its <unsafe> version.
       `)
     }
 
