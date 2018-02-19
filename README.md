@@ -108,14 +108,19 @@ Response:
 boolean
 ```
 
-**`wallet.isLocked`**
+**`wallet.lockState`**
 
-> Is this wallet locked ?
+> Is this wallet locked ?<br>
+> In the case of a light wallet, "STAKING" state can't happen.
 
 ```txt
 Response:
 
-boolean
+enum {
+  LOCKED = 'LOCKED',
+  STAKING = 'STAKING',
+  UNLOCKED = 'UNLOCKED'
+}
 ```
 
 **`wallet.mnemonic`**
@@ -152,7 +157,10 @@ Array<{
 ```txt
 Response:
 
-'EMPTY' | 'READY'
+enum {
+  EMPTY = 'EMPTY',
+  READY = 'READY'
+}
 ```
 
 **`wallet.transactions`**
