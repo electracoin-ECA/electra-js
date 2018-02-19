@@ -235,7 +235,7 @@ Promise<number>
 Parameters:
 
 <passphrase>        string  Wallet encryption passphrase.
-<forStakingOnly>    boolean Optional. Default to TRUE.
+[forStakingOnly]    boolean Optional. Default to TRUE.
 
 Response:
 
@@ -254,6 +254,21 @@ N/A
 Response:
 
 void
+```
+
+**`wallet.send(<amount>, <toAddressHash>)`**
+
+> Create and broadcast a new transaction of <amount> <toAddressHash>.
+
+```txt
+Parameters:
+
+<amount>        number  Amount, in ECA.
+<toAddressHash> string  Recipient address hash.
+
+Response:
+
+Promise<void>
 ```
 
 **`wallet.unlock(<passphrase>)`**
