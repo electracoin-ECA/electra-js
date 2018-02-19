@@ -29,3 +29,9 @@ export enum WalletState {
   EMPTY = 'EMPTY',
   READY = 'READY'
 }
+
+export enum WalletLockState {
+  LOCKED = 'LOCKED',
+  STAKING = 'STAKING',
+  UNLOCKED = 'UNLOCKED'
+}
