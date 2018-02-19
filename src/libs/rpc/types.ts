@@ -169,7 +169,7 @@ export interface RpcMethods {
   sendfrom: any
   sendmany: any
   sendrawtransaction: any
-  sendtoaddress: any
+  sendtoaddress: string
   setaccount: any
   settxfee: any
   signmessage: any
