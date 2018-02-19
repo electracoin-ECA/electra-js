@@ -1,5 +1,7 @@
 import to from 'await-to-js'
+import * as R from 'ramda'
 
+import { ECA_TRANSACTION_FEE } from '../constants'
 import Crypto from '../libs/crypto'
 import Electra from '../libs/electra'
 import Rpc from '../libs/rpc'
@@ -230,11 +232,17 @@ export default class Wallet {
         catch (err) { /* We ignore this error in case the private key is already registered by the RPC deamon. */ }
       }
 
+      // We try the lock the RPC deamon wallet since its behavior is difficult to guess
+      // try { await this.rpc.lock() }
+      // catch (err) { /* We ignore this error in case the RPC deamon is already locked. */ }
+
+      this.LOCK_STATE = WalletLockState.LOCKED
       this.STATE = WalletState.READY
 
       return
     }
 
+    this.LOCK_STATE = WalletLockState.UNLOCKED
     this.STATE = WalletState.READY
   }
 
@@ -479,5 +487,87 @@ export default class Wallet {
       nextRewardIn: res.expectedtime,
       weight: res.weight
     }
+  }
+
+  /**
+   * Create and broadcast a new transaction of <amount> <toAddressHash> from the first unspent ones.
+   */
+  public async send(amount: number, toAddressHash: string, fromAddressHash?: string): Promise<void> {
+    if (this.STATE === WalletState.EMPTY) {
+      throw new Error(`ElectraJs.Wallet: You can't #send() from an empty wallet (#state = "EMPTY").`)
+    }
+
+    if (this.LOCK_STATE === WalletLockState.LOCKED) {
+      throw new Error(`ElectraJs.Wallet:
+        You can't #send() from a locked wallet. Please #unlock() it first with <forStakingOnly> to TRUE.
+      `)
+    }
+
+    if (this.LOCK_STATE === WalletLockState.STAKING) {
+      throw new Error(`ElectraJs.Wallet:
+        You can't #send() from a staking-only wallet. Please #unlock() it first with <forStakingOnly> to TRUE.
+      `)
+    }
+
+    if (amount <= 0) {
+      throw new Error(`ElectraJs.Wallet: You can't #send() a positive amount.`)
+    }
+
+    if (fromAddressHash !== undefined && !R.contains({ hash: fromAddressHash }, this.allAddresses)) {
+      throw new Error(`ElectraJs.Wallet: You can't #send() from an address that is not part of the current wallet.`)
+    }
+
+    if (amount > (await this.getBalance() - ECA_TRANSACTION_FEE)) {
+      throw new Error(`ElectraJs.Wallet: You can't #send() from an address that is not part of the current wallet.`)
+    }
+
+    /*
+      STEP 1: UNSPENT TRANSACTIONS
+    */
+    const [err1, unspentTransactions] = await to(this.getUnspentTransactions(true))
+    if (err1 !== null || unspentTransactions === undefined) throw err1
+
+    let availableAmount: number = 0
+    const requiredUnspentTransactions: string[] = []
+    // tslint:disable-next-line:prefer-const
+    for (let unspentTransaction of unspentTransactions) {
+      availableAmount += unspentTransaction.amount
+      requiredUnspentTransactions.push(unspentTransaction.hash)
+
+      if (availableAmount >= amount) break
+    }
+
+    /*
+      STEP 2: BROADCAST
+    */
+
+    if (this.rpc !== undefined) {
+      const [err2] = await to(this.rpc.sendBasicTransaction(toAddressHash, amount))
+      if (err2 !== null) throw err2
+    }
+  }
+
+  /** List of the wallet unspent transactions, ordered by descending amount. */
+  private async getUnspentTransactions(includeUnconfirmed: boolean = false): Promise<WalletTransaction[]> {
+    if (this.STATE !== WalletState.READY) {
+      throw new Error(`ElectraJs.Wallet: The #transactions are only available when the #state is "READY".`)
+    }
+
+    if (this.rpc !== undefined) {
+      const [err, res] = await to(this.rpc.listUnspent(includeUnconfirmed ? 0 : 1))
+      if (err !== null || res === undefined) throw err
+
+      return R.sort(
+        R.descend(R.prop('amount')),
+        res.map((unspentTransaction: RpcMethodResult<'listunspent'>[0]) => ({
+          amount: unspentTransaction.amount,
+          confimationsCount: unspentTransaction.confirmations,
+          hash: unspentTransaction.txid,
+          toAddressHash: unspentTransaction.address
+        }))
+      )
+    }
+
+    return []
   }
 }
