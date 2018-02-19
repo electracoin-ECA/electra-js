@@ -7,3 +7,5 @@ export const ECA_NETWORK: bitcoinJs.Network = {
   scriptHash: 0, // TODO Find this parameter
   wif: 161 // WIF version
 }
+
+export const ECA_TRANSACTION_FEE: number = 0.00001
