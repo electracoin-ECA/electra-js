@@ -28,6 +28,8 @@ const {
   RPC_SERVER_USERNAME_TEST,
 } = process.env
 
+const TEST_AMOUNT = 0.00001
+
 // This HD wallet i seeded by the same wallet mnemonic than the one above, but without the mnemonic extension.
 // As a result, the generated private keys are different and listed here.
 export const HD_WALLET_WITHOUT_MNEMONIC_EXTENSION_TEST = {
@@ -438,6 +440,9 @@ describe('Wallet (hard)', function() {
       assert.strictEqual(await assertCatch(() => wallet.lock(HD_PASSPHRASE_TEST)), true)
     })
     it(`#reset() SHOULD throw an error`, () => { assert.throws(() => wallet.reset()) })
+    it(`#send() SHOULD throw an error`, async () => {
+      assert.strictEqual(await assertCatch(() => wallet.send(TEST_AMOUNT, HD_CHAIN_1_HASH_TEST)), true)
+    })
     it(`#unlock() SHOULD throw an error`, async () => {
       assert.strictEqual(await assertCatch(() => wallet.unlock(HD_PASSPHRASE_TEST)), true)
     })
@@ -480,20 +485,24 @@ describe('Wallet (hard)', function() {
 
     it(`#mnemonic SHOULD throw an error`, () => { assert.throws(() => wallet.mnemonic) })
 
+    it(`#lockState SHOULD be "UNLOCKED"`, () => { assert.strictEqual(wallet.lockState, 'UNLOCKED') })
+    it(`#lock() SHOULD not throw any error`, async () => {
+      assert.strictEqual(await assertCatch(() => wallet.lock(HD_PASSPHRASE_TEST)), false)
+    })
     it(`#lockState SHOULD be "LOCKED"`, () => { assert.strictEqual(wallet.lockState, 'LOCKED') })
     it(`#unlock() SHOULD not throw any error`, async () => {
       assert.strictEqual(await assertCatch(() => wallet.unlock(HD_PASSPHRASE_TEST)), false)
     })
     it(`#lockState SHOULD be "STAKING"`, () => { assert.strictEqual(wallet.lockState, 'STAKING') })
     it(`#send() SHOULD throw an error`, async () => {
-      assert.strictEqual(await assertCatch(() => wallet.send(0.1, HD_CHAIN_2_HASH_TEST)), true)
+      assert.strictEqual(await assertCatch(() => wallet.send(TEST_AMOUNT, HD_CHAIN_2_HASH_TEST)), true)
     })
     it(`#lock() SHOULD not throw any error`, async () => {
       assert.strictEqual(await assertCatch(() => wallet.lock(HD_PASSPHRASE_TEST)), false)
     })
     it(`#lockState SHOULD be "LOCKED"`, () => { assert.strictEqual(wallet.lockState, 'LOCKED') })
     it(`#send() SHOULD throw an error`, async () => {
-      assert.strictEqual(await assertCatch(() => wallet.send(0.1, HD_CHAIN_2_HASH_TEST)), true)
+      assert.strictEqual(await assertCatch(() => wallet.send(TEST_AMOUNT, HD_CHAIN_2_HASH_TEST)), true)
     })
     it(`#unlock(<forStakingOnly=FALSE>) SHOULD not throw any error`, async () => {
       assert.strictEqual(await assertCatch(() => wallet.unlock(HD_PASSPHRASE_TEST, false)), false)
@@ -501,8 +510,8 @@ describe('Wallet (hard)', function() {
     it(`#lockState SHOULD be "UNLOCKED"`, () => { assert.strictEqual(wallet.lockState, 'UNLOCKED') })
 
     it(`#send() SHOULD NOT throw any error`, async () => {
-      assert.strictEqual(await assertCatch(() => wallet.send(0.1, HD_CHAIN_2_HASH_TEST)), false)
-      assert.strictEqual(await assertCatch(() => wallet.send(0.1, HD_CHAIN_1_HASH_TEST)), false)
+      assert.strictEqual(await assertCatch(() => wallet.send(TEST_AMOUNT, HD_CHAIN_2_HASH_TEST)), false)
+      assert.strictEqual(await assertCatch(() => wallet.send(TEST_AMOUNT, HD_CHAIN_1_HASH_TEST)), false)
     })
 
     it(`#generate() SHOULD throw an error`, async () => { assert.strictEqual(await assertCatch(() => wallet.generate()), true) })
