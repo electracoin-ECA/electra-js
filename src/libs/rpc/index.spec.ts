@@ -48,7 +48,7 @@ describe('Rpc', function() {
     if (process.env.NODE_ENV === 'travis') this.skip()
   })
 
-  describe('#check()', function() {
+  describe.skip('#check()', function() {
     it(`SHOULD succesfully check the wallet`, async function() {
       const res = await rpc.check()
       assert.strictEqual(res['wallet check passed'], true)
@@ -119,7 +119,7 @@ describe('Rpc', function() {
     })
   })
 
-  describe('#listAddressGroupings()', function() {
+  describe.skip('#listAddressGroupings()', function() {
     it(`SHOULD return the expected types`, async function() {
       const res = await rpc.listAddressGroupings()
       assert.strictEqual(typeof res[0][0][0], 'string')
@@ -162,7 +162,7 @@ describe('Rpc', function() {
     })
   })
 
-  describe('#listUnspent()', function() {
+  describe.skip('#listUnspent()', function() {
     it(`SHOULD return the expected types`, async function() {
       const transactions = await rpc.listUnspent()
       assert.strictEqual(typeof transactions[0].txid, 'string')
