@@ -20,7 +20,7 @@ describe(`ElectraJs`, function() {
     describe(`#getCurrentPriceIn()`, function() {
       let usdPrice
 
-      it(`SHOULD return a number with no parameter (= USD)`, function(done) {
+      it(`SHOULD return a number with no parameter (= "USD")`, function(done) {
         electraJs.webServices.getCurrentPriceIn()
           .then(price => {
             usdPrice = price
