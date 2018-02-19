@@ -2,9 +2,9 @@
 
 import * as assert from 'assert'
 
-import isBrowser from './isBrowser'
+import * as isBrowser from './isBrowser'
 
-describe('helpers/isBrowser()', function() {
+describe.only('helpers/isBrowser()', function() {
   it(`SHOULD return FALSE`, function() {
     assert.strictEqual(isBrowser(), false)
   })

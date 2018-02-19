@@ -1,3 +1,3 @@
-export default function(): boolean {
+module.exports = function() {
   return typeof window !== 'undefined'
 }
