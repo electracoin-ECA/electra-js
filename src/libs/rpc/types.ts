@@ -140,10 +140,11 @@ export interface RpcMethods {
     address: string
     category: string
     amount: number
+    fee?: number
     confirmations: number
-    blockhash: string
-    blockindex: number
-    blocktime: number
+    blockhash?: string
+    blockindex?: number
+    blocktime?: number
     txid: string
     time: number
     timereceived: number
