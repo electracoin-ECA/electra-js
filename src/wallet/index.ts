@@ -223,43 +223,11 @@ export default class Wallet {
     if (this.rpc !== undefined) {
       let i: number
 
-      try {
-        // We try to import the HD addresses into the RPC deamon
-        i = this.ADDRESSES.length
-        while (--i >= 0) {
-          try { await this.rpc.importPrivateKey(this.ADDRESSES[i].privateKey) }
-          catch (err) { /* We ignore this error in case the private key is already registered by the RPC deamon. */ }
-        }
-
-        // We get all the existing addresses from the current RPC deamon
-        const addressesGroups: RpcMethodResult<'listaddressgroupings'> = await this.rpc.listAddressGroupings()
-
-        // We filter out the known HD addresses, including the Master Node one
-        const randomAddresses: Array<Partial<WalletAddress>> = addressesGroups
-          .filter((addressGroup: string[][]) =>
-            this.ADDRESSES.filter((address: WalletAddress) => address.hash === addressGroup[0][0]).length === 0
-            && addressGroup[0][0] !== (this.MASTER_NODE_ADDRESS as WalletAddress).hash
-          )
-          // We can know save the left addresses as "random" ones,
-          .map(
-            (addressGroup: string[][]) => ({
-              hash: addressGroup[0][0],
-              isCiphered: false,
-              isHD: false,
-              // tslint:disable-next-line:no-magic-numbers
-              label: addressGroup[0][2]
-            }),
-            []
-          )
-
-        // and retrieve their respective private key
-        i = randomAddresses.length
-        while (--i >= 0) {
-          randomAddresses[i].privateKey = await this.rpc.getPrivateKey(randomAddresses[i].hash as string)
-        }
-      }
-      catch (err) {
-        throw err
+      // We try to import the HD addresses into the RPC deamon
+      i = this.ADDRESSES.length
+      while (--i >= 0) {
+        try { await this.rpc.importPrivateKey(this.ADDRESSES[i].privateKey) }
+        catch (err) { /* We ignore this error in case the private key is already registered by the RPC deamon. */ }
       }
 
       this.STATE = WalletState.READY
@@ -271,7 +239,7 @@ export default class Wallet {
   }
 
   /**
-   * Lock the wallet, that is, cipher all the private keys.
+   * Lock the wallet, that is cipher all its private keys.
    */
   public async lock(passphrase: string): Promise<void> {
     if (this.STATE !== WalletState.READY) {
@@ -325,7 +293,7 @@ export default class Wallet {
   }
 
   /**
-   * Unlock the wallet, that is, decipher all the private keys.
+   * Unlock the wallet, that is decipher all its private keys.
    */
   public async unlock(passphrase: string, forStakingOnly: boolean = true): Promise<void> {
     if (this.STATE !== WalletState.READY) {
