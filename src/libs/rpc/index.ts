@@ -195,10 +195,8 @@ export default class Rpc {
    * Create a basic transaction and broadcast it.
    *
    * @note
+   * THIS METHOD SHOULD NOT BE USED ONCE THE FIRST FINAL VERSION IS RELEASED.
    * This transaction is "basic" because the unspent transaction are automatically selected.
-   *
-   * @deprecated
-   * This method SHOULD NOT be used when the first final release will be published.
    */
   public async sendBasicTransaction(toAddressHash: string, amount: number): Promise<RpcMethodResult<'sendtoaddress'>> {
     return this.query('sendtoaddress', Array.prototype.slice.call(arguments))
