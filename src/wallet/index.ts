@@ -65,7 +65,7 @@ export default class Wallet {
   }
 
   /** List of the wallet random (non-HD) addresses. */
-  private LOCK_STATE: WalletLockState
+  private LOCK_STATE: WalletLockState = WalletLockState.UNLOCKED
   /**
    * Is this wallet locked ?
    * The wallet is considered as locked when all its addresses private keys are currently ciphered.
@@ -231,18 +231,8 @@ export default class Wallet {
         try { await this.rpc.importPrivateKey(this.ADDRESSES[i].privateKey) }
         catch (err) { /* We ignore this error in case the private key is already registered by the RPC deamon. */ }
       }
-
-      // We try the lock the RPC deamon wallet since its behavior is difficult to guess
-      // try { await this.rpc.lock() }
-      // catch (err) { /* We ignore this error in case the RPC deamon is already locked. */ }
-
-      this.LOCK_STATE = WalletLockState.LOCKED
-      this.STATE = WalletState.READY
-
-      return
     }
 
-    this.LOCK_STATE = WalletLockState.UNLOCKED
     this.STATE = WalletState.READY
   }
 
