@@ -405,6 +405,8 @@ describe('Wallet (light)', function() {
 describe('Wallet (hard)', function() {
   let wallet: Wallet
 
+  this.timeout(5000)
+
   beforeEach(function() {
     if (process.env.NODE_ENV === 'travis') this.skip()
   })
