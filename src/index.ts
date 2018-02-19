@@ -1,3 +1,4 @@
+import * as constants from './constants'
 import { RpcAuth } from './libs/rpc'
 import Wallet from './wallet'
 import webServices, { WebServices } from './web-services'
@@ -17,6 +18,8 @@ const VERSION: string = '__ELECTRA-JS_VERSION__'
  * Main ElectraJS class.
  */
 export default class ElectraJs {
+  public readonly constants: typeof constants = constants
+
   /** Wallet management. */
   public wallet: Wallet
 
