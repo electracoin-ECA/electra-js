@@ -532,6 +532,7 @@ export default class Wallet {
     */
 
     if (this.rpc !== undefined) {
+      // TODO Replace this method with a detailed unspent transactions signed one.
       const [err2] = await to(this.rpc.sendBasicTransaction(toAddressHash, amount))
       if (err2 !== null) throw err2
     }
