@@ -192,6 +192,19 @@ export default class Rpc {
   }
 
   /**
+   * Create a basic transaction and broadcast it.
+   *
+   * @note
+   * This transaction is "basic" because the unspent transaction are automatically selected.
+   *
+   * @deprecated
+   * This method SHOULD NOT be used when the first final release will be published.
+   */
+  public async sendBasicTransaction(toAddressHash: string, amount: number): Promise<RpcMethodResult<'sendtoaddress'>> {
+    return this.query('sendtoaddress', Array.prototype.slice.call(arguments))
+  }
+
+  /**
    * Stores the wallet decryption key in memory for <timeout> seconds.
    * If [stakingOnly] is TRUE, sending functions are disabled.
    */
