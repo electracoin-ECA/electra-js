@@ -1,7 +1,8 @@
 import * as constants from './constants';
 import { RpcAuth } from './libs/rpc';
 import Wallet from './wallet';
-import { WebServices } from './web-services';
+import { CoinMarketCapCurrency, WebServices } from './web-services';
+export { CoinMarketCapCurrency };
 export interface Settings {
     rpcServerAuth?: RpcAuth;
     rpcServerUri?: string;
