@@ -11,8 +11,8 @@ export interface Settings {
 }
 
 /**
- * electra-js version
- * DO NOT CHANGE THIS LINE SINCE THE VERSION IS AUTOMATICALLY INJECTED
+ * ElectraJs version.
+ * DO NOT CHANGE THIS LINE SINCE THE VERSION IS AUTOMATICALLY INJECTED !
  */
 const VERSION: string = '__ELECTRA-JS_VERSION__'
 
