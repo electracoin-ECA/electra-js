@@ -4,11 +4,14 @@ export interface WalletAddress extends Address {
   label: OrNull<string>
 }
 
-export interface WalletData {
-  chainsCount: number
-  masterNodeAddress: OrNull<WalletAddress>
-  randomAddresses: WalletAddress[]
-}
+// https://github.com/Electra-project/Electra-Improvement-Proposals/blob/master/EIP-0002.md
+export type WalletExchangeFormat = [
+  // tslint:disable-next-line:no-magic-numbers
+  2,
+  number,
+  string,
+  string[]
+]
 
 export interface WalletTransaction {
   amount: number
