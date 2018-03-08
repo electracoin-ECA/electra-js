@@ -25,7 +25,8 @@ export interface WalletTransaction {
 export interface WalletStakingInfo {
   networkWeight: number
   nextRewardIn: number // in seconds
-  weight: number
+  weight: number,
+  staking: boolean
 }
 
 export enum WalletState {
