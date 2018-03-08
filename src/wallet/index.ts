@@ -489,7 +489,7 @@ export default class Wallet {
    * If the [passphrase] is not defined, the <privateKey> MUST be given deciphered.
    * If the [passphrase] is defined, the <privateKey> MUST be given ciphered.
    */
-  /*public importRandomAddress(privateKey: string, passphrase?: string): void {
+  public importRandomAddress(privateKey: string, passphrase?: string): void {
     if (this.STATE !== WalletState.READY) {
       throw new Error(`ElectraJs.Wallet:
         The #importRandomAddress() method can only be called on a ready wallet (#state = "READY").
@@ -523,7 +523,7 @@ export default class Wallet {
     }
 
     this.RANDOM_ADDRESSES.push(address as WalletAddress)
-  }*/
+  }
 
   /**
    * Reset the current wallet properties and switch the #state to "EMPTY".
