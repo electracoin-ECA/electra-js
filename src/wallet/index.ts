@@ -577,10 +577,11 @@ export default class Wallet {
 
   /**
    * Get connection count.
-  */
+   */
   public async getConnectionCount(): Promise<number> {
     const [err, connectionCount] = await to((this.rpc as Rpc).getConnectionCount())
-    if (err !== null || connectionCount == undefined) throw err
+    if (err !== null || connectionCount === undefined) throw err
+
     return connectionCount
   }
 
@@ -598,8 +599,8 @@ export default class Wallet {
     return {
       networkWeight: res.netstakeweight,
       nextRewardIn: res.expectedtime,
-      weight: res.weight,
-      staking: res.staking
+      staking: res.staking,
+      weight: res.weight
     }
   }
 
