@@ -2,6 +2,7 @@ import to from 'await-to-js'
 import * as R from 'ramda'
 
 import { ECA_TRANSACTION_FEE } from '../constants'
+import tryCatch from '../helpers/tryCatch'
 import Crypto from '../libs/crypto'
 import Electra from '../libs/electra'
 import Rpc from '../libs/rpc'
@@ -10,7 +11,14 @@ import webServices from '../web-services'
 import { Settings } from '..'
 import { RpcMethodResult } from '../libs/rpc/types'
 import { Address } from '../types'
-import { WalletAddress, WalletData, WalletLockState, WalletStakingInfo, WalletState, WalletTransaction } from './types'
+import {
+  WalletAddress,
+  WalletExchangeFormat,
+  WalletLockState,
+  WalletStakingInfo,
+  WalletState,
+  WalletTransaction
+} from './types'
 
 // tslint:disable-next-line:no-magic-numbers
 const ONE_YEAR_IN_SECONDS: number = 60 * 60 * 24 * 365
@@ -343,31 +351,137 @@ export default class Wallet {
   }
 
   /**
-   * Export wallet data with ciphered private keys, or unciphered if <unsafe> is set to TRUE.
+   * Import a wallet data containing ciphered private keys.
+   *
+   * @note
+   * The <data> must be a stringified JSON WEF following the EIP-0002 specifications.
+   * https://github.com/Electra-project/Electra-Improvement-Proposals/blob/master/EIP-0002.md
    */
-  public export(unsafe: boolean = false): WalletData {
+  public async import(data: string, passphrase: string): Promise<void> {
+    if (this.STATE !== WalletState.EMPTY) {
+      throw new Error(`ElectraJs.Wallet:
+        The #import() method can only be called on an empty wallet (#state = "EMPTY").
+      `)
+    }
+
+    const [err, wefData] = tryCatch(() => JSON.parse(data) as WalletExchangeFormat)
+    if (err !== undefined) throw err
+
+    const [version, chainsCount, hdPrivateKeyX, randomPrivateKeysX] = wefData as WalletExchangeFormat
+
+    // tslint:disable-next-line:no-magic-numbers
+    if (version !== 2) {
+      throw new Error(`ElectraJs.Wallet: The WEF version should be equal to 2.`)
+    }
+
+    /*
+      ----------------------------------
+      STEP 1: MASTER NODE
+    */
+
+    try {
+      const privateKey: string = Crypto.decipherPrivateKey(hdPrivateKeyX, passphrase)
+      const hash: string = Electra.getAddressHashFromPrivateKey(privateKey)
+      this.MASTER_NODE_ADDRESS = {
+        hash,
+        isCiphered: false,
+        isHD: true,
+        label: null,
+        privateKey,
+      }
+    }
+    catch (err) { throw err }
+
+    /*
+      ----------------------------------
+      STEP 2: CHAINS
+    */
+
+    let chainIndex: number = -1
+    try {
+      while (++chainIndex < chainsCount) {
+        const address: Address = Electra.getDerivedChainFromMasterNodePrivateKey(
+          this.MASTER_NODE_ADDRESS.privateKey,
+          WALLET_INDEX,
+          chainIndex
+        )
+
+        this.ADDRESSES.push({
+          ...address,
+          label: null
+        })
+      }
+    }
+    catch (err) { throw err }
+
+    /*
+      ----------------------------------
+      STEP 3: RANDOM ADDRESSES
+    */
+
+    let randomAddressIndex: number = randomPrivateKeysX.length
+    try {
+      while (--randomAddressIndex >= 0) {
+        const privateKey: string = Crypto.decipherPrivateKey(randomPrivateKeysX[randomAddressIndex], passphrase)
+        const hash: string = Electra.getAddressHashFromPrivateKey(privateKey)
+        this.RANDOM_ADDRESSES.push({
+          hash,
+          isCiphered: false,
+          isHD: true,
+          label: null,
+          privateKey,
+        })
+      }
+    }
+    catch (err) { throw err }
+
+    /*
+      ----------------------------------
+      STEP 4: RPC SERVER
+    */
+
+    if (this.rpc !== undefined) {
+      let i: number
+
+      // We try to import the HD and the random (non-HD) addresses into the RPC deamon
+      i = this.allAddresses.length
+      while (--i >= 0) {
+        try { await this.rpc.importPrivateKey(this.ADDRESSES[i].privateKey) }
+        catch (err) { /* We ignore this error in case the private key is already registered by the RPC deamon. */ }
+      }
+    }
+
+    this.STATE = WalletState.READY
+  }
+
+  /**
+   * Export wallet data with ciphered private keys, or unciphered if <unsafe> is set to TRUE.
+   *
+   * @note
+   * The returned string will be a stringified JSON WEF following the EIP-0002 specifications.
+   * https://github.com/Electra-project/Electra-Improvement-Proposals/blob/master/EIP-0002.md
+   */
+  public export(): string {
     if (this.STATE !== WalletState.READY) {
       throw new Error(`ElectraJs.Wallet: The #export() method can only be called on a ready wallet (#state = "READY").`)
     }
 
-    if (this.LOCK_STATE === WalletLockState.UNLOCKED && !unsafe) {
+    if (this.LOCK_STATE === WalletLockState.UNLOCKED) {
       throw new Error(`ElectraJs.Wallet:
         The wallet is currently unlocked. Exporting it would thus export the private keys in clear.
-        Either #lock() it first, or set the <unsafe> parameter to TRUE if you want to export the unlocked version.
+        You need to #lock() it first.
       `)
     }
 
-    if (this.LOCK_STATE === WalletLockState.LOCKED && unsafe) {
-      throw new Error(`ElectraJs.Wallet:
-        The wallet is currently locked. You need to #unlock() it first to export its <unsafe> version.
-      `)
-    }
+    const wefData: WalletExchangeFormat = [
+      // tslint:disable-next-line:no-magic-numbers
+      2,
+      this.ADDRESSES.length,
+      (this.MASTER_NODE_ADDRESS as WalletAddress).privateKey,
+      this.RANDOM_ADDRESSES.map((address: WalletAddress) => address.privateKey)
+    ]
 
-    return {
-      chainsCount: this.ADDRESSES.length,
-      masterNodeAddress: this.MASTER_NODE_ADDRESS !== undefined ? this.MASTER_NODE_ADDRESS : null,
-      randomAddresses: this.RANDOM_ADDRESSES
-    }
+    return JSON.stringify(wefData)
   }
 
   /**
@@ -375,7 +489,7 @@ export default class Wallet {
    * If the [passphrase] is not defined, the <privateKey> MUST be given deciphered.
    * If the [passphrase] is defined, the <privateKey> MUST be given ciphered.
    */
-  public importRandomAddress(privateKey: string, passphrase?: string): void {
+  /*public importRandomAddress(privateKey: string, passphrase?: string): void {
     if (this.STATE !== WalletState.READY) {
       throw new Error(`ElectraJs.Wallet:
         The #importRandomAddress() method can only be called on a ready wallet (#state = "READY").
@@ -409,7 +523,7 @@ export default class Wallet {
     }
 
     this.RANDOM_ADDRESSES.push(address as WalletAddress)
-  }
+  }*/
 
   /**
    * Reset the current wallet properties and switch the #state to "EMPTY".
