@@ -402,7 +402,7 @@ describe('Wallet (light)', function() {
   })
 })
 
-describe('Wallet (hard)', function() {
+describe.skip('Wallet (hard)', function() {
   let wallet: Wallet
 
   this.timeout(5000)
