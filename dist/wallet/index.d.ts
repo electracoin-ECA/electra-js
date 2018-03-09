@@ -1,5 +1,5 @@
 import { Settings } from '..';
-import { WalletAddress, WalletData, WalletLockState, WalletStakingInfo, WalletState, WalletTransaction } from './types';
+import { WalletAddress, WalletLockState, WalletStakingInfo, WalletState, WalletTransaction } from './types';
 /**
  * Wallet management.
  */
@@ -84,9 +84,21 @@ export default class Wallet {
      */
     unlock(passphrase: string, forStakingOnly?: boolean): Promise<void>;
     /**
-     * Export wallet data with ciphered private keys, or unciphered if <unsafe> is set to TRUE.
+     * Import a wallet data containing ciphered private keys.
+     *
+     * @note
+     * The <data> must be a stringified JSON WEF following the EIP-0002 specifications.
+     * https://github.com/Electra-project/Electra-Improvement-Proposals/blob/master/EIP-0002.md
      */
-    export(unsafe?: boolean): WalletData;
+    import(data: string, passphrase: string): Promise<void>;
+    /**
+     * Export wallet data with ciphered private keys, or unciphered if <unsafe> is set to TRUE.
+     *
+     * @note
+     * The returned string will be a stringified JSON WEF following the EIP-0002 specifications.
+     * https://github.com/Electra-project/Electra-Improvement-Proposals/blob/master/EIP-0002.md
+     */
+    export(): string;
     /**
      * Import a ramdomly generated (legacy) WIF private key into the wallet.
      * If the [passphrase] is not defined, the <privateKey> MUST be given deciphered.

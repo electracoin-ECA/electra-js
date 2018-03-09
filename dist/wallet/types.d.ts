@@ -2,11 +2,7 @@ import { Address, OrNull } from '../types';
 export interface WalletAddress extends Address {
     label: OrNull<string>;
 }
-export interface WalletData {
-    chainsCount: number;
-    masterNodeAddress: OrNull<WalletAddress>;
-    randomAddresses: WalletAddress[];
-}
+export declare type WalletExchangeFormat = [2, number, string, string[]];
 export interface WalletTransaction {
     amount: number;
     confimationsCount: number;
