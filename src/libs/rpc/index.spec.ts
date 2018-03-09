@@ -24,7 +24,7 @@ if (([
   process.exit(1)
 }
 
-describe('Rpc', function() {
+describe.skip('Rpc', function() {
   let testAccount: string
   let testAddress: string
   let rpc: Rpc
