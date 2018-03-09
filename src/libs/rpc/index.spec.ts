@@ -69,6 +69,13 @@ describe.skip('Rpc', function() {
     })
   })
 
+  describe('#getConnectionCount()', function() {
+    it(`SHOULD return a number`, async function() {
+      const balance = await rpc.getConnectionCount()
+      assert.strictEqual(typeof balance, 'number')
+    })
+  })
+
   describe('#getDifficulty()', function() {
     it(`SHOULD return the expected types`, async function() {
       const difficulty = await rpc.getDifficulty()

@@ -92,6 +92,13 @@ export default class Rpc {
   }
 
   /**
+   * Get connection count.
+   */
+  public async getConnectionCount(): Promise<RpcMethodResult<'getconnectioncount'>> {
+    return this.query('getconnectioncount', null)
+  }
+
+  /**
    * Get the difficulty as a multiple of the minimum difficulty.
    */
   public async getDifficulty(): Promise<RpcMethodResult<'getdifficulty'>> {
