@@ -11,7 +11,7 @@
   },
   "scripts": {
     "build": "webpack --config webpack.prod.js && node tasks/fixTypingsGeneration && npm run check",
-    "check": "mocha test/index.js && mocha -r ts-node/register test/index.ts",
+    "check": "mocha test/index.js && mocha -r ts-node/register test/index.ts && tsc -p tsconfig.dist.json --noEmit --pretty",
     "start": "npm run watch",
     "test": "npm run validate && npm run test:unit && npm run test:browser && npm run build",
     "test:browser": "webpack --config webpack.test.js && mocha -r ts-node/register test/browser/index.ts",
