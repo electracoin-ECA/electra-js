@@ -576,9 +576,9 @@ export default class Wallet {
   }
 
   /**
-   * Get connection count.
+   * Get the current connections count.
    */
-  public async getConnectionCount(): Promise<number> {
+  public async getConnectionsCount(): Promise<number> {
     const [err, connectionCount] = await to((this.rpc as Rpc).getConnectionCount())
     if (err !== null || connectionCount === undefined) throw err
 
