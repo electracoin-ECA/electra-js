@@ -114,6 +114,10 @@ export default class Wallet {
      */
     getBalance(addressHash?: string): Promise<number>;
     /**
+     * Get the current connections count.
+     */
+    getConnectionsCount(): Promise<number>;
+    /**
      * Get the current staking calculated data.
      */
     getStakingInfo(): Promise<WalletStakingInfo>;
