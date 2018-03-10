@@ -37,6 +37,10 @@ export default class Rpc {
      */
     getBalance(): Promise<RpcMethodResult<'getbalance'>>;
     /**
+     * Get connection count.
+     */
+    getConnectionCount(): Promise<RpcMethodResult<'getconnectioncount'>>;
+    /**
      * Get the difficulty as a multiple of the minimum difficulty.
      */
     getDifficulty(): Promise<RpcMethodResult<'getdifficulty'>>;

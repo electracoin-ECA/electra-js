@@ -23164,7 +23164,7 @@ const web_services_1 = __webpack_require__(231);
  * ElectraJs version.
  * DO NOT CHANGE THIS LINE SINCE THE VERSION IS AUTOMATICALLY INJECTED !
  */
-const VERSION = '0.2.0';
+const VERSION = '0.3.0';
 /**
  * Main ElectraJS class.
  */
@@ -23685,6 +23685,17 @@ class Wallet {
         });
     }
     /**
+     * Get the current connections count.
+     */
+    getConnectionsCount() {
+        return __awaiter(this, void 0, void 0, function* () {
+            const [err, connectionCount] = yield await_to_js_1.default(this.rpc.getConnectionCount());
+            if (err !== null || connectionCount === undefined)
+                throw err;
+            return connectionCount;
+        });
+    }
+    /**
      * Get the current staking calculated data.
      */
     getStakingInfo() {
@@ -23698,6 +23709,7 @@ class Wallet {
             return {
                 networkWeight: res.netstakeweight,
                 nextRewardIn: res.expectedtime,
+                staking: res.staking,
                 weight: res.weight
             };
         });
@@ -47169,6 +47181,14 @@ class Rpc {
     getBalance() {
         return __awaiter(this, void 0, void 0, function* () {
             return this.query('getbalance', null);
+        });
+    }
+    /**
+     * Get connection count.
+     */
+    getConnectionCount() {
+        return __awaiter(this, void 0, void 0, function* () {
+            return this.query('getconnectioncount', null);
         });
     }
     /**
