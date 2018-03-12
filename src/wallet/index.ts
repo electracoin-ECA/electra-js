@@ -550,6 +550,13 @@ export default class Wallet {
       throw new Error(`ElectraJs.Wallet: You can't #getBalance() from an empty wallet (#state = "EMPTY").`)
     }
 
+    if (this.rpc !== undefined) {
+      const [err, balance] = await to(this.rpc.getBalance())
+      if (err !== null) throw err
+
+      return balance as number
+    }
+
     const addresses: WalletAddress[] = this.allAddresses
 
     if (addressHash !== undefined) {
