@@ -1,5 +1,7 @@
 import { Address, OrNull } from '../types'
 
+export type OperatingSystem = 'LINUX' | 'MACOS' | 'WINDOWS'
+
 export interface WalletAddress extends Address {
   label: OrNull<string>
 }
