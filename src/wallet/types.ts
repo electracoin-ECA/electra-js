@@ -31,7 +31,8 @@ export interface WalletStakingInfo {
 
 export enum WalletState {
   EMPTY = 'EMPTY',
-  READY = 'READY'
+  READY = 'READY',
+  STOPPED = 'STOPPED'
 }
 
 export enum WalletLockState {
