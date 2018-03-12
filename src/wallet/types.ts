@@ -1,7 +1,7 @@
 import { Address, OrNull } from '../types'
 
 export type PlatformBinary = {
-  [P in NodeJS.Platform]: string
+  [P in NodeJS.Platform]?: string
 }
 
 export interface WalletAddress extends Address {
