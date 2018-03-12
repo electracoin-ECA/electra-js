@@ -643,6 +643,13 @@ export default class Wallet {
       throw new Error(`ElectraJs.Wallet: You can't #send() from an address that is not part of the current wallet.`)
     }
 
+    if (this.rpc !== undefined) {
+      const [err2] = await to(this.rpc.sendBasicTransaction(toAddressHash, amount))
+      if (err2 !== null) throw err2
+
+      return
+    }
+
     /*
       STEP 1: UNSPENT TRANSACTIONS
     */
@@ -663,11 +670,11 @@ export default class Wallet {
       STEP 2: BROADCAST
     */
 
-    if (this.rpc !== undefined) {
+    /*if (this.rpc !== undefined) {
       // TODO Replace this method with a detailed unspent transactions signed one.
       const [err2] = await to(this.rpc.sendBasicTransaction(toAddressHash, amount))
       if (err2 !== null) throw err2
-    }
+    }*/
   }
 
   /** List of the wallet unspent transactions, ordered by descending amount. */
