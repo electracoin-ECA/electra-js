@@ -1,14 +1,13 @@
 import to from 'await-to-js'
 import * as R from 'ramda'
 
-import { ECA_TRANSACTION_FEE } from '../constants'
+import { DAEMON_CONFIG, DAEMON_URI, ECA_TRANSACTION_FEE } from '../constants'
 import tryCatch from '../helpers/tryCatch'
 import Crypto from '../libs/crypto'
 import Electra from '../libs/electra'
 import Rpc from '../libs/rpc'
 import webServices from '../web-services'
 
-import { Settings } from '..'
 import { RpcMethodResult } from '../libs/rpc/types'
 import { Address } from '../types'
 import {
@@ -147,9 +146,12 @@ export default class Wallet {
     return this.TRANSACTIONS
   }
 
-  public constructor(settings: Settings = {}) {
-    if (settings.rpcServerUri !== undefined && settings.rpcServerAuth !== undefined) {
-      this.rpc = new Rpc(settings.rpcServerUri, settings.rpcServerAuth)
+  public constructor(isHard: boolean = false) {
+    if (isHard) {
+      this.rpc = new Rpc(DAEMON_URI, {
+        password: DAEMON_CONFIG.rpcpassword,
+        username: DAEMON_CONFIG.rpcuser
+      })
     }
   }
 
