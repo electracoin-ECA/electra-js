@@ -1,6 +1,8 @@
 import { Address, OrNull } from '../types'
 
-export type OperatingSystem = 'LINUX' | 'MACOS' | 'WINDOWS'
+export type PlatformBinary = {
+  [P in NodeJS.Platform]: string
+}
 
 export interface WalletAddress extends Address {
   label: OrNull<string>
