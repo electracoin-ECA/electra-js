@@ -23164,7 +23164,7 @@ const web_services_1 = __webpack_require__(231);
  * ElectraJs version.
  * DO NOT CHANGE THIS LINE SINCE THE VERSION IS AUTOMATICALLY INJECTED !
  */
-const VERSION = '0.3.0';
+const VERSION = '0.3.1';
 /**
  * Main ElectraJS class.
  */
@@ -23662,6 +23662,12 @@ class Wallet {
             if (this.STATE === types_1.WalletState.EMPTY) {
                 throw new Error(`ElectraJs.Wallet: You can't #getBalance() from an empty wallet (#state = "EMPTY").`);
             }
+            if (this.rpc !== undefined) {
+                const [err, balance] = yield await_to_js_1.default(this.rpc.getBalance());
+                if (err !== null)
+                    throw err;
+                return balance;
+            }
             const addresses = this.allAddresses;
             if (addressHash !== undefined) {
                 if (addresses.filter((address) => address.hash === addressHash).length === 0) {
@@ -23741,6 +23747,12 @@ class Wallet {
             if (amount > ((yield this.getBalance()) - constants_1.ECA_TRANSACTION_FEE)) {
                 throw new Error(`ElectraJs.Wallet: You can't #send() from an address that is not part of the current wallet.`);
             }
+            if (this.rpc !== undefined) {
+                const [err2] = yield await_to_js_1.default(this.rpc.sendBasicTransaction(toAddressHash, amount));
+                if (err2 !== null)
+                    throw err2;
+                return;
+            }
             /*
               STEP 1: UNSPENT TRANSACTIONS
             */
@@ -23759,12 +23771,11 @@ class Wallet {
             /*
               STEP 2: BROADCAST
             */
-            if (this.rpc !== undefined) {
-                // TODO Replace this method with a detailed unspent transactions signed one.
-                const [err2] = yield await_to_js_1.default(this.rpc.sendBasicTransaction(toAddressHash, amount));
-                if (err2 !== null)
-                    throw err2;
-            }
+            /*if (this.rpc !== undefined) {
+              // TODO Replace this method with a detailed unspent transactions signed one.
+              const [err2] = await to(this.rpc.sendBasicTransaction(toAddressHash, amount))
+              if (err2 !== null) throw err2
+            }*/
         });
     }
     /** List of the wallet unspent transactions, ordered by descending amount. */
