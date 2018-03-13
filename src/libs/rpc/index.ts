@@ -113,6 +113,20 @@ export default class Rpc {
   }
 
   /**
+   * Get the current state info.
+   */
+  public async getBestBlockHash(): Promise<RpcMethodResult<'getbestblockhash'>> {
+    return this.query('getbestblockhash', null)
+  }
+
+  /**
+   * Get the private key of <addressHash>.
+   */
+  public async getBlock(blockHash: string): Promise<RpcMethodResult<'getblock'>> {
+    return this.query('getblock', Array.prototype.slice.call(arguments))
+  }
+
+  /**
    * Generate a new address for receiving payments.
    */
   public async getNewAddress(account?: string): Promise<RpcMethodResult<'getnewaddress'>> {
