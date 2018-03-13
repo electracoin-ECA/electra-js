@@ -586,6 +586,27 @@ export default class Wallet {
   }
 
   /**
+   * Get the current wallet general info.
+   */
+  public async getInfo(): Promise<Object> {
+    const [err, res] = await to((this.rpc as Rpc).getInfo())
+    if (err !== null || res === undefined) throw err
+
+    return res
+  }
+
+  /**
+   * Get the current wallet general info.
+   */
+  public async getLatestBlockInfo(): Promise<Object> {
+    const [err, blockHash] = await to((this.rpc as Rpc).getBestBlockHash())
+    if (err !== null || blockHash === undefined) throw err
+    const [err2, res] = await to((this.rpc as Rpc).getBlock(blockHash))
+    if (err2 !== null || res === undefined) throw err
+    return res
+  }
+
+  /**
    * Get the current staking calculated data.
    */
   public async getStakingInfo(): Promise<WalletStakingInfo> {
