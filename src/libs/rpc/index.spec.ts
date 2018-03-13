@@ -69,6 +69,13 @@ describe.skip('Rpc', function() {
     })
   })
 
+  describe('#getBlockCount()', function() {
+    it(`SHOULD return a number`, async function() {
+      const blockCount = await rpc.getBlockCount()
+      assert.strictEqual(typeof blockCount, 'number')
+    })
+  })
+
   describe('#getConnectionCount()', function() {
     it(`SHOULD return a number`, async function() {
       const balance = await rpc.getConnectionCount()

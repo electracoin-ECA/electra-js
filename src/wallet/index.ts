@@ -576,6 +576,16 @@ export default class Wallet {
   }
 
   /**
+   * Get the current block count.
+   */
+  public async getBlockCount(): Promise<number> {
+    const [err, blockCount] = await to((this.rpc as Rpc).getBlockCount())
+    if (err !== null || blockCount === undefined) throw err
+
+    return blockCount
+  }
+
+  /**
    * Get the current connections count.
    */
   public async getConnectionsCount(): Promise<number> {
