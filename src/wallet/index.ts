@@ -198,6 +198,7 @@ export default class Wallet {
     // tslint:disable-next-line:no-require-imports
     this.daemon = require('child_process')
       .spawn(`./bin/${PLATFORM_BINARY[process.platform]}`, [
+        `--port=${DAEMON_CONFIG.port}`,
         `--rpcuser=${DAEMON_CONFIG.rpcuser}`,
         `--rpcpassword=${DAEMON_CONFIG.rpcpassword}`,
         `--rpcport=${DAEMON_CONFIG.rpcport}`
@@ -698,7 +699,7 @@ export default class Wallet {
    */
   public getInfo(): Promise<WalletInfo> {
     if (this.STATE !== WalletState.READY) {
-      throw new Error(`ElectraJs.Wallet: #getInfo() is only available when the #state is "READY".`)
+      return Promise.reject(new Error(`ElectraJs.Wallet: #getInfo() is only available when the #state is "READY".`))
     }
 
     return new Promise((resolve: (info: WalletInfo) => void, reject: () => void): void => {
