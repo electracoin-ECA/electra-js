@@ -3,6 +3,7 @@ import { ChildProcess } from 'child_process'
 import * as R from 'ramda'
 
 import { DAEMON_CONFIG, DAEMON_URI, ECA_TRANSACTION_FEE } from '../constants'
+import getListMax from '../helpers/getListMax'
 import tryCatch from '../helpers/tryCatch'
 import wait from '../helpers/wait'
 import Crypto from '../libs/crypto'
@@ -16,8 +17,8 @@ import {
   PlatformBinary,
   WalletAddress,
   WalletExchangeFormat,
+  WalletInfo,
   WalletLockState,
-  WalletStakingInfo,
   WalletState,
   WalletTransaction
 } from './types'
@@ -70,19 +71,6 @@ export default class Wallet {
    * Hard wallet daemon Node child process.
    */
   private daemon: ChildProcess
-
-  /**
-   * Is this a HD wallet ?
-   *
-   * @see https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki
-   */
-  public get isHD(): boolean {
-    if (this.STATE !== WalletState.READY) {
-      throw new Error(`ElectraJs.Wallet: #isHD is only available when the #state is "READY".`)
-    }
-
-    return Boolean(this.MASTER_NODE_ADDRESS)
-  }
 
   /**
    * Is this hard wallet a brand intalled one ?
@@ -706,22 +694,41 @@ export default class Wallet {
   }
 
   /**
-   * Get the current staking calculated data.
+   * Get the wallet info.
+   *
+   * @see https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki
    */
-  public async getStakingInfo(): Promise<WalletStakingInfo> {
-    if (this.STATE === WalletState.EMPTY) {
-      throw new Error(`ElectraJs.Wallet: You can't #getStakingInfo() from an empty wallet (#state = "EMPTY").`)
+  public get getInfo(): Promise<WalletInfo> {
+    if (this.STATE !== WalletState.READY) {
+      throw new Error(`ElectraJs.Wallet: #isHD is only available when the #state is "READY".`)
     }
 
-    const [err, res] = await to((this.rpc as Rpc).getStakingInfo())
-    if (err !== null || res === undefined) throw err
-
-    return {
-      networkWeight: res.netstakeweight,
-      nextRewardIn: res.expectedtime,
-      staking: res.staking,
-      weight: res.weight
-    }
+    return new Promise((resolve: (info: WalletInfo) => void, reject: () => void): void => {
+      Promise.all<
+        RpcMethodResult<'getblockcount'>,
+        RpcMethodResult<'getpeerinfo'>,
+        RpcMethodResult<'getstakinginfo'>
+      >([
+        (this.rpc as Rpc).getLocalBlockHeight(),
+        (this.rpc as Rpc).getPeersInfo(),
+        (this.rpc as Rpc).getStakingInfo(),
+      ])
+        .then(([localBlockchainHeight, peersInfo, stakingInfo]: [
+          RpcMethodResult<'getblockcount'>,
+          RpcMethodResult<'getpeerinfo'>,
+          RpcMethodResult<'getstakinginfo'>
+        ]) => resolve({
+          connectionsCount: peersInfo.length,
+          isHD: Boolean(this.MASTER_NODE_ADDRESS),
+          isStaking: stakingInfo.staking,
+          localBlockchainHeight,
+          localStakingWeight: stakingInfo.weight,
+          networkBlockchainHeight: peersInfo.length !== 0 ? getListMax(peersInfo, 'startingheight').startingheight : 0,
+          networkStakingWeight: stakingInfo.netstakeweight,
+          nextStakingRewardIn: stakingInfo.expectedtime,
+        }))
+        .catch(reject)
+    })
   }
 
   /**
