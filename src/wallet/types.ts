@@ -17,6 +17,16 @@ export type WalletExchangeFormat = [
   string[]
 ]
 
+export interface WalletInfo {
+  isHD: boolean
+  isStaking: boolean
+  localBlockchainHeight?: number
+  localStakingWeight?: number
+  networkBlockchainHeight: number
+  networkStakingWeight: number
+  nextStakingRewardIn: number // in seconds
+}
+
 export interface WalletTransaction {
   amount: number
   confimationsCount: number
@@ -24,13 +34,6 @@ export interface WalletTransaction {
   fromAddressHash?: string
   hash: string
   toAddressHash: string
-}
-
-export interface WalletStakingInfo {
-  networkWeight: number
-  nextRewardIn: number // in seconds
-  staking: boolean
-  weight: number
 }
 
 export enum WalletState {
