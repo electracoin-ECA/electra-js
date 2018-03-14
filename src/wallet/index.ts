@@ -75,7 +75,7 @@ export default class Wallet {
   /**
    * Is this hard wallet a brand intalled one ?
    */
-  private isNew: boolean
+  // private isNew: boolean
 
   /** List of the wallet random (non-HD) addresses. */
   private LOCK_STATE: WalletLockState = WalletLockState.UNLOCKED
@@ -159,7 +159,7 @@ export default class Wallet {
         username: DAEMON_CONFIG.rpcuser
       })
 
-      switch (process.platform) {
+      /*switch (process.platform) {
         case 'darwin':
         case 'linux':
           // tslint:disable-next-line:no-require-imports
@@ -171,7 +171,7 @@ export default class Wallet {
 
         default:
           throw new Error(`ElectraJs.Wallet: This platform is not supported: ${process.platform}.`)
-      }
+      }*/
 
       this.STATE = WalletState.STOPPED
 
@@ -696,9 +696,9 @@ export default class Wallet {
   /**
    * Get the wallet info.
    */
-  public get getInfo(): Promise<WalletInfo> {
+  public getInfo(): Promise<WalletInfo> {
     if (this.STATE !== WalletState.READY) {
-      throw new Error(`ElectraJs.Wallet: #isHD is only available when the #state is "READY".`)
+      throw new Error(`ElectraJs.Wallet: #getInfo() is only available when the #state is "READY".`)
     }
 
     return new Promise((resolve: (info: WalletInfo) => void, reject: () => void): void => {
