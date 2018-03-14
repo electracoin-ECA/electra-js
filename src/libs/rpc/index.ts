@@ -113,10 +113,24 @@ export default class Rpc {
   }
 
   /**
+   * Get the local block height.
+   */
+  public async getLocalBlockHeight(): Promise<RpcMethodResult<'getblockcount'>> {
+    return this.query('getbalance', null)
+  }
+
+  /**
    * Generate a new address for receiving payments.
    */
   public async getNewAddress(account?: string): Promise<RpcMethodResult<'getnewaddress'>> {
     return this.query('getnewaddress', account !== undefined ? [account] : null)
+  }
+
+  /**
+   * Get the peers info.
+   */
+  public async getPeersInfo(): Promise<RpcMethodResult<'getpeerinfo'>> {
+    return this.query('getpeerinfo', null)
   }
 
   /**
