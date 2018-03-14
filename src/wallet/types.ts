@@ -18,6 +18,7 @@ export type WalletExchangeFormat = [
 ]
 
 export interface WalletInfo {
+  connectionsCount?: number
   isHD: boolean
   isStaking: boolean
   localBlockchainHeight?: number
