@@ -1,13 +1,13 @@
 import * as constants from './constants'
-import { RpcAuth } from './libs/rpc'
 import Wallet from './wallet'
 import webServices, { CoinMarketCapCurrency, WebServices } from './web-services'
 
 export { CoinMarketCapCurrency }
 
-export interface Settings {
-  rpcServerAuth?: RpcAuth,
-  rpcServerUri?: string
+import { Settings } from './types'
+
+const SETTINGS_DEFAULT: Settings = {
+  isHard: false
 }
 
 /**
@@ -30,7 +30,9 @@ export default class ElectraJs {
   public webServices: WebServices
 
   public constructor(settings: Settings = {}) {
-    this.wallet = new Wallet(settings)
+    const { isHard } = { ...SETTINGS_DEFAULT, ...settings }
+
+    this.wallet = new Wallet(isHard)
     this.webServices = webServices
   }
 
