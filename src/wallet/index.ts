@@ -3,7 +3,7 @@ import { ChildProcess } from 'child_process'
 import * as R from 'ramda'
 
 import { DAEMON_CONFIG, DAEMON_URI, ECA_TRANSACTION_FEE } from '../constants'
-import getListMax from '../helpers/getListMax'
+import getMaxItemFromList from '../helpers/getMaxItemFromList'
 import tryCatch from '../helpers/tryCatch'
 import wait from '../helpers/wait'
 import Crypto from '../libs/crypto'
@@ -695,8 +695,6 @@ export default class Wallet {
 
   /**
    * Get the wallet info.
-   *
-   * @see https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki
    */
   public get getInfo(): Promise<WalletInfo> {
     if (this.STATE !== WalletState.READY) {
@@ -723,7 +721,9 @@ export default class Wallet {
           isStaking: stakingInfo.staking,
           localBlockchainHeight,
           localStakingWeight: stakingInfo.weight,
-          networkBlockchainHeight: peersInfo.length !== 0 ? getListMax(peersInfo, 'startingheight').startingheight : 0,
+          networkBlockchainHeight: peersInfo.length !== 0
+            ? getMaxItemFromList(peersInfo, 'startingheight').startingheight
+            : 0,
           networkStakingWeight: stakingInfo.netstakeweight,
           nextStakingRewardIn: stakingInfo.expectedtime,
         }))
