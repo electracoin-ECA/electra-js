@@ -3,6 +3,7 @@ import * as bitcoinJs from 'bitcoinjs-lib'
 import { DaemonConfig } from './types'
 
 export const DAEMON_CONFIG: DaemonConfig = {
+  port: '5818',
   rpcpassword: 'pass',
   rpcport: '5789',
   rpcuser: 'user'
