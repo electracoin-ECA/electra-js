@@ -1,8 +1,10 @@
 import to from 'await-to-js'
+import { ChildProcess } from 'child_process'
 import * as R from 'ramda'
 
 import { DAEMON_CONFIG, DAEMON_URI, ECA_TRANSACTION_FEE } from '../constants'
 import tryCatch from '../helpers/tryCatch'
+import wait from '../helpers/wait'
 import Crypto from '../libs/crypto'
 import Electra from '../libs/electra'
 import Rpc from '../libs/rpc'
@@ -11,6 +13,7 @@ import webServices from '../web-services'
 import { RpcMethodResult } from '../libs/rpc/types'
 import { Address } from '../types'
 import {
+  PlatformBinary,
   WalletAddress,
   WalletExchangeFormat,
   WalletLockState,
@@ -21,6 +24,11 @@ import {
 
 // tslint:disable-next-line:no-magic-numbers
 const ONE_YEAR_IN_SECONDS: number = 60 * 60 * 24 * 365
+const PLATFORM_BINARY: PlatformBinary = {
+  darwin: 'electrad-macos',
+  linux: 'electrad-linux',
+  win32: 'electrad-win.exe'
+}
 const WALLET_INDEX: number = 0
 
 /**
@@ -59,6 +67,11 @@ export default class Wallet {
   }
 
   /**
+   * Hard wallet daemon Node child process.
+   */
+  private daemon: ChildProcess
+
+  /**
    * Is this a HD wallet ?
    *
    * @see https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki
@@ -70,6 +83,11 @@ export default class Wallet {
 
     return Boolean(this.MASTER_NODE_ADDRESS)
   }
+
+  /**
+   * Is this hard wallet a brand intalled one ?
+   */
+  private isNew: boolean
 
   /** List of the wallet random (non-HD) addresses. */
   private LOCK_STATE: WalletLockState = WalletLockState.UNLOCKED
@@ -124,7 +142,7 @@ export default class Wallet {
   private readonly rpc: Rpc | undefined
 
   /** Wallet state. */
-  private STATE: WalletState = WalletState.EMPTY
+  private STATE: WalletState
   /**
    * Wallet state.
    * This state can be one of:
@@ -152,6 +170,85 @@ export default class Wallet {
         password: DAEMON_CONFIG.rpcpassword,
         username: DAEMON_CONFIG.rpcuser
       })
+
+      switch (process.platform) {
+        case 'darwin':
+        case 'linux':
+          // tslint:disable-next-line:no-require-imports
+          this.isNew = !(require('fs').existsSync('~/.Electra') as boolean)
+          break
+
+        case 'win32':
+          break
+
+        default:
+          throw new Error(`ElectraJs.Wallet: This platform is not supported: ${process.platform}.`)
+      }
+
+      this.STATE = WalletState.STOPPED
+
+      return
+    }
+
+    this.STATE = WalletState.EMPTY
+  }
+
+  /**
+   * Start the hard wallet daemon.
+   */
+  public startDeamon(): void {
+    if (this.rpc === undefined) {
+      throw new Error(`ElectraJs.Wallet: The #startDeamon() method can only be called on a hard wallet`)
+    }
+
+    if (this.STATE !== WalletState.STOPPED) {
+      throw new Error(`ElectraJs.Wallet:
+        The #startDeamon() method can only be called on an stopped wallet (#state = "STOPPED").
+      `)
+    }
+
+    // tslint:disable-next-line:no-require-imports
+    this.daemon = require('child_process')
+      .spawn(`./bin/${PLATFORM_BINARY[process.platform]}`, [
+        `--rpcuser=${DAEMON_CONFIG.rpcuser}`,
+        `--rpcpassword=${DAEMON_CONFIG.rpcpassword}`,
+        `--rpcport=${DAEMON_CONFIG.rpcport}`
+      ])
+
+    // TODO Add a debug mode in ElectraJs settings
+    this.daemon.stdout.setEncoding('utf8').on('data', process.stdout.write)
+    this.daemon.stderr.setEncoding('utf8').on('data', process.stdout.write)
+
+    this.daemon.on('close', (code: number) => {
+      this.STATE = WalletState.STOPPED
+
+      // tslint:disable-next-line:no-console
+      console.log(`The wallet daemon exited with the code: ${code}.`)
+    })
+
+    this.STATE = WalletState.EMPTY
+  }
+
+  /**
+   * Start the hard wallet daemon.
+   */
+  public async stopDeamon(): Promise<void> {
+    if (this.rpc === undefined) {
+      throw new Error(`ElectraJs.Wallet: The #stopDeamon() method can only be called on a hard wallet`)
+    }
+
+    if (this.STATE === WalletState.STOPPED) {
+      throw new Error(`ElectraJs.Wallet:
+        The #stopDeamon() method can only be called on a not already stopped wallet (#state != "STOPPED").
+      `)
+    }
+
+    this.daemon.kill()
+
+    // Dirty hack since we have mno idea how long the deamon will take to be effectively
+    while ((this.STATE as WalletState) !== WalletState.STOPPED) {
+      // tslint:disable-next-line:no-magic-numbers
+      await wait(250)
     }
   }
 
@@ -166,9 +263,9 @@ export default class Wallet {
    * TODO Figure out a way to validate provided mnemonics using different specs (words list & entropy strength).
    */
   public async generate(mnemonic?: string, mnemonicExtension?: string, chainsCount: number = 1): Promise<void> {
-    if (this.STATE === WalletState.READY) {
+    if (this.STATE !== WalletState.EMPTY) {
       throw new Error(`ElectraJs.Wallet:
-        The #generate() method can't be called on an already ready wallet (#state = "READY").
+        The #generate() method can only be called on an empty wallet (#state = "EMPTY").
         You need to #reset() it first, then #initialize() it again in order to #generate() a new one.
       `)
     }
@@ -261,9 +358,23 @@ export default class Wallet {
         await this.rpc.lock()
       }
       catch (err) {
-        // If there is an error, this is surely because the wallet has never been encrypted
+        const currentState: WalletState = this.STATE as WalletState
+
+        // If there is an error, this is surely because the wallet has never been encrypted,
+        // so let's try to encrypt it as if it was the first time
         [err] = await to(this.rpc.encryptWallet(passphrase))
         if (err !== null) throw err
+
+        // Dirty hack since we have no idea how long the deamon process will take to exit
+        while ((this.STATE as WalletState) !== WalletState.STOPPED) {
+          // tslint:disable-next-line:no-magic-numbers
+          await wait(250)
+        }
+
+        // Encrypting the wallet has stopped the deamon, so we need to start it again
+        this.startDeamon()
+
+        this.STATE = currentState
       }
 
       this.LOCK_STATE = WalletLockState.LOCKED
@@ -531,8 +642,8 @@ export default class Wallet {
    * Reset the current wallet properties and switch the #state to "EMPTY".
    */
   public reset(): void {
-    if (this.STATE === WalletState.EMPTY) {
-      throw new Error(`ElectraJs.Wallet: You can't #reset() a wallet that is already empty (#state = "EMPTY").`)
+    if (this.STATE !== WalletState.READY) {
+      throw new Error(`ElectraJs.Wallet: You can't #reset() a wallet that is not ready (#state = "READY").`)
     }
 
     delete this.MASTER_NODE_ADDRESS
