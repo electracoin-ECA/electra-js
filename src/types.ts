@@ -9,6 +9,7 @@ export interface Address {
 }
 
 export interface DaemonConfig {
+  port: string
   rpcpassword: string
   rpcport: string
   rpcuser: string
