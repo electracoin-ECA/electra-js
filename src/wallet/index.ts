@@ -209,8 +209,8 @@ export default class Wallet {
       ])
 
     // TODO Add a debug mode in ElectraJs settings
-    this.daemon.stdout.setEncoding('utf8').on('data', process.stdout.write.bind(this))
-    this.daemon.stderr.setEncoding('utf8').on('data', process.stdout.write.bind(this))
+    this.daemon.stdout.setEncoding('utf8').on('data', console.log.bind(this))
+    this.daemon.stderr.setEncoding('utf8').on('data', console.log.bind(this))
 
     this.daemon.on('close', (code: number) => {
       this.STATE = WalletState.STOPPED
