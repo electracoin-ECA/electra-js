@@ -195,6 +195,10 @@ export default class Wallet {
       `)
     }
 
+    // Dirty hack to give enough permissions to the binary in order to be run
+    // tslint:disable-next-line:no-require-imports
+    require('child_process').execSync(`chmod 755 ./bin/${PLATFORM_BINARY[process.platform]}`)
+
     // tslint:disable-next-line:no-require-imports
     this.daemon = require('child_process')
       .spawn(`./bin/${PLATFORM_BINARY[process.platform]}`, [
