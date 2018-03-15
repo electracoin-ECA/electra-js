@@ -205,8 +205,8 @@ export default class Wallet {
       ])
 
     // TODO Add a debug mode in ElectraJs settings
-    this.daemon.stdout.setEncoding('utf8').on('data', process.stdout.write)
-    this.daemon.stderr.setEncoding('utf8').on('data', process.stdout.write)
+    this.daemon.stdout.setEncoding('utf8').on('data', process.stdout.write.bind(this))
+    this.daemon.stderr.setEncoding('utf8').on('data', process.stdout.write.bind(this))
 
     this.daemon.on('close', (code: number) => {
       this.STATE = WalletState.STOPPED
@@ -697,13 +697,17 @@ export default class Wallet {
   /**
    * Get the wallet info.
    */
-  public getInfo(): Promise<WalletInfo> {
+  public async getInfo(): Promise<WalletInfo> {
     if (this.STATE !== WalletState.READY) {
       return Promise.reject(new Error(`ElectraJs.Wallet: #getInfo() is only available when the #state is "READY".`))
     }
 
-    return new Promise((resolve: (info: WalletInfo) => void, reject: () => void): void => {
-      Promise.all<
+    try {
+      const [localBlockchainHeight, peersInfo, stakingInfo]: [
+        RpcMethodResult<'getblockcount'>,
+        RpcMethodResult<'getpeerinfo'>,
+        RpcMethodResult<'getstakinginfo'>
+      ] = await Promise.all<
         RpcMethodResult<'getblockcount'>,
         RpcMethodResult<'getpeerinfo'>,
         RpcMethodResult<'getstakinginfo'>
@@ -712,24 +716,23 @@ export default class Wallet {
         (this.rpc as Rpc).getPeersInfo(),
         (this.rpc as Rpc).getStakingInfo(),
       ])
-        .then(([localBlockchainHeight, peersInfo, stakingInfo]: [
-          RpcMethodResult<'getblockcount'>,
-          RpcMethodResult<'getpeerinfo'>,
-          RpcMethodResult<'getstakinginfo'>
-        ]) => resolve({
-          connectionsCount: peersInfo.length,
-          isHD: Boolean(this.MASTER_NODE_ADDRESS),
-          isStaking: stakingInfo.staking,
-          localBlockchainHeight,
-          localStakingWeight: stakingInfo.weight,
-          networkBlockchainHeight: peersInfo.length !== 0
-            ? getMaxItemFromList(peersInfo, 'startingheight').startingheight
-            : 0,
-          networkStakingWeight: stakingInfo.netstakeweight,
-          nextStakingRewardIn: stakingInfo.expectedtime,
-        }))
-        .catch(reject)
-    })
+
+      return {
+        connectionsCount: peersInfo.length,
+        isHD: Boolean(this.MASTER_NODE_ADDRESS),
+        isStaking: stakingInfo.staking,
+        localBlockchainHeight,
+        localStakingWeight: stakingInfo.weight,
+        networkBlockchainHeight: peersInfo.length !== 0
+          ? getMaxItemFromList(peersInfo, 'startingheight').startingheight
+          : 0,
+        networkStakingWeight: stakingInfo.netstakeweight,
+        nextStakingRewardIn: stakingInfo.expectedtime,
+      }
+    }
+    catch (err) {
+      throw err
+    }
   }
 
   /**
