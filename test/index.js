@@ -12,11 +12,7 @@ function testMethodType(name, method) {
 
 describe('Javascript', function() {
   describe('Basics', function() {
-    // There is no need for real settings here since this test is only meant to check the methods existence.
-    const electraJs = new ElectraJs({
-      rpcServerAuth: { username: '', password: '' },
-      rpcServerUri: ''
-    })
+    const electraJs = new ElectraJs({ isHard: true })
 
     testMethodType('getVersion', electraJs.getVersion)
 
