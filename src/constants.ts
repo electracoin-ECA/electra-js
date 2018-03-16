@@ -2,6 +2,15 @@ import * as bitcoinJs from 'bitcoinjs-lib'
 
 import { DaemonConfig } from './types'
 
+let binariesPath: string | undefined
+
+if ((process as NodeJS.Process | undefined) !== undefined) {
+  // tslint:disable-next-line:no-require-imports no-var-requires
+  binariesPath = require('path').resolve(__dirname, `../bin`)
+}
+
+export const BINARIES_PATH: string | undefined = binariesPath
+
 export const DAEMON_CONFIG: DaemonConfig = {
   port: '5818',
   rpcpassword: 'pass',
