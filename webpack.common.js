@@ -17,4 +17,8 @@ module.exports = {
   resolve: {
     extensions: ['.ts', '.js', 'json'],
   },
+
+  externals: {
+    child_process: 'child_process',
+  },
 }
