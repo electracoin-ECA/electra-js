@@ -23925,7 +23925,7 @@ const SETTINGS_DEFAULT = {
  * ElectraJs version.
  * DO NOT CHANGE THIS LINE SINCE THE VERSION IS AUTOMATICALLY INJECTED !
  */
-const VERSION = '0.4.0';
+const VERSION = '0.4.1';
 /**
  * Main ElectraJS class.
  */
@@ -24558,15 +24558,17 @@ class Wallet {
                     this.rpc.getPeersInfo(),
                     this.rpc.getStakingInfo(),
                 ]);
+                const networkBlockchainHeight = peersInfo.length !== 0
+                    ? getMaxItemFromList_1.default(peersInfo, 'startingheight').startingheight
+                    : 0;
                 return {
                     connectionsCount: peersInfo.length,
                     isHD: Boolean(this.MASTER_NODE_ADDRESS),
                     isStaking: stakingInfo.staking,
+                    isSynchonized: localBlockchainHeight === networkBlockchainHeight,
                     localBlockchainHeight,
                     localStakingWeight: stakingInfo.weight,
-                    networkBlockchainHeight: peersInfo.length !== 0
-                        ? getMaxItemFromList_1.default(peersInfo, 'startingheight').startingheight
-                        : 0,
+                    networkBlockchainHeight,
                     networkStakingWeight: stakingInfo.netstakeweight,
                     nextStakingRewardIn: stakingInfo.expectedtime,
                 };

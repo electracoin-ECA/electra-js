@@ -11,6 +11,7 @@ export interface WalletInfo {
     connectionsCount?: number;
     isHD: boolean;
     isStaking: boolean;
+    isSynchonized?: boolean;
     localBlockchainHeight?: number;
     localStakingWeight?: number;
     networkBlockchainHeight: number;
