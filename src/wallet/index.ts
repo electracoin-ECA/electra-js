@@ -721,15 +721,18 @@ export default class Wallet {
         (this.rpc as Rpc).getStakingInfo(),
       ])
 
+      const networkBlockchainHeight: number = peersInfo.length !== 0
+        ? getMaxItemFromList(peersInfo, 'startingheight').startingheight
+        : 0
+
       return {
         connectionsCount: peersInfo.length,
         isHD: Boolean(this.MASTER_NODE_ADDRESS),
         isStaking: stakingInfo.staking,
+        isSynchonized: localBlockchainHeight === networkBlockchainHeight,
         localBlockchainHeight,
         localStakingWeight: stakingInfo.weight,
-        networkBlockchainHeight: peersInfo.length !== 0
-          ? getMaxItemFromList(peersInfo, 'startingheight').startingheight
-          : 0,
+        networkBlockchainHeight,
         networkStakingWeight: stakingInfo.netstakeweight,
         nextStakingRewardIn: stakingInfo.expectedtime,
       }
