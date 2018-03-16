@@ -1,12 +1,8 @@
 import * as constants from './constants';
-import { RpcAuth } from './libs/rpc';
 import Wallet from './wallet';
 import { CoinMarketCapCurrency, WebServices } from './web-services';
 export { CoinMarketCapCurrency };
-export interface Settings {
-    rpcServerAuth?: RpcAuth;
-    rpcServerUri?: string;
-}
+import { Settings } from './types';
 /**
  * Main ElectraJS class.
  */

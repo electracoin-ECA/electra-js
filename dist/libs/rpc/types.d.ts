@@ -95,7 +95,18 @@ export interface RpcMethods {
     account: string
   }>
   getnewpubkey: any
-  getpeerinfo: any
+  getpeerinfo: Array<{
+    addr: string
+    services: string
+    lastsend: number
+    lastrecv: number
+    conntime: number
+    version: number
+    subver: string
+    inbound: false
+    startingheight: number
+    banscore: number
+  }>
   getrawmempool: any
   getrawtransaction: any
   getreceivedbyaccount: any
