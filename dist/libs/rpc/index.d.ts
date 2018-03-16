@@ -49,9 +49,17 @@ export default class Rpc {
      */
     getInfo(): Promise<RpcMethodResult<'getinfo'>>;
     /**
+     * Get the local block height.
+     */
+    getLocalBlockHeight(): Promise<RpcMethodResult<'getblockcount'>>;
+    /**
      * Generate a new address for receiving payments.
      */
     getNewAddress(account?: string): Promise<RpcMethodResult<'getnewaddress'>>;
+    /**
+     * Get the peers info.
+     */
+    getPeersInfo(): Promise<RpcMethodResult<'getpeerinfo'>>;
     /**
      * Get the private key of <addressHash>.
      */

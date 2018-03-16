@@ -1,5 +1,4 @@
-import { Settings } from '..';
-import { WalletAddress, WalletLockState, WalletStakingInfo, WalletState, WalletTransaction } from './types';
+import { WalletAddress, WalletInfo, WalletLockState, WalletState, WalletTransaction } from './types';
 /**
  * Wallet management.
  */
@@ -15,11 +14,12 @@ export default class Wallet {
     /** List of the wallet random (non-HD) addresses. */
     readonly randomAddresses: WalletAddress[];
     /**
-     * Is this a HD wallet ?
-     *
-     * @see https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki
+     * Hard wallet daemon Node child process.
      */
-    readonly isHD: boolean;
+    private daemon;
+    /**
+     * Is this hard wallet a brand intalled one ?
+     */
     /** List of the wallet random (non-HD) addresses. */
     private LOCK_STATE;
     /**
@@ -63,7 +63,15 @@ export default class Wallet {
     private TRANSACTIONS;
     /** List of the wallet transactions. */
     readonly transactions: WalletTransaction[];
-    constructor(settings?: Settings);
+    constructor(isHard?: boolean);
+    /**
+     * Start the hard wallet daemon.
+     */
+    startDeamon(): void;
+    /**
+     * Start the hard wallet daemon.
+     */
+    stopDeamon(): Promise<void>;
     /**
      * Generate an HD wallet from either the provided mnemonic seed, or a randomly generated one,
      * including ‒ at least ‒ the first derived address.
@@ -118,9 +126,9 @@ export default class Wallet {
      */
     getConnectionsCount(): Promise<number>;
     /**
-     * Get the current staking calculated data.
+     * Get the wallet info.
      */
-    getStakingInfo(): Promise<WalletStakingInfo>;
+    getInfo(): Promise<WalletInfo>;
     /**
      * Create and broadcast a new transaction of <amount> <toAddressHash> from the first unspent ones.
      */
