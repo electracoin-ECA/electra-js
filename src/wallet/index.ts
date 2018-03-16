@@ -2,7 +2,7 @@ import to from 'await-to-js'
 import { ChildProcess } from 'child_process'
 import * as R from 'ramda'
 
-import { DAEMON_CONFIG, DAEMON_URI, ECA_TRANSACTION_FEE } from '../constants'
+import { BINARIES_PATH, DAEMON_CONFIG, DAEMON_URI, ECA_TRANSACTION_FEE } from '../constants'
 import getMaxItemFromList from '../helpers/getMaxItemFromList'
 import tryCatch from '../helpers/tryCatch'
 import wait from '../helpers/wait'
@@ -195,13 +195,16 @@ export default class Wallet {
       `)
     }
 
+    const binaryPath: string = `${BINARIES_PATH}/${PLATFORM_BINARY[process.platform]}`
+
     // Dirty hack to give enough permissions to the binary in order to be run
+    // TODO Run this command in the postinstall script ?
     // tslint:disable-next-line:no-require-imports
-    require('child_process').execSync(`chmod 755 ./bin/${PLATFORM_BINARY[process.platform]}`)
+    require('child_process').execSync(`chmod 755 ${binaryPath}`)
 
     // tslint:disable-next-line:no-require-imports
     this.daemon = require('child_process')
-      .spawn(`./bin/${PLATFORM_BINARY[process.platform]}`, [
+      .spawn(binaryPath, [
         `--port=${DAEMON_CONFIG.port}`,
         `--rpcuser=${DAEMON_CONFIG.rpcuser}`,
         `--rpcpassword=${DAEMON_CONFIG.rpcpassword}`,
