@@ -42,7 +42,7 @@ chromeOptions.addArguments(
   'disable-gpu',
 )
 
-describe('Browser Compatibility Tests', function() {
+describe.skip('Browser Compatibility Tests', function() {
   let driver: WebDriver
   let errors: WebElement[]
 
