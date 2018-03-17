@@ -1,4 +1,6 @@
 module.exports = {
+  target: 'node',
+
   entry: {
     app: './src/index.ts',
   },
