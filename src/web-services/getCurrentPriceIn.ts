@@ -6,10 +6,10 @@ import enumStringArray from '../helpers/enumStringArray'
 // https://coinmarketcap.com/api/
 // tslint:disable-next-line:typedef
 export const CURRENCIES = enumStringArray([
-  'AUD', 'BRL', 'CAD', 'CHF', 'CLP', 'CNY', 'CZK', 'DKK', 'EUR', 'GBP',
-  'HKD', 'HUF', 'IDR', 'ILS', 'INR', 'JPY', 'KRW', 'MXN', 'MYR', 'NOK',
-  'NZD', 'PHP', 'PKR', 'PLN', 'RUB', 'SEK', 'SGD', 'THB', 'TRY', 'TWD',
-  'USD', 'ZAR'
+  'AUD', 'BRL', 'BTC', 'CAD', 'CHF', 'CLP', 'CNY', 'CZK', 'DKK', 'EUR',
+  'GBP', 'HKD', 'HUF', 'IDR', 'ILS', 'INR', 'JPY', 'KRW', 'MXN', 'MYR',
+  'NOK', 'NZD', 'PHP', 'PKR', 'PLN', 'RUB', 'SEK', 'SGD', 'THB', 'TRY',
+  'TWD', 'USD', 'ZAR'
 ])
 
 const URI: string = 'https://api.coinmarketcap.com/v1/ticker/electra/'
