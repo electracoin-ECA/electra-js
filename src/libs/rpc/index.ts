@@ -116,7 +116,7 @@ export default class Rpc {
    * Get the local block height.
    */
   public async getLocalBlockHeight(): Promise<RpcMethodResult<'getblockcount'>> {
-    return this.query('getbalance', null)
+    return this.query('getblockcount', null)
   }
 
   /**
