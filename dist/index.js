@@ -2168,7 +2168,7 @@ module.exports = {
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-/* WEBPACK VAR INJECTION */(function(__dirname) {
+
 Object.defineProperty(exports, "__esModule", { value: true });
 let binariesPath;
 if (process !== undefined) {
@@ -2192,7 +2192,6 @@ exports.ECA_NETWORK = {
 };
 exports.ECA_TRANSACTION_FEE = 0.00001;
 
-/* WEBPACK VAR INJECTION */}.call(exports, "/"))
 
 /***/ }),
 /* 39 */
@@ -11201,7 +11200,7 @@ const SETTINGS_DEFAULT = {
  * ElectraJs version.
  * DO NOT CHANGE THIS LINE SINCE THE VERSION IS AUTOMATICALLY INJECTED !
  */
-const VERSION = '0.4.3';
+const VERSION = '0.4.4';
 /**
  * Main ElectraJS class.
  */
