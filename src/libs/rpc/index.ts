@@ -92,6 +92,13 @@ export default class Rpc {
   }
 
   /**
+   * Get blockcount
+   */
+  public async getBlockCount(): Promise<RpcMethodResult<'getblockcount'>> {
+    return this.query('getblockcount', null)
+  }
+
+  /**
    * Get connection count.
    */
   public async getConnectionCount(): Promise<RpcMethodResult<'getconnectioncount'>> {
