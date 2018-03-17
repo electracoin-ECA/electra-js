@@ -11200,7 +11200,7 @@ const SETTINGS_DEFAULT = {
  * ElectraJs version.
  * DO NOT CHANGE THIS LINE SINCE THE VERSION IS AUTOMATICALLY INJECTED !
  */
-const VERSION = '0.4.5';
+const VERSION = '0.4.6';
 /**
  * Main ElectraJS class.
  */
@@ -26305,10 +26305,10 @@ const enumStringArray_1 = __webpack_require__(466);
 // https://coinmarketcap.com/api/
 // tslint:disable-next-line:typedef
 exports.CURRENCIES = enumStringArray_1.default([
-    'AUD', 'BRL', 'CAD', 'CHF', 'CLP', 'CNY', 'CZK', 'DKK', 'EUR', 'GBP',
-    'HKD', 'HUF', 'IDR', 'ILS', 'INR', 'JPY', 'KRW', 'MXN', 'MYR', 'NOK',
-    'NZD', 'PHP', 'PKR', 'PLN', 'RUB', 'SEK', 'SGD', 'THB', 'TRY', 'TWD',
-    'USD', 'ZAR'
+    'AUD', 'BRL', 'BTC', 'CAD', 'CHF', 'CLP', 'CNY', 'CZK', 'DKK', 'EUR',
+    'GBP', 'HKD', 'HUF', 'IDR', 'ILS', 'INR', 'JPY', 'KRW', 'MXN', 'MYR',
+    'NOK', 'NZD', 'PHP', 'PKR', 'PLN', 'RUB', 'SEK', 'SGD', 'THB', 'TRY',
+    'TWD', 'USD', 'ZAR'
 ]);
 const URI = 'https://api.coinmarketcap.com/v1/ticker/electra/';
 /**
