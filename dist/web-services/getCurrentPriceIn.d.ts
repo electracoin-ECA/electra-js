@@ -1,6 +1,7 @@
 export declare const CURRENCIES: {
     AUD: "AUD";
     BRL: "BRL";
+    BTC: "BTC";
     CAD: "CAD";
     CHF: "CHF";
     CLP: "CLP";

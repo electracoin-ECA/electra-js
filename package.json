@@ -1,6 +1,6 @@
 {
   "name": "electra-js",
-  "version": "0.4.5",
+  "version": "0.4.6",
   "description": "Javascript API middleware allowing clients to interact with Electra blockchain.",
   "license": "MIT",
   "main": "dist/index.js",
