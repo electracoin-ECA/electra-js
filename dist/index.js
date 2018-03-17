@@ -11200,7 +11200,7 @@ const SETTINGS_DEFAULT = {
  * ElectraJs version.
  * DO NOT CHANGE THIS LINE SINCE THE VERSION IS AUTOMATICALLY INJECTED !
  */
-const VERSION = '0.4.4';
+const VERSION = '0.4.5';
 /**
  * Main ElectraJS class.
  */
@@ -24198,7 +24198,7 @@ class Rpc {
      */
     getLocalBlockHeight() {
         return __awaiter(this, void 0, void 0, function* () {
-            return this.query('getbalance', null);
+            return this.query('getblockcount', null);
         });
     }
     /**
