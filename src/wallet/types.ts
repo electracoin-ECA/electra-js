@@ -29,23 +29,30 @@ export interface WalletInfo {
   nextStakingRewardIn: number // in seconds
 }
 
-export interface WalletTransaction {
-  amount: number
-  confimationsCount: number
-  date?: number // Unix timestamp in seconds
-  fromAddressHash?: string
-  hash: string
-  toAddressHash: string
+export enum WalletLockState {
+  LOCKED = 'LOCKED',
+  STAKING = 'STAKING',
+  UNLOCKED = 'UNLOCKED',
 }
 
 export enum WalletState {
   EMPTY = 'EMPTY',
   READY = 'READY',
-  STOPPED = 'STOPPED'
+  STOPPED = 'STOPPED',
 }
 
-export enum WalletLockState {
-  LOCKED = 'LOCKED',
-  STAKING = 'STAKING',
-  UNLOCKED = 'UNLOCKED'
+export interface WalletTransaction {
+  amount: number
+  confimationsCount: number
+  date: number // Unix timestamp in seconds
+  from?: string[] // Addresses hash
+  hash: string
+  to: string[] // Addresses hash
+  type: WalletTransactionType
+}
+
+export enum WalletTransactionType {
+  GENERATED = 'GENERATED',
+  RECEIVED = 'RECEIVED',
+  SENT = 'SENT',
 }
