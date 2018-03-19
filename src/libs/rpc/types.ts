@@ -149,7 +149,7 @@ export interface RpcMethods {
   listtransactions: Array<{
     account: string
     address: string
-    category: string
+    category: 'generate' | 'receive' | 'send'
     amount: number
     fee?: number
     confirmations: number
