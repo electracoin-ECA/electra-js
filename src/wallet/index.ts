@@ -20,7 +20,8 @@ import {
   WalletInfo,
   WalletLockState,
   WalletState,
-  WalletTransaction
+  WalletTransaction,
+  WalletTransactionType
 } from './types'
 
 // tslint:disable-next-line:no-magic-numbers
@@ -787,7 +788,7 @@ export default class Wallet {
     /*
       STEP 1: UNSPENT TRANSACTIONS
     */
-    const [err1, unspentTransactions] = await to(this.getUnspentTransactions(true))
+    /*const [err1, unspentTransactions] = await to(this.getUnspentTransactions(true))
     if (err1 !== null || unspentTransactions === undefined) throw err1
 
     let availableAmount: number = 0
@@ -798,7 +799,7 @@ export default class Wallet {
       requiredUnspentTransactions.push(unspentTransaction.hash)
 
       if (availableAmount >= amount) break
-    }
+    }*/
 
     /*
       STEP 2: BROADCAST
@@ -811,8 +812,64 @@ export default class Wallet {
     }*/
   }
 
-  /** List of the wallet unspent transactions, ordered by descending amount. */
-  private async getUnspentTransactions(includeUnconfirmed: boolean = false): Promise<WalletTransaction[]> {
+  /**
+   * List the last wallet transactions.
+   */
+  public async getTransactions(count: number = 10, fromIndex: number = 0): Promise<WalletTransaction[]> {
+    if (this.STATE !== WalletState.READY) {
+      throw new Error(`ElectraJs.Wallet: #getTransactions() is only available when the #state is "READY".`)
+    }
+
+    if (this.rpc !== undefined) {
+      const [err1, transactionsRaw] = await to(this.rpc.listTransactions('*', count, fromIndex))
+      if (err1 !== null || transactionsRaw === undefined) throw err1
+
+      let index: number = 0
+      const transactions: WalletTransaction[] = []
+      while (++index < transactions.length) {
+        const transactionRaw: RpcMethodResult<'listtransactions'>[0] = transactionsRaw[index]
+        const transaction: Partial<WalletTransaction> = {
+          amount: transactionRaw.amount,
+          confimationsCount: transactionRaw.confirmations,
+          date: transactionRaw.time,
+          hash: transactionRaw.txid,
+        }
+
+        if (transactionRaw.category === 'generate') {
+          transaction.to = [transactionRaw.address]
+          transaction.type = WalletTransactionType.GENERATED
+        } else {
+          const [err2, transactionInfo] = await to(this.rpc.getTransaction(transaction.hash as string))
+          if (err2 !== null || transactionInfo === undefined) throw err2
+
+          if (transactionRaw.category === 'send') {
+            transaction.from = [transactionRaw.address]
+            transaction.to = transactionInfo.details
+              .filter(({ category }: RpcMethodResult<'gettransaction'>['details'][0]) => category === 'receive')
+              .map(({ address }: RpcMethodResult<'gettransaction'>['details'][0]) => address)
+            transaction.type = WalletTransactionType.SENT
+          }
+
+          if (transactionRaw.category === 'receive') {
+            transaction.from = transactionInfo.details
+              .filter(({ category }: RpcMethodResult<'gettransaction'>['details'][0]) => category === 'send')
+              .map(({ address }: RpcMethodResult<'gettransaction'>['details'][0]) => address)
+            transaction.to = [transactionRaw.address]
+            transaction.type = WalletTransactionType.RECEIVED
+          }
+        }
+
+        transactions.push(transaction as WalletTransaction)
+      }
+
+      return transactions
+    }
+
+    return []
+  }
+
+  /** List the wallet unspent transactions, ordered by descending amount. */
+  /*private async getUnspentTransactions(includeUnconfirmed: boolean = false): Promise<WalletTransaction[]> {
     if (this.STATE !== WalletState.READY) {
       throw new Error(`ElectraJs.Wallet: The #transactions are only available when the #state is "READY".`)
     }
@@ -833,5 +890,5 @@ export default class Wallet {
     }
 
     return []
-  }
+  }*/
 }
