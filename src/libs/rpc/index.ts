@@ -148,6 +148,13 @@ export default class Rpc {
   }
 
   /**
+   * Get a transaction detailed info.
+   */
+  public async getTransaction(transactionHash: string): Promise<RpcMethodResult<'gettransaction'>> {
+    return this.query('gettransaction', Array.prototype.slice.call(arguments))
+  }
+
+  /**
    * Import a new address private key.
    */
   public async importPrivateKey(privateKey: string): Promise<RpcMethodResult<'importprivkey'>> {
