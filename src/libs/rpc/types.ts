@@ -125,7 +125,46 @@ export interface RpcMethods {
     expectedtime: number
   }
   getsubsidy: any
-  gettransaction: any
+  gettransaction: {
+    txid: string
+    version: number
+    time: number
+    locktime: number
+    vin: Array<{
+      txid: string
+      vout: number
+      scriptSig: {
+        asm: string
+        hex: string
+      }
+      sequence: number
+    }>
+    vout: Array<{
+      value: number
+      n: number
+      scriptPubKey: {
+        asm: string
+        reqSigs?: number
+        type: 'nonstandard' | 'pubkey' | 'pubkeyhash'
+        addresses?: string[]
+      }
+    }>
+    amount: number
+    fee: number
+    confirmations: number
+    generated?: boolean
+    blockhash: string
+    blockindex: number
+    blocktime: number
+    timereceived: number
+    details: Array<{
+      account: string
+      address: string
+      category: 'generate' | 'receive' | 'send'
+      amount: number
+      fee?: number
+    }>
+  }
   getwork: any
   getworkex: any
   help: OrNull<{
