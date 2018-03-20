@@ -185,7 +185,7 @@ export default class Wallet {
   /**
    * Start the hard wallet daemon.
    */
-  public startDeamon(): void {
+  public startDaemon(): void {
     if (this.rpc === undefined) {
       throw new Error(`ElectraJs.Wallet: The #startDeamon() method can only be called on a hard wallet`)
     }
@@ -229,7 +229,7 @@ export default class Wallet {
   /**
    * Start the hard wallet daemon.
    */
-  public async stopDeamon(): Promise<void> {
+  public async stopDaemon(): Promise<void> {
     if (this.rpc === undefined) {
       throw new Error(`ElectraJs.Wallet: The #stopDeamon() method can only be called on a hard wallet`)
     }
@@ -369,7 +369,7 @@ export default class Wallet {
         }
 
         // Encrypting the wallet has stopped the deamon, so we need to start it again
-        this.startDeamon()
+        this.startDaemon()
 
         this.STATE = currentState
       }

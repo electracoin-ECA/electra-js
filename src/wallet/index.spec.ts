@@ -439,7 +439,7 @@ describe.skip('Wallet (hard)', function() {
   })
 
   describe(`WHEN starting the same wallet deamon`, () => {
-    it(`#startDeamon() SHOULD NOT throw any error`, () => { assert.doesNotThrow(() => wallet.startDeamon()) })
+    it(`#startDeamon() SHOULD NOT throw any error`, () => { assert.doesNotThrow(() => wallet.startDaemon()) })
   })
 
   describe(`WHEN generating the same wallet WITH <mnemonic>, <mnemonicExtension>, <chainsCount>`, () => {
@@ -513,7 +513,7 @@ describe.skip('Wallet (hard)', function() {
 
   describe(`WHEN stopping the same wallet deamon`, () => {
     it(`#stopDeamon() SHOULD NOT throw any error`, async () => {
-      assert.strictEqual(await assertCatch(() => wallet.stopDeamon()), false)
+      assert.strictEqual(await assertCatch(() => wallet.stopDaemon()), false)
     })
   })
 
