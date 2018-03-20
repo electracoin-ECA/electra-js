@@ -12,9 +12,9 @@ if ((process as NodeJS.Process | undefined) !== undefined) {
 export const BINARIES_PATH: string | undefined = binariesPath
 
 export const DAEMON_CONFIG: DaemonConfig = {
-  port: '5818',
+  port: '5817',
   rpcpassword: 'pass',
-  rpcport: '5789',
+  rpcport: '5788',
   rpcuser: 'user'
 }
 
