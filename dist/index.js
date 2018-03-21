@@ -11480,7 +11480,7 @@ const SETTINGS_DEFAULT = {
  * ElectraJs version.
  * DO NOT CHANGE THIS LINE SINCE THE VERSION IS AUTOMATICALLY INJECTED !
  */
-const VERSION = '0.5.0';
+const VERSION = '0.5.1';
 /**
  * Main ElectraJS class.
  */
@@ -11730,6 +11730,18 @@ class Wallet {
         You need to #reset() it first, then #initialize() it again in order to #generate() a new one.
       `);
             }
+            if (this.rpc !== undefined && this.STATE === types_1.WalletState.STOPPED) {
+                throw new Error(`ElectraJs.Wallet:
+        The #generate() method cannot be called on a stopped hard wallet (#state = "STOPPED").
+        You need to #startDaemon() first.
+      `);
+            }
+            if (this.rpc !== undefined && this.LOCK_STATE !== types_1.WalletLockState.UNLOCKED) {
+                throw new Error(`ElectraJs.Wallet:
+        The #generate() method can only be called once the hard wallet has been unlocked (#lockState = "UNLOCKED").
+        You need to #unlock() it first.
+      `);
+            }
             /*
               ----------------------------------
               STEP 1: MNEMONIC
@@ -11780,6 +11792,31 @@ class Wallet {
             */
             if (this.rpc !== undefined) {
                 let i;
+                // We try to export all the used addresses from the RPC daemon
+                const daemonAddresses = [];
+                const [err, entries] = yield await_to_js_1.default(this.rpc.listAddressGroupings());
+                if (err !== null || entries === undefined)
+                    throw err;
+                // tslint:disable-next-line:typedef
+                entries.forEach((group) => group.forEach(([addressHash]) => daemonAddresses.push(addressHash)));
+                // We filter out all the HD addresses
+                const randomAddresses = daemonAddresses
+                    .filter((daemonAddressHash) => this.ADDRESSES.filter(({ hash }) => daemonAddressHash === hash).length === 0);
+                // We try to retrieve the random addresses private keys and import them
+                i = randomAddresses.length;
+                while (--i >= 0) {
+                    try {
+                        yield this.rpc.importPrivateKey(this.ADDRESSES[i].privateKey);
+                        this.RANDOM_ADDRESSES.push({
+                            hash: randomAddresses[i],
+                            isCiphered: false,
+                            isHD: false,
+                            label: null,
+                            privateKey: yield this.rpc.getPrivateKey(randomAddresses[i])
+                        });
+                    }
+                    catch (err) { }
+                }
                 // We try to import the HD addresses into the RPC deamon
                 i = this.ADDRESSES.length;
                 while (--i >= 0) {
@@ -11856,7 +11893,7 @@ class Wallet {
      */
     unlock(passphrase, forStakingOnly = true) {
         return __awaiter(this, void 0, void 0, function* () {
-            if (this.STATE !== types_1.WalletState.READY) {
+            if (this.rpc === undefined && this.STATE !== types_1.WalletState.READY) {
                 throw new Error(`ElectraJs.Wallet: The #unlock() method can only be called on a ready wallet (#state = "READY").`);
             }
             if (this.rpc !== undefined) {
@@ -20265,7 +20302,6 @@ function default_1() {
             if (err1 !== null || stdout1 === undefined)
                 throw err1;
             const resultsRaw1 = toArrayOfLines(stdout1);
-            console.log(resultsRaw1);
             // Remove all "closeElectraDaemons" & "grep" results (since it's just the inlusion of our command)
             const results1 = resultsRaw1.filter(resultRaw => !/closeElectraDaemons|grep/i.test(resultRaw));
             if (results1.length === 0)
