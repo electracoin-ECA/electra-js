@@ -231,6 +231,13 @@ export default class Rpc {
   }
 
   /**
+   * Exit the daemon.
+   */
+  public async stop(): Promise<RpcMethodResult<'stop'>> {
+    return this.query('stop', null)
+  }
+
+  /**
    * Stores the wallet decryption key in memory for <timeout> seconds.
    * If [stakingOnly] is TRUE, sending functions are disabled.
    */
