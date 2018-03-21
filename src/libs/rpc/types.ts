@@ -175,7 +175,11 @@ export interface RpcMethods {
   keypoolrefill: any
   /** @deprecated */
   listaccounts: any
-  listaddressgroupings: string[][][]
+  listaddressgroupings: Array<Array<[
+    string, // Address hash
+    number, // Amount
+    string  // Label
+  ]>>
   /** @deprecated */
   listreceivedbyaccount: any
   listreceivedbyaddress: Array<{
