@@ -373,7 +373,7 @@ export default class Wallet {
         }
 
         // Encrypting the wallet has stopped the deamon, so we need to start it again
-        this.startDaemon()
+        await this.startDaemon()
 
         this.STATE = currentState
       }
