@@ -67,11 +67,11 @@ export default class Wallet {
     /**
      * Start the hard wallet daemon.
      */
-    startDeamon(): void;
+    startDaemon(): Promise<void>;
     /**
      * Start the hard wallet daemon.
      */
-    stopDeamon(): Promise<void>;
+    stopDaemon(): Promise<void>;
     /**
      * Generate an HD wallet from either the provided mnemonic seed, or a randomly generated one,
      * including ‒ at least ‒ the first derived address.
@@ -133,6 +133,8 @@ export default class Wallet {
      * Create and broadcast a new transaction of <amount> <toAddressHash> from the first unspent ones.
      */
     send(amount: number, toAddressHash: string, fromAddressHash?: string): Promise<void>;
-    /** List of the wallet unspent transactions, ordered by descending amount. */
-    private getUnspentTransactions(includeUnconfirmed?);
+    /**
+     * List the last wallet transactions.
+     */
+    getTransactions(count?: number, fromIndex?: number): Promise<WalletTransaction[]>;
 }

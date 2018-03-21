@@ -18,21 +18,27 @@ export interface WalletInfo {
     networkStakingWeight: number;
     nextStakingRewardIn: number;
 }
-export interface WalletTransaction {
-    amount: number;
-    confimationsCount: number;
-    date?: number;
-    fromAddressHash?: string;
-    hash: string;
-    toAddressHash: string;
+export declare enum WalletLockState {
+    LOCKED = "LOCKED",
+    STAKING = "STAKING",
+    UNLOCKED = "UNLOCKED",
 }
 export declare enum WalletState {
     EMPTY = "EMPTY",
     READY = "READY",
     STOPPED = "STOPPED",
 }
-export declare enum WalletLockState {
-    LOCKED = "LOCKED",
-    STAKING = "STAKING",
-    UNLOCKED = "UNLOCKED",
+export interface WalletTransaction {
+    amount: number;
+    confimationsCount: number;
+    date: number;
+    from?: string[];
+    hash: string;
+    to: string[];
+    type: WalletTransactionType;
+}
+export declare enum WalletTransactionType {
+    GENERATED = "GENERATED",
+    RECEIVED = "RECEIVED",
+    SENT = "SENT",
 }

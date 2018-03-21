@@ -69,6 +69,10 @@ export default class Rpc {
      */
     getStakingInfo(): Promise<RpcMethodResult<'getstakinginfo'>>;
     /**
+     * Get a transaction detailed info.
+     */
+    getTransaction(transactionHash: string): Promise<RpcMethodResult<'gettransaction'>>;
+    /**
      * Import a new address private key.
      */
     importPrivateKey(privateKey: string): Promise<RpcMethodResult<'importprivkey'>>;
@@ -109,6 +113,10 @@ export default class Rpc {
      * This transaction is "basic" because the unspent transaction are automatically selected.
      */
     sendBasicTransaction(toAddressHash: string, amount: number): Promise<RpcMethodResult<'sendtoaddress'>>;
+    /**
+     * Exit the daemon.
+     */
+    stop(): Promise<RpcMethodResult<'stop'>>;
     /**
      * Stores the wallet decryption key in memory for <timeout> seconds.
      * If [stakingOnly] is TRUE, sending functions are disabled.
