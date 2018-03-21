@@ -271,6 +271,20 @@ export default class Wallet {
       `)
     }
 
+    if (this.rpc !== undefined && (this.STATE as WalletState) === WalletState.STOPPED) {
+      throw new Error(`ElectraJs.Wallet:
+        The #generate() method cannot be called on a stopped hard wallet (#state = "STOPPED").
+        You need to #startDaemon() first.
+      `)
+    }
+
+    if (this.rpc !== undefined && this.LOCK_STATE !== WalletLockState.UNLOCKED) {
+      throw new Error(`ElectraJs.Wallet:
+        The #generate() method can only be called once the hard wallet has been unlocked (#lockState = "UNLOCKED").
+        You need to #unlock() it first.
+      `)
+    }
+
     /*
       ----------------------------------
       STEP 1: MNEMONIC
@@ -332,6 +346,34 @@ export default class Wallet {
 
     if (this.rpc !== undefined) {
       let i: number
+
+      // We try to export all the used addresses from the RPC daemon
+      const daemonAddresses: string[] = []
+      const [err, entries] = await to(this.rpc.listAddressGroupings())
+      if (err !== null || entries === undefined) throw err
+      // tslint:disable-next-line:typedef
+      entries.forEach((group) => group.forEach(([addressHash]) => daemonAddresses.push(addressHash)))
+
+      // We filter out all the HD addresses
+      const randomAddresses: string[] = daemonAddresses
+        .filter((daemonAddressHash: string) =>
+          this.ADDRESSES.filter(({ hash }: WalletAddress) => daemonAddressHash === hash).length === 0)
+
+      // We try to retrieve the random addresses private keys and import them
+      i = randomAddresses.length
+      while (--i >= 0) {
+        try {
+          await this.rpc.importPrivateKey(this.ADDRESSES[i].privateKey)
+          this.RANDOM_ADDRESSES.push({
+            hash: randomAddresses[i],
+            isCiphered: false,
+            isHD: false,
+            label: null,
+            privateKey: await this.rpc.getPrivateKey(randomAddresses[i])
+          })
+        }
+        catch (err) { /* We ignore this error for now. */ }
+      }
 
       // We try to import the HD addresses into the RPC deamon
       i = this.ADDRESSES.length
@@ -416,7 +458,7 @@ export default class Wallet {
    * Unlock the wallet, that is decipher all its private keys.
    */
   public async unlock(passphrase: string, forStakingOnly: boolean = true): Promise<void> {
-    if (this.STATE !== WalletState.READY) {
+    if (this.rpc === undefined && this.STATE !== WalletState.READY) {
       throw new Error(`ElectraJs.Wallet: The #unlock() method can only be called on a ready wallet (#state = "READY").`)
     }
 
