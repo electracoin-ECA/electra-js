@@ -38,7 +38,6 @@ export default async function(): Promise<void> {
     const [err1, stdout1] = await to(exec(`ps aux | grep -i "electra"`))
     if (err1 !== null || stdout1 === undefined) throw err1
     const resultsRaw1 = toArrayOfLines(stdout1)
-    console.log(resultsRaw1)
 
     // Remove all "closeElectraDaemons" & "grep" results (since it's just the inlusion of our command)
     const results1 = resultsRaw1.filter(resultRaw => !/closeElectraDaemons|grep/i.test(resultRaw))
