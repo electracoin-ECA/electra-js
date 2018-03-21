@@ -3,6 +3,7 @@ import { ChildProcess } from 'child_process'
 import * as R from 'ramda'
 
 import { BINARIES_PATH, DAEMON_CONFIG, DAEMON_URI, ECA_TRANSACTION_FEE } from '../constants'
+import closeElectraDaemons from '../helpers/closeElectraDaemons'
 import getMaxItemFromList from '../helpers/getMaxItemFromList'
 import tryCatch from '../helpers/tryCatch'
 import wait from '../helpers/wait'
@@ -185,7 +186,7 @@ export default class Wallet {
   /**
    * Start the hard wallet daemon.
    */
-  public startDaemon(): void {
+  public async startDaemon(): Promise<void> {
     if (this.rpc === undefined) {
       throw new Error(`ElectraJs.Wallet: The #startDeamon() method can only be called on a hard wallet`)
     }
@@ -195,6 +196,9 @@ export default class Wallet {
         The #startDeamon() method can only be called on an stopped wallet (#state = "STOPPED").
       `)
     }
+
+    // Stop any existing Electra deamon process first
+    await closeElectraDaemons()
 
     const binaryPath: string = `${BINARIES_PATH}/${PLATFORM_BINARY[process.platform]}`
 
