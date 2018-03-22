@@ -129,4 +129,4 @@ declare namespace ElectraJs {
   }
 }
 
-export = ElectraJs
+export default ElectraJs

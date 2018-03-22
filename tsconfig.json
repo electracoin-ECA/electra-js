@@ -14,7 +14,9 @@
     "target": "es2015"
   },
   "include": [
-    "src/**/*"
+    "electra-js.d.ts",
+    "src/**/*",
+    "test/*"
   ],
   "exclude": [
     "node_modules",

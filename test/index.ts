@@ -1,10 +1,10 @@
-// tslint:disable:typedef
+// tslint:disable
 
 import * as assert from 'assert'
 
 import ElectraJs from '..'
 
-function testMethodType(name, method) {
+function testMethodType(name: string, method: Function): void {
   describe(`ElectraJs#${name}()`, function() {
     it('SHOULD be a method', function() {
       assert.strictEqual(typeof method, 'function')
