@@ -4,14 +4,14 @@
   "description": "Javascript API middleware allowing clients to interact with Electra blockchain.",
   "license": "MIT",
   "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "types": "electra-js.d.ts",
   "engines": {
     "node": "9.4.0",
     "npm": "5.6.0"
   },
   "scripts": {
-    "build": "webpack --config webpack.prod.js && node tasks/fixTypingsGeneration && npm run check",
-    "check": "mocha test/index.js && mocha -r ts-node/register test/index.ts && tsc -p tsconfig.dist.json --noEmit --pretty",
+    "build": "webpack --config webpack.prod.js && npm run check",
+    "check": "mocha test/index.js && mocha -r ts-node/register test/index.ts",
     "start": "npm run watch",
     "test": "npm run validate && npm run test:unit && npm run test:browser && npm run build",
     "test:browser": "webpack --config webpack.test.js && mocha -r ts-node/register test/browser/index.ts",
@@ -26,6 +26,7 @@
     "watch:validate": "npm run validate:tsc -- -w"
   },
   "dependencies": {
+    "@types/bitcoinjs-lib": "^3.3.1",
     "await-to-js": "^2.0.1",
     "axios": "^0.17.1",
     "bigi": "^1.4.2",
@@ -39,7 +40,6 @@
   "devDependencies": {
     "@types/bip38": "^2.0.0",
     "@types/bip39": "^2.4.0",
-    "@types/bitcoinjs-lib": "^3.3.1",
     "@types/dotenv": "^4.0.2",
     "@types/express": "^4.11.1",
     "@types/mocha": "^2.2.48",

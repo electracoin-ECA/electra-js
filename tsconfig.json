@@ -1,9 +1,6 @@
 {
   "compilerOptions": {
     "allowSyntheticDefaultImports": false,
-    "declaration": true,
-    "declarationDir": "dist",
-    "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "forceConsistentCasingInFileNames": true,
     "lib": ["dom", "es2017"],
