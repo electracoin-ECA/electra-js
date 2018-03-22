@@ -11486,7 +11486,7 @@ const SETTINGS_DEFAULT = {
  * ElectraJs version.
  * DO NOT CHANGE THIS LINE SINCE THE VERSION IS AUTOMATICALLY INJECTED !
  */
-const VERSION = '0.5.5';
+const VERSION = '0.5.6';
 /**
  * Main ElectraJS class.
  */
