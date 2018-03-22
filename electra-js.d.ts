@@ -28,105 +28,104 @@ declare class ElectraJs {
     ECA_TRANSACTION_FEE: number;
   }
 
-  wallet: ElectraJs.Wallet;
+  wallet: Wallet;
 
-  webServices: ElectraJs.WebServices;
+  webServices: WebServices;
+  test: WalletInfo;
 
   constructor(settings?: Settings);
 
   getVersion(): string;
 }
 
-declare namespace ElectraJs {
-  type CoinMarketCapCurrency =
-    "AUD" | "BRL" | "BTC" | "CAD" | "CHF" | "CLP" | "CNY" | "CZK" | "DKK" | "EUR" |
-    "GBP" | "HKD" | "HUF" | "IDR" | "ILS" | "INR" | "JPY" | "KRW" | "MXN" | "MYR" |
-    "NOK" | "NZD" | "PHP" | "PKR" | "PLN" | "RUB" | "SEK" | "SGD" | "THB" | "TRY" |
-    "TWD" | "USD" | "ZAR";
+export default ElectraJs
 
-  interface WalletAddress extends Address {
-    label: OrNull<string>;
-  }
+export type CoinMarketCapCurrency =
+  "AUD" | "BRL" | "BTC" | "CAD" | "CHF" | "CLP" | "CNY" | "CZK" | "DKK" | "EUR" |
+  "GBP" | "HKD" | "HUF" | "IDR" | "ILS" | "INR" | "JPY" | "KRW" | "MXN" | "MYR" |
+  "NOK" | "NZD" | "PHP" | "PKR" | "PLN" | "RUB" | "SEK" | "SGD" | "THB" | "TRY" |
+  "TWD" | "USD" | "ZAR";
 
-  type WalletExchangeFormat = [
-    2,
-    number,
-    string,
-    string[]
-  ];
-
-  interface WalletInfo {
-    connectionsCount?: number;
-    isHD: boolean;
-    isStaking: boolean;
-    isSynchonized?: boolean;
-    localBlockchainHeight?: number;
-    localStakingWeight?: number;
-    networkBlockchainHeight: number;
-    networkStakingWeight: number;
-    nextStakingRewardIn: number;
-  }
-
-  enum WalletLockState {
-    LOCKED = 'LOCKED',
-    STAKING = 'STAKING',
-    UNLOCKED = 'UNLOCKED',
-  }
-
-  enum WalletState {
-    EMPTY = 'EMPTY',
-    READY = 'READY',
-    STOPPED = 'STOPPED',
-  }
-
-  interface WalletTransaction {
-    amount: number;
-    confimationsCount: number;
-    date: number;
-    from?: string[];
-    hash: string;
-    to: string[];
-    type: WalletTransactionType;
-  }
-
-  enum WalletTransactionType {
-    GENERATED = 'GENERATED',
-    RECEIVED = 'RECEIVED',
-    SENT = 'SENT',
-  }
-
-  interface Wallet {
-    addresses: WalletAddress[];
-    allAddresses: WalletAddress[];
-    lockState: WalletLockState;
-    randomAddresses: WalletAddress[];
-
-    mnemonic(): string;
-    state(): WalletState;
-
-    startDaemon(): Promise<void>;
-    stopDaemon(): Promise<void>;
-
-    generate(mnemonic?: string, mnemonicExtension?: string, chainsCount?: number): Promise<void>;
-    import(data: string, passphrase: string): Promise<void>;
-    export(): string;
-    reset(): void;
-
-    importRandomAddress(privateKey: string, passphrase?: string): Promise<void>;
-
-    lock(passphrase: string): Promise<void>;
-    unlock(passphrase: string, forStakingOnly?: boolean): Promise<void>;
-
-    getBalance(addressHash?: string): Promise<number>;
-    getInfo(): Promise<WalletInfo>;
-    send(amount: number, toAddressHash: string, fromAddressHash?: string): Promise<void>;
-    getTransactions(count?: number, fromIndex?: number): Promise<WalletTransaction[]>;
-  }
-
-  interface WebServices {
-    getBalanceFor(address: string): Promise<number>;
-    getCurrentPriceIn(currency?: CoinMarketCapCurrency): Promise<number>;
-  }
+export interface WalletAddress extends Address {
+  label: OrNull<string>;
 }
 
-export default ElectraJs
+export type WalletExchangeFormat = [
+  2,
+  number,
+  string,
+  string[]
+];
+
+export interface WalletInfo {
+  connectionsCount?: number;
+  isHD: boolean;
+  isStaking: boolean;
+  isSynchonized?: boolean;
+  localBlockchainHeight?: number;
+  localStakingWeight?: number;
+  networkBlockchainHeight: number;
+  networkStakingWeight: number;
+  nextStakingRewardIn: number;
+}
+
+export enum WalletLockState {
+  LOCKED = 'LOCKED',
+  STAKING = 'STAKING',
+  UNLOCKED = 'UNLOCKED',
+}
+
+export enum WalletState {
+  EMPTY = 'EMPTY',
+  READY = 'READY',
+  STOPPED = 'STOPPED',
+}
+
+export interface WalletTransaction {
+  amount: number;
+  confimationsCount: number;
+  date: number;
+  from?: string[];
+  hash: string;
+  to: string[];
+  type: WalletTransactionType;
+}
+
+export enum WalletTransactionType {
+  GENERATED = 'GENERATED',
+  RECEIVED = 'RECEIVED',
+  SENT = 'SENT',
+}
+
+export interface Wallet {
+  addresses: WalletAddress[];
+  allAddresses: WalletAddress[];
+  lockState: WalletLockState;
+  randomAddresses: WalletAddress[];
+
+  mnemonic(): string;
+  state(): WalletState;
+
+  startDaemon(): Promise<void>;
+  stopDaemon(): Promise<void>;
+
+  generate(mnemonic?: string, mnemonicExtension?: string, chainsCount?: number): Promise<void>;
+  import(data: string, passphrase: string): Promise<void>;
+  export(): string;
+  reset(): void;
+
+  importRandomAddress(privateKey: string, passphrase?: string): Promise<void>;
+
+  lock(passphrase: string): Promise<void>;
+  unlock(passphrase: string, forStakingOnly?: boolean): Promise<void>;
+
+  getBalance(addressHash?: string): Promise<number>;
+  getInfo(): Promise<WalletInfo>;
+  send(amount: number, toAddressHash: string, fromAddressHash?: string): Promise<void>;
+  getTransactions(count?: number, fromIndex?: number): Promise<WalletTransaction[]>;
+}
+
+export interface WebServices {
+  getBalanceFor(address: string): Promise<number>;
+  getCurrentPriceIn(currency?: CoinMarketCapCurrency): Promise<number>;
+}
