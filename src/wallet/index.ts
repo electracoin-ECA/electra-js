@@ -251,7 +251,7 @@ export default class Wallet {
     await closeElectraDaemons()
 
     // Dirty hack since we have no idea how long the deamon process will take to be killed
-    while ((this.STATE as WalletState) !== WalletState.STOPPED) {
+    while (this.STATE !== WalletState.STOPPED) {
       // tslint:disable-next-line:no-magic-numbers
       await wait(250)
     }
