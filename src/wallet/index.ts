@@ -75,13 +75,8 @@ export default class Wallet {
    */
   private daemon: ChildProcess
 
-  /**
-   * Is this hard wallet a brand intalled one ?
-   */
-  // private isNew: boolean
-
   /** List of the wallet random (non-HD) addresses. */
-  private LOCK_STATE: WalletLockState = WalletLockState.UNLOCKED
+  private LOCK_STATE: WalletLockState
   /**
    * Is this wallet locked ?
    * The wallet is considered as locked when all its addresses private keys are currently ciphered.
@@ -162,26 +157,17 @@ export default class Wallet {
         username: DAEMON_CONFIG.rpcuser
       })
 
-      /*switch (process.platform) {
-        case 'darwin':
-        case 'linux':
-          // tslint:disable-next-line:no-require-imports
-          this.isNew = !(require('fs').existsSync('~/.Electra') as boolean)
-          break
-
-        case 'win32':
-          break
-
-        default:
-          throw new Error(`ElectraJs.Wallet: This platform is not supported: ${process.platform}.`)
-      }*/
+      // tslint:disable-next-line:no-require-imports
+      const isNew: boolean = !(require('fs').existsSync(`${require('os').homedir()}/.Electra`) as boolean)
 
       this.STATE = WalletState.STOPPED
+      this.LOCK_STATE = isNew ? WalletLockState.UNLOCKED : WalletLockState.LOCKED
 
       return
     }
 
     this.STATE = WalletState.EMPTY
+    this.LOCK_STATE = WalletLockState.UNLOCKED
   }
 
   /**
