@@ -101,10 +101,9 @@ export interface Wallet {
   addresses: WalletAddress[];
   allAddresses: WalletAddress[];
   lockState: WalletLockState;
+  mnemonic: string;
   randomAddresses: WalletAddress[];
-
-  mnemonic(): string;
-  state(): WalletState;
+  state: WalletState;
 
   startDaemon(): Promise<void>;
   stopDaemon(): Promise<void>;
