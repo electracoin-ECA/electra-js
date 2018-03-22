@@ -33,6 +33,7 @@
     "bip39": "^2.5.0",
     "bitcoinjs-lib": "^3.3.2",
     "ramda": "^0.25.0",
+    "tree-kill": "^1.2.0",
     "wif": "^2.0.6"
   },
   "devDependencies": {
