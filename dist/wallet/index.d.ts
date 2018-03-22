@@ -69,7 +69,7 @@ export default class Wallet {
      */
     startDaemon(): Promise<void>;
     /**
-     * Start the hard wallet daemon.
+     * Stop the hard wallet daemon.
      */
     stopDaemon(): Promise<void>;
     /**
