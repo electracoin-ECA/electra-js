@@ -210,8 +210,8 @@ export default class Wallet {
       ])
 
     // TODO Add a debug mode in ElectraJs settings
-    this.daemon.stdout.setEncoding('utf8').on('data', process.stdout.write.bind(this))
-    this.daemon.stderr.setEncoding('utf8').on('data', process.stdout.write.bind(this))
+    this.daemon.stdout.setEncoding('utf8').on('data', console.log.bind(this))
+    this.daemon.stderr.setEncoding('utf8').on('data', console.log.bind(this))
 
     this.daemon.on('close', (code: number) => {
       this.STATE = WalletState.STOPPED
@@ -399,8 +399,8 @@ export default class Wallet {
 
         // If there is an error, this is surely because the wallet has never been encrypted,
         // so let's try to encrypt it as if it was the first time
-        [err] = await to(this.rpc.encryptWallet(passphrase))
-        if (err !== null) throw err
+        const [err1] = await to(this.rpc.encryptWallet(passphrase))
+        if (err1 !== null) { throw err1 }
 
         // Dirty hack since we have no idea how long the deamon process will take to exit
         while ((this.STATE as WalletState) !== WalletState.STOPPED) {
