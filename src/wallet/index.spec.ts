@@ -401,7 +401,7 @@ describe('Wallet (light)', function() {
 describe('Wallet (hard)', function() {
   let wallet: Wallet
 
-  this.timeout(10000)
+  this.timeout(20000)
 
   before(function() {
     childProcess.execSync('rm -Rf ~/.Electra')
@@ -482,28 +482,28 @@ describe('Wallet (hard)', function() {
     it(`#mnemonic SHOULD throw an error`, () => { assert.throws(() => wallet.mnemonic) })
 
     it(`#lockState SHOULD be "UNLOCKED"`, () => { assert.strictEqual(wallet.lockState, 'UNLOCKED') })
-    it.skip(`#lock() SHOULD not throw any error`, async () => {
+    it(`#lock() SHOULD not throw any error`, async () => {
       assert.strictEqual(await assertCatch(() => wallet.lock(HD_PASSPHRASE_TEST)), false)
     })
-    it.skip(`#lockState SHOULD be "LOCKED"`, () => { assert.strictEqual(wallet.lockState, 'LOCKED') })
-    it.skip(`#unlock() SHOULD not throw any error`, async () => {
+    it(`#lockState SHOULD be "LOCKED"`, () => { assert.strictEqual(wallet.lockState, 'LOCKED') })
+    it(`#unlock() SHOULD not throw any error`, async () => {
       assert.strictEqual(await assertCatch(() => wallet.unlock(HD_PASSPHRASE_TEST)), false)
     })
-    it.skip(`#lockState SHOULD be "STAKING"`, () => { assert.strictEqual(wallet.lockState, 'STAKING') })
+    it(`#lockState SHOULD be "STAKING"`, () => { assert.strictEqual(wallet.lockState, 'STAKING') })
     it.skip(`#send() SHOULD throw an error`, async () => {
       assert.strictEqual(await assertCatch(() => wallet.send(TEST_AMOUNT, HD_CHAIN_2_HASH_TEST)), true)
     })
-    it.skip(`#lock() SHOULD not throw any error`, async () => {
+    it(`#lock() SHOULD not throw any error`, async () => {
       assert.strictEqual(await assertCatch(() => wallet.lock(HD_PASSPHRASE_TEST)), false)
     })
-    it.skip(`#lockState SHOULD be "LOCKED"`, () => { assert.strictEqual(wallet.lockState, 'LOCKED') })
+    it(`#lockState SHOULD be "LOCKED"`, () => { assert.strictEqual(wallet.lockState, 'LOCKED') })
     it.skip(`#send() SHOULD throw an error`, async () => {
       assert.strictEqual(await assertCatch(() => wallet.send(TEST_AMOUNT, HD_CHAIN_2_HASH_TEST)), true)
     })
-    it.skip(`#unlock(<forStakingOnly=FALSE>) SHOULD not throw any error`, async () => {
+    it(`#unlock(<forStakingOnly=FALSE>) SHOULD not throw any error`, async () => {
       assert.strictEqual(await assertCatch(() => wallet.unlock(HD_PASSPHRASE_TEST, false)), false)
     })
-    it.skip(`#lockState SHOULD be "UNLOCKED"`, () => { assert.strictEqual(wallet.lockState, 'UNLOCKED') })
+    it(`#lockState SHOULD be "UNLOCKED"`, () => { assert.strictEqual(wallet.lockState, 'UNLOCKED') })
 
     it.skip(`#send() SHOULD NOT throw any error`, async () => {
       assert.strictEqual(await assertCatch(() => wallet.send(TEST_AMOUNT, HD_CHAIN_2_HASH_TEST)), false)
