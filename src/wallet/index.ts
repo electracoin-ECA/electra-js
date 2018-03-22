@@ -710,8 +710,8 @@ export default class Wallet {
    * Get the global wallet balance, or the <address> balance if specified.
    */
   public async getBalance(addressHash?: string): Promise<number> {
-    if (this.STATE === WalletState.EMPTY) {
-      throw new Error(`ElectraJs.Wallet: You can't #getBalance() from an empty wallet (#state = "EMPTY").`)
+    if (this.STATE !== WalletState.READY) {
+      throw new Error(`ElectraJs.Wallet: You can only #getBalance() from a ready wallet (#state = "READY").`)
     }
 
     if (this.rpc !== undefined) {
