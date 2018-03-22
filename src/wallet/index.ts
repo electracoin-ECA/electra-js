@@ -5,6 +5,7 @@ import * as R from 'ramda'
 import { BINARIES_PATH, DAEMON_CONFIG, DAEMON_URI, ECA_TRANSACTION_FEE } from '../constants'
 import closeElectraDaemons from '../helpers/closeElectraDaemons'
 import getMaxItemFromList from '../helpers/getMaxItemFromList'
+import injectElectraConfig from '../helpers/injectElectraConfig'
 import tryCatch from '../helpers/tryCatch'
 import wait from '../helpers/wait'
 import Crypto from '../libs/crypto'
@@ -200,6 +201,10 @@ export default class Wallet {
     // Stop any existing Electra deamon process first
     await closeElectraDaemons()
 
+    // Inject Electra.conf file if it doesn't already exist
+    const [err] = tryCatch(injectElectraConfig)
+    if (err !== undefined) throw err
+
     const binaryPath: string = `${BINARIES_PATH}/${PLATFORM_BINARY[process.platform]}`
 
     // Dirty hack to give enough permissions to the binary in order to be run
@@ -208,17 +213,19 @@ export default class Wallet {
     require('child_process').execSync(`chmod 755 ${binaryPath}`)
 
     // tslint:disable-next-line:no-require-imports
-    this.daemon = require('child_process')
-      .spawn(binaryPath, [
-        `--port=${DAEMON_CONFIG.port}`,
-        `--rpcuser=${DAEMON_CONFIG.rpcuser}`,
-        `--rpcpassword=${DAEMON_CONFIG.rpcpassword}`,
-        `--rpcport=${DAEMON_CONFIG.rpcport}`
+    this.daemon = require('child_process').spawn(
+      binaryPath,
+      [
+      `--deamon=1`,
+      `--port=${DAEMON_CONFIG.port}`,
+      `--rpcuser=${DAEMON_CONFIG.rpcuser}`,
+      `--rpcpassword=${DAEMON_CONFIG.rpcpassword}`,
+      `--rpcport=${DAEMON_CONFIG.rpcport}`
       ])
 
     // TODO Add a debug mode in ElectraJs settings
-    this.daemon.stdout.setEncoding('utf8').on('data', console.log.bind(this))
-    this.daemon.stderr.setEncoding('utf8').on('data', console.log.bind(this))
+    this.daemon.stdout.setEncoding('utf8').on('data', process.stdout.write.bind(this))
+    this.daemon.stderr.setEncoding('utf8').on('data', process.stdout.write.bind(this))
 
     this.daemon.on('close', (code: number) => {
       this.STATE = WalletState.STOPPED
@@ -227,26 +234,23 @@ export default class Wallet {
       console.log(`The wallet daemon exited with the code: ${code}.`)
     })
 
+    // tslint:disable-next-line:no-magic-numbers
+    await wait(2000)
+
     this.STATE = WalletState.EMPTY
   }
 
   /**
-   * Start the hard wallet daemon.
+   * Stop the hard wallet daemon.
    */
   public async stopDaemon(): Promise<void> {
     if (this.rpc === undefined) {
       throw new Error(`ElectraJs.Wallet: The #stopDeamon() method can only be called on a hard wallet`)
     }
 
-    if (this.STATE === WalletState.STOPPED) {
-      throw new Error(`ElectraJs.Wallet:
-        The #stopDeamon() method can only be called on a not already stopped wallet (#state != "STOPPED").
-      `)
-    }
+    await closeElectraDaemons()
 
-    this.daemon.kill()
-
-    // Dirty hack since we have mno idea how long the deamon will take to be effectively
+    // Dirty hack since we have no idea how long the deamon process will take to be killed
     while ((this.STATE as WalletState) !== WalletState.STOPPED) {
       // tslint:disable-next-line:no-magic-numbers
       await wait(250)
@@ -372,14 +376,18 @@ export default class Wallet {
             privateKey: await this.rpc.getPrivateKey(randomAddresses[i])
           })
         }
-        catch (err) { /* We ignore this error for now. */ }
+        catch (err) {
+          // We ignore this error for now.
+        }
       }
 
       // We try to import the HD addresses into the RPC deamon
       i = this.ADDRESSES.length
       while (--i >= 0) {
         try { await this.rpc.importPrivateKey(this.ADDRESSES[i].privateKey) }
-        catch (err) { /* We ignore this error in case the private key is already registered by the RPC deamon. */ }
+        catch (err) {
+          // We ignore this error in case the private key is already registered by the RPC deamon.
+        }
       }
     }
 
