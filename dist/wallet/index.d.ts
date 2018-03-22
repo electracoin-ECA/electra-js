@@ -17,9 +17,6 @@ export default class Wallet {
      * Hard wallet daemon Node child process.
      */
     private daemon;
-    /**
-     * Is this hard wallet a brand intalled one ?
-     */
     /** List of the wallet random (non-HD) addresses. */
     private LOCK_STATE;
     /**
