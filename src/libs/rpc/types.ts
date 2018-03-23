@@ -264,6 +264,11 @@ export interface JsonRpcRequest<T extends RpcMethod> {
 
 export interface JsonRpcResponse<T extends RpcMethod> {
   id: OrNull<string>
-  error: OrNull<string>
+  error: OrNull<JsonRpcResponseError>
   result: RpcMethods[T]
+}
+
+export interface JsonRpcResponseError {
+  code: number
+  message: string
 }
