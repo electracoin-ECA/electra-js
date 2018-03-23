@@ -41,13 +41,13 @@ declare class ElectraJs {
 export default ElectraJs
 
 export interface ElectraJsErrorReference {
-  301: 'DAEMON_RPC_METHOD_NOT_FOUND'
+  'DAEMON_RPC_METHOD_NOT_FOUND': 301
 }
 
 export interface ElectraJsError<T extends keyof ElectraJsErrorReference> extends Error {
-  code: T;
+  code: ElectraJsErrorReference[T];
   stack?: string;
-  message: ElectraJsErrorReference[T]
+  message: T;
 }
 
 export type CoinMarketCapCurrency =

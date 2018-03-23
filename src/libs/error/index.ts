@@ -2,11 +2,11 @@ import { ERRORS } from './constants'
 import { ElectraJsErrorReference } from './types'
 
 export default class ElectraJsError<T extends keyof ElectraJsErrorReference> extends Error {
-  public code: T
+  public code: ElectraJsErrorReference[T]
 
-  public constructor(code: T) {
-    super(ERRORS[code])
+  public constructor(key: T) {
+    super(key)
 
-    this.code = code
+    this.code = ERRORS[key]
   }
 }
