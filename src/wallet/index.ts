@@ -139,17 +139,6 @@ export default class Wallet {
     return this.STATE
   }
 
-  /** List of the wallet transactions. */
-  private TRANSACTIONS: WalletTransaction[] = []
-  /** List of the wallet transactions. */
-  public get transactions(): WalletTransaction[] {
-    if (this.STATE !== WalletState.READY) {
-      throw new Error(`ElectraJs.Wallet: The #transactions are only available when the #state is "READY".`)
-    }
-
-    return this.TRANSACTIONS
-  }
-
   public constructor(isHard: boolean = false) {
     if (isHard) {
       this.rpc = new Rpc(DAEMON_URI, {
@@ -730,16 +719,6 @@ export default class Wallet {
     }
 
     return balanceTotal
-  }
-
-  /**
-   * Get the current connections count.
-   */
-  public async getConnectionsCount(): Promise<number> {
-    const [err, connectionCount] = await to((this.rpc as Rpc).getConnectionCount())
-    if (err !== null || connectionCount === undefined) throw err
-
-    return connectionCount
   }
 
   /**
