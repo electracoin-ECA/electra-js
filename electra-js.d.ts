@@ -40,6 +40,16 @@ declare class ElectraJs {
 
 export default ElectraJs
 
+export interface ElectraJsErrorReference {
+  301: 'DAEMON_RPC_METHOD_NOT_FOUND'
+}
+
+export interface ElectraJsError<T extends keyof ElectraJsErrorReference> extends Error {
+  code: T;
+  stack?: string;
+  message: ElectraJsErrorReference[T]
+}
+
 export type CoinMarketCapCurrency =
   "AUD" | "BRL" | "BTC" | "CAD" | "CHF" | "CLP" | "CNY" | "CZK" | "DKK" | "EUR" |
   "GBP" | "HKD" | "HUF" | "IDR" | "ILS" | "INR" | "JPY" | "KRW" | "MXN" | "MYR" |
