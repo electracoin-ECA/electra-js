@@ -785,24 +785,18 @@ export default class Wallet {
    * Create and broadcast a new transaction of <amount> <toAddressHash> from the first unspent ones.
    */
   public async send(amount: number, toAddressHash: string, fromAddressHash?: string): Promise<void> {
-    if (this.STATE === WalletState.EMPTY) {
-      throw new Error(`ElectraJs.Wallet: You can't #send() from an empty wallet (#state = "EMPTY").`)
+    if (this.STATE !== WalletState.READY) {
+      throw new Error(`ElectraJs.Wallet: You can only #send() from a ready wallet (#state = "READY").`)
     }
 
-    if (this.LOCK_STATE === WalletLockState.LOCKED) {
+    if (this.LOCK_STATE !== WalletLockState.UNLOCKED) {
       throw new Error(`ElectraJs.Wallet:
-        You can't #send() from a locked wallet. Please #unlock() it first with <forStakingOnly> to TRUE.
-      `)
-    }
-
-    if (this.LOCK_STATE === WalletLockState.STAKING) {
-      throw new Error(`ElectraJs.Wallet:
-        You can't #send() from a staking-only wallet. Please #unlock() it first with <forStakingOnly> to TRUE.
-      `)
+        You can only #send() from an unlocked wallet (#lockState = 'UNLOCKED').
+        Please #unlock() it first with <forStakingOnly> to TRUE.`)
     }
 
     if (amount <= 0) {
-      throw new Error(`ElectraJs.Wallet: You can't #send() a positive amount.`)
+      throw new Error(`ElectraJs.Wallet: You can only send #send() a strictly positive <amount>.`)
     }
 
     if (fromAddressHash !== undefined && !R.contains({ hash: fromAddressHash }, this.allAddresses)) {
@@ -911,13 +905,13 @@ export default class Wallet {
       throw new Error(`ElectraJs.Wallet: #getLockState() is only available on a hard wallet.`)
     }
 
-    if (this.DAEMON_STATE !== WalletDaemonState.STARTED) {
+    if (this.DAEMON_STATE !== WalletDaemonState.STARTING) {
       throw new Error(`ElectraJs.Wallet:
-        #getLockState() is only available when the hard wallet is started (#DAEMON_STATE = 'STARTED').`)
+        #getLockState() is only available when the hard wallet is starting (#DAEMON_STATE = 'STARTING').`)
     }
 
     const [err] = await to(this.rpc.lock())
-    if (err !== null && err.message === 'DAEMON_RPC_METHOD_NOT_FOUND') {
+    if (err !== null && err.message === 'DAEMON_RPC_LOCK_ATTEMPT_ON_UNENCRYPTED_WALLET') {
       return WalletLockState.UNLOCKED
     }
 
