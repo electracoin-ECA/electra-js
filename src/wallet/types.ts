@@ -8,6 +8,13 @@ export interface WalletAddress extends Address {
   label: OrNull<string>
 }
 
+export enum WalletDaemonState {
+  STARTED = 'STARTED',
+  STARTING = 'STARTING',
+  STOPPED = 'STOPPED',
+  STOPPING = 'STOPPING',
+}
+
 // https://github.com/Electra-project/Electra-Improvement-Proposals/blob/master/EIP-0002.md
 export type WalletExchangeFormat = [
   // tslint:disable-next-line:no-magic-numbers
@@ -38,7 +45,6 @@ export enum WalletLockState {
 export enum WalletState {
   EMPTY = 'EMPTY',
   READY = 'READY',
-  STOPPED = 'STOPPED',
 }
 
 export interface WalletTransaction {

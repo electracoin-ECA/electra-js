@@ -409,7 +409,8 @@ describe('Wallet (hard)', function() {
   })
 
   describe(`AFTER instantiating this new wallet`, () => {
-    it(`#state SHOULD be "STOPPED"`, () => { assert.strictEqual(wallet.state, 'STOPPED') })
+    it(`#daemonState SHOULD be "STOPPED"`, () => { assert.strictEqual(wallet.daemonState, 'STOPPED') })
+    it(`#state SHOULD be "STOPPED"`, () => { assert.strictEqual(wallet.state, 'EMPTY') })
 
     it(`#addresses SHOULD throw an error`, () => { assert.throws(() => wallet.addresses) })
     it(`#allAddresses SHOULD throw an error`, () => { assert.throws(() => wallet.allAddresses) })
@@ -436,6 +437,10 @@ describe('Wallet (hard)', function() {
     it(`#startDeamon() SHOULD NOT throw any error`, async () => {
       assert.strictEqual(await assertCatch(() => wallet.startDaemon()), false)
     })
+  })
+
+  describe(`AFTER starting the same wallet deamon`, () => {
+    it(`#daemonState SHOULD be "STARTED"`, () => { assert.strictEqual(wallet.daemonState, 'STARTED') })
   })
 
   describe(`WHEN generating the same wallet WITH <mnemonic>, <mnemonicExtension>, <chainsCount>`, () => {
@@ -514,6 +519,6 @@ describe('Wallet (hard)', function() {
   })
 
   describe(`AFTER stopping the same wallet deamon`, () => {
-    it(`#state SHOULD be "STOPPED"`, () => { assert.strictEqual(wallet.state, 'STOPPED') })
+    it(`#state SHOULD be "STOPPED"`, () => { assert.strictEqual(wallet.daemonState, 'STOPPED') })
   })
 })
