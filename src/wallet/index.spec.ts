@@ -80,9 +80,8 @@ describe('Wallet (light)', function() {
     it(`#addresses SHOULD throw an error`, () => { assert.throws(() => wallet.addresses) })
     it(`#allAddresses SHOULD throw an error`, () => { assert.throws(() => wallet.allAddresses) })
     it(`#randomAddresses SHOULD throw an error`, () => { assert.throws(() => wallet.randomAddresses) })
-    it(`#lockState SHOULD throw an error`, () => { assert.throws(() => wallet.lockState) })
+    it(`#lockState SHOULD be UNLOCKED`, () => { assert.strictEqual(wallet.lockState, 'UNLOCKED') })
     it(`#mnemonic SHOULD throw an error`, () => { assert.throws(() => wallet.mnemonic) })
-    it(`#transactions SHOULD throw an error`, () => { assert.throws(() => wallet.transactions) })
 
     it(`#export() SHOULD throw an error`, () => { assert.throws(() => wallet.export()) })
     it(`#getBalance() SHOULD throw an error`, async () => {
@@ -176,9 +175,8 @@ describe('Wallet (light)', function() {
     it(`#addresses SHOULD throw an error`, () => { assert.throws(() => wallet.addresses) })
     it(`#allAddresses SHOULD throw an error`, () => { assert.throws(() => wallet.allAddresses) })
     it(`#randomAddresses SHOULD throw an error`, () => { assert.throws(() => wallet.randomAddresses) })
-    it(`#lockState SHOULD throw an error`, () => { assert.throws(() => wallet.lockState) })
+    it(`#lockState SHOULD be UNLOCKED`, () => { assert.strictEqual(wallet.lockState, 'UNLOCKED') })
     it(`#mnemonic SHOULD throw an error`, () => { assert.throws(() => wallet.mnemonic) })
-    it(`#transactions SHOULD throw an error`, () => { assert.throws(() => wallet.transactions) })
 
     it(`#export() SHOULD throw an error`, () => { assert.throws(() => wallet.export()) })
     it(`#lock() SHOULD throw an error`, async () => {
@@ -242,9 +240,8 @@ describe('Wallet (light)', function() {
     it(`#addresses SHOULD throw an error`, () => { assert.throws(() => wallet.addresses) })
     it(`#allAddresses SHOULD throw an error`, () => { assert.throws(() => wallet.allAddresses) })
     it(`#randomAddresses SHOULD throw an error`, () => { assert.throws(() => wallet.randomAddresses) })
-    it(`#lockState SHOULD throw an error`, () => { assert.throws(() => wallet.lockState) })
+    it(`#lockState SHOULD be UNLOCKED`, () => { assert.strictEqual(wallet.lockState, 'UNLOCKED') })
     it(`#mnemonic SHOULD throw an error`, () => { assert.throws(() => wallet.mnemonic) })
-    it(`#transactions SHOULD throw an error`, () => { assert.throws(() => wallet.transactions) })
 
     it(`#export() SHOULD throw an error`, () => { assert.throws(() => wallet.export()) })
     it(`#lock() SHOULD throw an error`, async () => {
@@ -308,9 +305,8 @@ describe('Wallet (light)', function() {
     it(`#addresses SHOULD throw an error`, () => { assert.throws(() => wallet.addresses) })
     it(`#allAddresses SHOULD throw an error`, () => { assert.throws(() => wallet.allAddresses) })
     it(`#randomAddresses SHOULD throw an error`, () => { assert.throws(() => wallet.randomAddresses) })
-    it(`#lockState SHOULD throw an error`, () => { assert.throws(() => wallet.lockState) })
+    it(`#lockState SHOULD be UNLOCKED`, () => { assert.strictEqual(wallet.lockState, 'UNLOCKED') })
     it(`#mnemonic SHOULD throw an error`, () => { assert.throws(() => wallet.mnemonic) })
-    it(`#transactions SHOULD throw an error`, () => { assert.throws(() => wallet.transactions) })
 
     it(`#export() SHOULD throw an error`, () => { assert.throws(() => wallet.export()) })
     it(`#lock() SHOULD throw an error`, async () => {
@@ -383,9 +379,8 @@ describe('Wallet (light)', function() {
     it(`#addresses SHOULD throw an error`, () => { assert.throws(() => wallet.addresses) })
     it(`#allAddresses SHOULD throw an error`, () => { assert.throws(() => wallet.allAddresses) })
     it(`#randomAddresses SHOULD throw an error`, () => { assert.throws(() => wallet.randomAddresses) })
-    it(`#lockState SHOULD throw an error`, () => { assert.throws(() => wallet.lockState) })
+    it(`#lockState SHOULD be UNLOCKED`, () => { assert.strictEqual(wallet.lockState, 'UNLOCKED') })
     it(`#mnemonic SHOULD throw an error`, () => { assert.throws(() => wallet.mnemonic) })
-    it(`#transactions SHOULD throw an error`, () => { assert.throws(() => wallet.transactions) })
 
     it(`#export() SHOULD throw an error`, () => { assert.throws(() => wallet.export()) })
     it(`#lock() SHOULD throw an error`, async () => {
@@ -419,9 +414,8 @@ describe('Wallet (hard)', function() {
     it(`#addresses SHOULD throw an error`, () => { assert.throws(() => wallet.addresses) })
     it(`#allAddresses SHOULD throw an error`, () => { assert.throws(() => wallet.allAddresses) })
     it(`#randomAddresses SHOULD throw an error`, () => { assert.throws(() => wallet.randomAddresses) })
-    it(`#lockState SHOULD throw an error`, () => { assert.throws(() => wallet.lockState) })
+    it(`#lockState SHOULD be UNLOCKED`, () => { assert.strictEqual(wallet.lockState, 'UNLOCKED') })
     it(`#mnemonic SHOULD throw an error`, () => { assert.throws(() => wallet.mnemonic) })
-    it(`#transactions SHOULD throw an error`, () => { assert.throws(() => wallet.transactions) })
 
     it(`#export() SHOULD throw an error`, () => { assert.throws(() => wallet.export()) })
     it(`#getBalance() SHOULD throw an error`, async () => { assert.strictEqual(await assertCatch(() => wallet.getBalance()), true) })

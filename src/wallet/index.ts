@@ -82,10 +82,6 @@ export default class Wallet {
    * The wallet is considered as locked when all its addresses private keys are currently ciphered.
    */
   public get lockState(): WalletLockState {
-    if (this.STATE !== WalletState.READY) {
-      throw new Error(`ElectraJs.Wallet: #isLocked is only available when the #state is "READY".`)
-    }
-
     return this.LOCK_STATE
   }
 
@@ -678,7 +674,6 @@ export default class Wallet {
     this.ADDRESSES = []
     this.RANDOM_ADDRESSES = []
     this.STATE = WalletState.EMPTY
-    this.TRANSACTIONS = []
   }
 
   /**
