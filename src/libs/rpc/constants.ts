@@ -1,7 +1,5 @@
-import { ElectraJsErrorReference } from '../error/types'
+import { RpcErrorTranslation } from './types'
 
-export const RPC_ERRORS_TRANSLATION: {
-  [code: string]: keyof ElectraJsErrorReference
-} = {
+export const RPC_ERRORS_TRANSLATION: RpcErrorTranslation = {
   '-32601': 'DAEMON_RPC_METHOD_NOT_FOUND', // "Method not found"
 }

@@ -4,6 +4,7 @@ import to from 'await-to-js'
 import Axios, { AxiosRequestConfig } from 'axios'
 
 import ElectraJsError from '../error'
+import { ElectraJsErrorReference } from '../error/types'
 import { RPC_ERRORS_TRANSLATION } from './constants'
 import { JsonRpcRequest, JsonRpcResponse, RpcMethod, RpcMethodParams, RpcMethodResult } from './types'
 
@@ -49,8 +50,10 @@ export default class Rpc {
     }
 
     if (res.data.error !== null) {
-      if (RPC_ERRORS_TRANSLATION[String(res.data.error.code)] !== undefined) {
-        throw new ElectraJsError(RPC_ERRORS_TRANSLATION[String(res.data.error.code)])
+      const errorCode: string = String(res.data.error.code)
+      const errorKey: keyof ElectraJsErrorReference | undefined = RPC_ERRORS_TRANSLATION[errorCode]
+      if (errorKey !== undefined) {
+        throw new ElectraJsError(errorKey)
       }
 
       throw new Error(res.data.error.message)
