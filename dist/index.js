@@ -11486,7 +11486,7 @@ const SETTINGS_DEFAULT = {
  * ElectraJs version.
  * DO NOT CHANGE THIS LINE SINCE THE VERSION IS AUTOMATICALLY INJECTED !
  */
-const VERSION = '0.5.7';
+const VERSION = '0.5.8';
 /**
  * Main ElectraJS class.
  */
@@ -11563,8 +11563,6 @@ class Wallet {
         this.ADDRESSES = [];
         /** List of the wallet random (non-HD) addresses. */
         this.RANDOM_ADDRESSES = [];
-        /** List of the wallet transactions. */
-        this.TRANSACTIONS = [];
         if (isHard) {
             this.rpc = new rpc_1.default(constants_1.DAEMON_URI, {
                 password: constants_1.DAEMON_CONFIG.rpcpassword,
@@ -11605,9 +11603,6 @@ class Wallet {
      * The wallet is considered as locked when all its addresses private keys are currently ciphered.
      */
     get lockState() {
-        if (this.STATE !== types_1.WalletState.READY) {
-            throw new Error(`ElectraJs.Wallet: #isLocked is only available when the #state is "READY".`);
-        }
         return this.LOCK_STATE;
     }
     /**
@@ -11636,13 +11631,6 @@ class Wallet {
      */
     get state() {
         return this.STATE;
-    }
-    /** List of the wallet transactions. */
-    get transactions() {
-        if (this.STATE !== types_1.WalletState.READY) {
-            throw new Error(`ElectraJs.Wallet: The #transactions are only available when the #state is "READY".`);
-        }
-        return this.TRANSACTIONS;
     }
     /**
      * Start the hard wallet daemon.
@@ -12098,7 +12086,6 @@ class Wallet {
         this.ADDRESSES = [];
         this.RANDOM_ADDRESSES = [];
         this.STATE = types_1.WalletState.EMPTY;
-        this.TRANSACTIONS = [];
     }
     /**
      * Get the global wallet balance, or the <address> balance if specified.
@@ -12134,17 +12121,6 @@ class Wallet {
                 balanceTotal += balance;
             }
             return balanceTotal;
-        });
-    }
-    /**
-     * Get the current connections count.
-     */
-    getConnectionsCount() {
-        return __awaiter(this, void 0, void 0, function* () {
-            const [err, connectionCount] = yield await_to_js_1.default(this.rpc.getConnectionCount());
-            if (err !== null || connectionCount === undefined)
-                throw err;
-            return connectionCount;
         });
     }
     /**
