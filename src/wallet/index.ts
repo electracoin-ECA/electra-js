@@ -77,6 +77,9 @@ export default class Wallet {
   /** Is it a hard wallet (= using the daemon binary) ? */
   private readonly isHard: boolean
 
+  /** Is it a brand new wallet (= no pre-existing ".Electra directory") ? */
+  public readonly isNew: boolean
+
   /** Is this wallet locked ? */
   private LOCK_STATE: WalletLockState | undefined
   /**
@@ -161,6 +164,9 @@ export default class Wallet {
         password: DAEMON_CONFIG.rpcpassword,
         username: DAEMON_CONFIG.rpcuser
       })
+
+      // tslint:disable-next-line:no-require-imports
+      this.isNew = !(require('fs').existsSync(`${require('os').homedir()}/.Electra`) as boolean)
 
       this.DAEMON_STATE = WalletDaemonState.STOPPED
 

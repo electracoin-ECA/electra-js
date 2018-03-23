@@ -118,6 +118,7 @@ export interface Wallet {
   addresses: WalletAddress[];
   allAddresses: WalletAddress[];
   daemonState: WalletDaemonState;
+  isNew: boolean;
   lockState: WalletLockState;
   mnemonic: string;
   randomAddresses: WalletAddress[];
