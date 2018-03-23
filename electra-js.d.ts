@@ -50,6 +50,13 @@ export interface WalletAddress extends Address {
   label: OrNull<string>;
 }
 
+export enum WalletDaemonState {
+  STARTED = 'STARTED',
+  STARTING = 'STARTING',
+  STOPPED = 'STOPPED',
+  STOPPING = 'STOPPING',
+}
+
 export type WalletExchangeFormat = [
   2,
   number,
@@ -78,7 +85,6 @@ export enum WalletLockState {
 export enum WalletState {
   EMPTY = 'EMPTY',
   READY = 'READY',
-  STOPPED = 'STOPPED',
 }
 
 export interface WalletTransaction {
@@ -100,6 +106,7 @@ export enum WalletTransactionType {
 export interface Wallet {
   addresses: WalletAddress[];
   allAddresses: WalletAddress[];
+  daemonState: WalletDaemonState;
   lockState: WalletLockState;
   mnemonic: string;
   randomAddresses: WalletAddress[];
