@@ -162,11 +162,7 @@ export default class Wallet {
         username: DAEMON_CONFIG.rpcuser
       })
 
-      // tslint:disable-next-line:no-require-imports
-      const isNew: boolean = !(require('fs').existsSync(`${require('os').homedir()}/.Electra`) as boolean)
-
       this.DAEMON_STATE = WalletDaemonState.STOPPED
-      if (isNew) this.LOCK_STATE = WalletLockState.UNLOCKED
 
       return
     }
@@ -229,8 +225,9 @@ export default class Wallet {
     // tslint:disable-next-line:no-magic-numbers
     await wait(2000)
 
+    this.LOCK_STATE = await this.getDaemonLockState()
+
     this.DAEMON_STATE = WalletDaemonState.STARTED
-    this.STATE = WalletState.EMPTY
   }
 
   /**
@@ -904,6 +901,27 @@ export default class Wallet {
     }
 
     return []
+  }
+
+  /**
+   * Try to guess the daemon lock state by checking if the 'lock' method is available.
+   */
+  private async getDaemonLockState(): Promise<WalletLockState> {
+    if (!this.isHard) {
+      throw new Error(`ElectraJs.Wallet: #getLockState() is only available on a hard wallet.`)
+    }
+
+    if (this.DAEMON_STATE !== WalletDaemonState.STARTED) {
+      throw new Error(`ElectraJs.Wallet:
+        #getLockState() is only available when the hard wallet is started (#DAEMON_STATE = 'STARTED').`)
+    }
+
+    const [err] = await to(this.rpc.lock())
+    if (err !== null && err.message === 'DAEMON_RPC_METHOD_NOT_FOUND') {
+      return WalletLockState.UNLOCKED
+    }
+
+    return WalletLockState.LOCKED
   }
 
   /** List the wallet unspent transactions, ordered by descending amount. */
