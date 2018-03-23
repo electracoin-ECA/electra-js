@@ -42,21 +42,29 @@ export default class Rpc {
     const rpcRequestDataFull: JsonRpcRequest<T> = { jsonrpc: '2.0', method, params }
     const configFull: AxiosRequestConfig = { ...CONFIG_DEFAULT, ...{ auth: this.auth } }
 
-    const [ err, res ] = await to(Axios.post<JsonRpcResponse<T>>(this.uri, rpcRequestDataFull, configFull))
-    if (err !== null) throw new Error(err.message)
+    const [err, res] = await to(Axios.post<JsonRpcResponse<T>>(this.uri, rpcRequestDataFull, configFull))
+
+    if (err !== null) {
+      if (
+        err.response !== undefined
+        && err.response.data !== undefined
+        && err.response.data.error !== undefined
+        && err.response.data.error !== null
+      ) {
+        const errorCode: string = String(err.response.data.error.code)
+        const errorKey: keyof ElectraJsErrorReference | undefined = RPC_ERRORS_TRANSLATION[errorCode]
+        if (errorKey !== undefined) {
+          throw new ElectraJsError(errorKey)
+        }
+
+        throw new Error(err.data.error.message)
+      }
+
+      throw new Error(err.message)
+    }
 
     if (res === undefined || res.data === undefined) {
       throw new Error(`We did't get the expected RPC response.`)
-    }
-
-    if (res.data.error !== null) {
-      const errorCode: string = String(res.data.error.code)
-      const errorKey: keyof ElectraJsErrorReference | undefined = RPC_ERRORS_TRANSLATION[errorCode]
-      if (errorKey !== undefined) {
-        throw new ElectraJsError(errorKey)
-      }
-
-      throw new Error(res.data.error.message)
     }
 
     return res.data.result
