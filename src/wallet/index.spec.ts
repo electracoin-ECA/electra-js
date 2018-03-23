@@ -415,12 +415,13 @@ describe('Wallet (hard)', function() {
     it(`#addresses SHOULD throw an error`, () => { assert.throws(() => wallet.addresses) })
     it(`#allAddresses SHOULD throw an error`, () => { assert.throws(() => wallet.allAddresses) })
     it(`#randomAddresses SHOULD throw an error`, () => { assert.throws(() => wallet.randomAddresses) })
-    it(`#lockState SHOULD be UNLOCKED`, () => { assert.strictEqual(wallet.lockState, 'UNLOCKED') })
+    it(`#lockState SHOULD throw an error`, () => { assert.throws(() => wallet.lockState) })
     it(`#mnemonic SHOULD throw an error`, () => { assert.throws(() => wallet.mnemonic) })
 
     it(`#export() SHOULD throw an error`, () => { assert.throws(() => wallet.export()) })
     it(`#getBalance() SHOULD throw an error`, async () => { assert.strictEqual(await assertCatch(() => wallet.getBalance()), true) })
     it(`#getInfo() SHOULD throw an error`, async () => { assert.strictEqual(await assertCatch(() => wallet.getInfo()), true) })
+    // it(`#import() SHOULD throw an error`, () => { assert.throws(() => wallet.import(`[2,2,"",[]]`, HD_PASSPHRASE_TEST)) })
     it(`#lock() SHOULD throw an error`, async () => {
       assert.strictEqual(await assertCatch(() => wallet.lock(HD_PASSPHRASE_TEST)), true)
     })
@@ -441,6 +442,7 @@ describe('Wallet (hard)', function() {
 
   describe(`AFTER starting the same wallet deamon`, () => {
     it(`#daemonState SHOULD be "STARTED"`, () => { assert.strictEqual(wallet.daemonState, 'STARTED') })
+    it(`#lockState SHOULD be "UNLOCKED"`, () => { assert.strictEqual(wallet.lockState, 'UNLOCKED') })
   })
 
   describe(`WHEN generating the same wallet WITH <mnemonic>, <mnemonicExtension>, <chainsCount>`, () => {
