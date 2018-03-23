@@ -11486,7 +11486,7 @@ const SETTINGS_DEFAULT = {
  * ElectraJs version.
  * DO NOT CHANGE THIS LINE SINCE THE VERSION IS AUTOMATICALLY INJECTED !
  */
-const VERSION = '0.5.8';
+const VERSION = '0.5.9';
 /**
  * Main ElectraJS class.
  */
@@ -11563,6 +11563,8 @@ class Wallet {
         this.ADDRESSES = [];
         /** List of the wallet random (non-HD) addresses. */
         this.RANDOM_ADDRESSES = [];
+        this.isHard = isHard;
+        this.STATE = types_1.WalletState.EMPTY;
         if (isHard) {
             this.rpc = new rpc_1.default(constants_1.DAEMON_URI, {
                 password: constants_1.DAEMON_CONFIG.rpcpassword,
@@ -11570,11 +11572,11 @@ class Wallet {
             });
             // tslint:disable-next-line:no-require-imports
             const isNew = !__webpack_require__(164).existsSync(`${__webpack_require__(56).homedir()}/.Electra`);
-            this.STATE = types_1.WalletState.STOPPED;
-            this.LOCK_STATE = isNew ? types_1.WalletLockState.UNLOCKED : types_1.WalletLockState.LOCKED;
+            this.DAEMON_STATE = types_1.WalletDaemonState.STOPPED;
+            if (isNew)
+                this.LOCK_STATE = types_1.WalletLockState.UNLOCKED;
             return;
         }
-        this.STATE = types_1.WalletState.EMPTY;
         this.LOCK_STATE = types_1.WalletLockState.UNLOCKED;
     }
     /** List of the wallet HD addresses. */
@@ -11591,18 +11593,21 @@ class Wallet {
         }
         return [...this.addresses, ...this.randomAddresses];
     }
-    /** List of the wallet random (non-HD) addresses. */
-    get randomAddresses() {
-        if (this.STATE !== types_1.WalletState.READY) {
-            throw new Error(`ElectraJs.Wallet: The #randomAddresses are only available when the #state is "READY".`);
+    /** Electra Daemon state. */
+    get daemonState() {
+        if (!this.isHard) {
+            throw new Error(`ElectraJs.Wallet: #daemonState is only available when using the hard wallet.`);
         }
-        return this.RANDOM_ADDRESSES;
+        return this.DAEMON_STATE;
     }
     /**
      * Is this wallet locked ?
      * The wallet is considered as locked when all its addresses private keys are currently ciphered.
      */
     get lockState() {
+        if (this.LOCK_STATE === undefined && this.DAEMON_STATE !== types_1.WalletDaemonState.STARTED) {
+            throw new Error(`ElectraJs.Wallet: You need to #startDaemon in order to know the wallet #lockState.`);
+        }
         return this.LOCK_STATE;
     }
     /**
@@ -11623,6 +11628,13 @@ class Wallet {
         }
         return this.MNEMONIC;
     }
+    /** List of the wallet random (non-HD) addresses. */
+    get randomAddresses() {
+        if (this.STATE !== types_1.WalletState.READY) {
+            throw new Error(`ElectraJs.Wallet: The #randomAddresses are only available when the #state is "READY".`);
+        }
+        return this.RANDOM_ADDRESSES;
+    }
     /**
      * Wallet state.
      * This state can be one of:
@@ -11637,14 +11649,15 @@ class Wallet {
      */
     startDaemon() {
         return __awaiter(this, void 0, void 0, function* () {
-            if (this.rpc === undefined) {
+            if (!this.isHard) {
                 throw new Error(`ElectraJs.Wallet: The #startDeamon() method can only be called on a hard wallet`);
             }
-            if (this.STATE !== types_1.WalletState.STOPPED) {
+            if (this.DAEMON_STATE !== types_1.WalletDaemonState.STOPPED) {
                 throw new Error(`ElectraJs.Wallet:
-        The #startDeamon() method can only be called on an stopped wallet (#state = "STOPPED").
+        The #startDeamon() method can only be called on an stopped wallet (#daemonState = "STOPPED").
       `);
             }
+            this.DAEMON_STATE = types_1.WalletDaemonState.STARTING;
             // Stop any existing Electra deamon process first
             yield closeElectraDaemons_1.default();
             // Inject Electra.conf file if it doesn't already exist
@@ -11668,12 +11681,13 @@ class Wallet {
             this.daemon.stdout.setEncoding('utf8').on('data', console.log.bind(this));
             this.daemon.stderr.setEncoding('utf8').on('data', console.log.bind(this));
             this.daemon.on('close', (code) => {
-                this.STATE = types_1.WalletState.STOPPED;
+                this.DAEMON_STATE = types_1.WalletDaemonState.STOPPED;
                 // tslint:disable-next-line:no-console
                 console.log(`The wallet daemon exited with the code: ${code}.`);
             });
             // tslint:disable-next-line:no-magic-numbers
             yield wait_1.default(2000);
+            this.DAEMON_STATE = types_1.WalletDaemonState.STARTED;
             this.STATE = types_1.WalletState.EMPTY;
         });
     }
@@ -11682,12 +11696,13 @@ class Wallet {
      */
     stopDaemon() {
         return __awaiter(this, void 0, void 0, function* () {
-            if (this.rpc === undefined) {
+            if (!this.isHard) {
                 throw new Error(`ElectraJs.Wallet: The #stopDeamon() method can only be called on a hard wallet`);
             }
+            this.DAEMON_STATE = types_1.WalletDaemonState.STOPPING;
             yield closeElectraDaemons_1.default();
             // Dirty hack since we have no idea how long the deamon process will take to be killed
-            while (this.STATE !== types_1.WalletState.STOPPED) {
+            while (this.DAEMON_STATE !== types_1.WalletDaemonState.STOPPED) {
                 // tslint:disable-next-line:no-magic-numbers
                 yield wait_1.default(250);
             }
@@ -11711,13 +11726,13 @@ class Wallet {
         You need to #reset() it first, then #initialize() it again in order to #generate() a new one.
       `);
             }
-            if (this.rpc !== undefined && this.STATE === types_1.WalletState.STOPPED) {
+            if (this.isHard && this.DAEMON_STATE !== types_1.WalletDaemonState.STARTED) {
                 throw new Error(`ElectraJs.Wallet:
-        The #generate() method cannot be called on a stopped hard wallet (#state = "STOPPED").
+        The #generate() method can only be called on a started hard wallet (#daemon = "STARTED").
         You need to #startDaemon() first.
       `);
             }
-            if (this.rpc !== undefined && this.LOCK_STATE !== types_1.WalletLockState.UNLOCKED) {
+            if (this.isHard && this.LOCK_STATE !== types_1.WalletLockState.UNLOCKED) {
                 throw new Error(`ElectraJs.Wallet:
         The #generate() method can only be called once the hard wallet has been unlocked (#lockState = "UNLOCKED").
         You need to #unlock() it first.
@@ -11771,7 +11786,7 @@ class Wallet {
               ----------------------------------
               STEP 4: RPC SERVER
             */
-            if (this.rpc !== undefined) {
+            if (this.isHard) {
                 let i;
                 // We try to export all the used addresses from the RPC daemon
                 const daemonAddresses = [];
@@ -11824,7 +11839,7 @@ class Wallet {
             }
             if (this.LOCK_STATE === types_1.WalletLockState.LOCKED)
                 return;
-            if (this.rpc !== undefined) {
+            if (this.isHard) {
                 try {
                     yield this.rpc.lock();
                 }
@@ -11837,7 +11852,7 @@ class Wallet {
                         throw err1;
                     }
                     // Dirty hack since we have no idea how long the deamon process will take to exit
-                    while (this.STATE !== types_1.WalletState.STOPPED) {
+                    while (this.DAEMON_STATE !== types_1.WalletDaemonState.STOPPED) {
                         // tslint:disable-next-line:no-magic-numbers
                         yield wait_1.default(250);
                     }
@@ -11879,10 +11894,10 @@ class Wallet {
      */
     unlock(passphrase, forStakingOnly = true) {
         return __awaiter(this, void 0, void 0, function* () {
-            if (this.rpc === undefined && this.STATE !== types_1.WalletState.READY) {
+            if (!this.isHard && this.STATE !== types_1.WalletState.READY) {
                 throw new Error(`ElectraJs.Wallet: The #unlock() method can only be called on a ready wallet (#state = "READY").`);
             }
-            if (this.rpc !== undefined) {
+            if (this.isHard) {
                 if (!forStakingOnly && this.LOCK_STATE === types_1.WalletLockState.STAKING
                     || forStakingOnly && this.LOCK_STATE === types_1.WalletLockState.UNLOCKED) {
                     const [err1] = yield await_to_js_1.default(this.lock(passphrase));
@@ -11999,7 +12014,7 @@ class Wallet {
               ----------------------------------
               STEP 4: RPC SERVER
             */
-            if (this.rpc !== undefined) {
+            if (this.isHard) {
                 let i;
                 // We try to import the HD and the random (non-HD) addresses into the RPC deamon
                 i = this.allAddresses.length;
@@ -12095,7 +12110,7 @@ class Wallet {
             if (this.STATE !== types_1.WalletState.READY) {
                 throw new Error(`ElectraJs.Wallet: You can only #getBalance() from a ready wallet (#state = "READY").`);
             }
-            if (this.rpc !== undefined) {
+            if (this.isHard) {
                 const [err, balance] = yield await_to_js_1.default(this.rpc.getBalance());
                 if (err !== null)
                     throw err;
@@ -12184,7 +12199,7 @@ class Wallet {
             if (amount > ((yield this.getBalance()) - constants_1.ECA_TRANSACTION_FEE)) {
                 throw new Error(`ElectraJs.Wallet: You can't #send() from an address that is not part of the current wallet.`);
             }
-            if (this.rpc !== undefined) {
+            if (this.isHard) {
                 const [err2] = yield await_to_js_1.default(this.rpc.sendBasicTransaction(toAddressHash, amount));
                 if (err2 !== null)
                     throw err2;
@@ -12208,7 +12223,7 @@ class Wallet {
             /*
               STEP 2: BROADCAST
             */
-            /*if (this.rpc !== undefined) {
+            /*if (this.isHard) {
               // TODO Replace this method with a detailed unspent transactions signed one.
               const [err2] = await to(this.rpc.sendBasicTransaction(toAddressHash, amount))
               if (err2 !== null) throw err2
@@ -12223,7 +12238,7 @@ class Wallet {
             if (this.STATE !== types_1.WalletState.READY) {
                 throw new Error(`ElectraJs.Wallet: #getTransactions() is only available when the #state is "READY".`);
             }
-            if (this.rpc !== undefined) {
+            if (this.isHard) {
                 const [err1, transactionsRaw] = yield await_to_js_1.default(this.rpc.listTransactions('*', count, fromIndex));
                 if (err1 !== null || transactionsRaw === undefined)
                     throw err1;
@@ -26765,6 +26780,13 @@ exports.default = default_1;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
+var WalletDaemonState;
+(function (WalletDaemonState) {
+    WalletDaemonState["STARTED"] = "STARTED";
+    WalletDaemonState["STARTING"] = "STARTING";
+    WalletDaemonState["STOPPED"] = "STOPPED";
+    WalletDaemonState["STOPPING"] = "STOPPING";
+})(WalletDaemonState = exports.WalletDaemonState || (exports.WalletDaemonState = {}));
 var WalletLockState;
 (function (WalletLockState) {
     WalletLockState["LOCKED"] = "LOCKED";
@@ -26775,7 +26797,6 @@ var WalletState;
 (function (WalletState) {
     WalletState["EMPTY"] = "EMPTY";
     WalletState["READY"] = "READY";
-    WalletState["STOPPED"] = "STOPPED";
 })(WalletState = exports.WalletState || (exports.WalletState = {}));
 var WalletTransactionType;
 (function (WalletTransactionType) {
