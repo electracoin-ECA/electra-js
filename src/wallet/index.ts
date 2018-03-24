@@ -202,34 +202,56 @@ export default class Wallet {
     const [err1] = tryCatch(injectElectraConfig)
     if (err1 !== undefined) throw err1
 
-    const binaryPath: string = `${BINARIES_PATH}/${PLATFORM_BINARY[process.platform]}`
+    if (process.platform === 'win32') {
+      // TODO Temporary hack for dev while the Windows binary is being fixed
+      const binaryPath: string = BINARIES_PATH as string
 
-    // Dirty hack to give enough permissions to the binary in order to be run
-    // TODO Run this command in the postinstall script ?
-    // tslint:disable-next-line:no-require-imports
-    require('child_process').execSync(`chmod 755 ${binaryPath}`)
+      // TODO An Everyone:F may be too much...
+      // tslint:disable-next-line:no-require-imports
+      // require('child_process').execSync(`icacls ${binaryPath} /grant Everyone:F`)
 
-    // tslint:disable-next-line:no-require-imports
-    this.daemon = require('child_process').spawn(
-      binaryPath,
-      [
-      `--deamon=1`,
-      `--port=${DAEMON_CONFIG.port}`,
-      `--rpcuser=${DAEMON_CONFIG.rpcuser}`,
-      `--rpcpassword=${DAEMON_CONFIG.rpcpassword}`,
-      `--rpcport=${DAEMON_CONFIG.rpcport}`
-      ])
+      // tslint:disable-next-line:no-require-imports
+      this.daemon = require('child_process').exec(binaryPath)
 
-    // TODO Add a debug mode in ElectraJs settings
-    this.daemon.stdout.setEncoding('utf8').on('data', console.log.bind(this))
-    this.daemon.stderr.setEncoding('utf8').on('data', console.log.bind(this))
+      // TODO Add a debug mode in ElectraJs settings
+      this.daemon.stdout.setEncoding('utf8').on('data', console.log.bind(this))
+      this.daemon.stderr.setEncoding('utf8').on('data', console.log.bind(this))
 
-    this.daemon.on('close', (code: number) => {
-      this.DAEMON_STATE = WalletDaemonState.STOPPED
+      this.daemon.on('close', (code: number) => {
+        this.DAEMON_STATE = WalletDaemonState.STOPPED
 
-      // tslint:disable-next-line:no-console
-      console.log(`The wallet daemon exited with the code: ${code}.`)
-    })
+        // tslint:disable-next-line:no-console
+        console.log(`The wallet daemon exited with the code: ${code}.`)
+      })
+    } else {
+      const binaryPath: string = `${BINARIES_PATH}/${PLATFORM_BINARY[process.platform]}`
+
+      // Dirty hack to give enough permissions to the binary in order to be run
+      // tslint:disable-next-line:no-require-imports
+      require('child_process').execSync(`chmod 755 ${binaryPath}`)
+
+      // tslint:disable-next-line:no-require-imports
+      this.daemon = require('child_process').spawn(
+        binaryPath,
+        [
+        `--deamon=1`,
+        `--port=${DAEMON_CONFIG.port}`,
+        `--rpcuser=${DAEMON_CONFIG.rpcuser}`,
+        `--rpcpassword=${DAEMON_CONFIG.rpcpassword}`,
+        `--rpcport=${DAEMON_CONFIG.rpcport}`
+        ])
+
+      // TODO Add a debug mode in ElectraJs settings
+      this.daemon.stdout.setEncoding('utf8').on('data', console.log.bind(this))
+      this.daemon.stderr.setEncoding('utf8').on('data', console.log.bind(this))
+
+      this.daemon.on('close', (code: number) => {
+        this.DAEMON_STATE = WalletDaemonState.STOPPED
+
+        // tslint:disable-next-line:no-console
+        console.log(`The wallet daemon exited with the code: ${code}.`)
+      })
+    }
 
     while (this.DAEMON_STATE === WalletDaemonState.STARTING) {
       const [err2] = await to(this.rpc.getInfo())
