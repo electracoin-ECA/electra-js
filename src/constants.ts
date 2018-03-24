@@ -22,7 +22,7 @@ if ((process as NodeJS.Process | undefined) !== undefined) {
       break
 
     case 'win32':
-      daemonUserDirPath = path.resolve(os.homedir(), 'AppData/Roaming/.Electra')
+      daemonUserDirPath = path.resolve(os.homedir(), 'AppData/Roaming/Electra')
       break
 
     default:
