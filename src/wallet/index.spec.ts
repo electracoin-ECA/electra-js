@@ -451,6 +451,7 @@ describe('Wallet (hard)', function() {
     it(`#lock() SHOULD not throw any error`, async () => {
       assert.strictEqual(await assertCatch(() => wallet.lock(HD_PASSPHRASE_TEST)), false)
     })
+    it(`#daemonState SHOULD be "STARTED"`, () => { assert.strictEqual(wallet.daemonState, 'STARTED') })
     it(`#isNew SHOULD be FALSE`, () => { assert.strictEqual(wallet.isNew, false) })
     it(`#lockState SHOULD be "LOCKED"`, () => { assert.strictEqual(wallet.lockState, 'LOCKED') })
     it(`#unlock() SHOULD not throw any error`, async () => {
