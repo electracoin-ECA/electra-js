@@ -2,7 +2,7 @@ import to from 'await-to-js'
 import { ChildProcess } from 'child_process'
 import * as R from 'ramda'
 
-import { BINARIES_PATH, DAEMON_CONFIG, DAEMON_URI, ECA_TRANSACTION_FEE } from '../constants'
+import { BINARIES_PATH, DAEMON_CONFIG, DAEMON_URI, DAEMON_USER_DIR_PATH, ECA_TRANSACTION_FEE } from '../constants'
 import closeElectraDaemons from '../helpers/closeElectraDaemons'
 import getMaxItemFromList from '../helpers/getMaxItemFromList'
 import injectElectraConfig from '../helpers/injectElectraConfig'
@@ -166,7 +166,7 @@ export default class Wallet {
       })
 
       // tslint:disable-next-line:no-require-imports
-      this.isNew = !(require('fs').existsSync(`${require('os').homedir()}/.Electra`) as boolean)
+      this.isNew = !this.isDaemonUserDirectory()
 
       this.DAEMON_STATE = WalletDaemonState.STOPPED
 
@@ -911,6 +911,14 @@ export default class Wallet {
     }
 
     return []
+  }
+
+  /**
+   * Does the daemon user directory exist ?
+   */
+  private isDaemonUserDirectory(): boolean {
+    // tslint:disable-next-line:no-require-imports
+    return (require('fs').existsSync(DAEMON_USER_DIR_PATH) as boolean)
   }
 
   /**

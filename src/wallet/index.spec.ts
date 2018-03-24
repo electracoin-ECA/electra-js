@@ -4,8 +4,10 @@ import * as assert from 'assert'
 import * as bip39 from 'bip39'
 import * as childProcess from 'child_process'
 import * as dotenv from 'dotenv'
+import * as rimraf from 'rimraf'
 
 import Wallet from '.'
+import { DAEMON_USER_DIR_PATH } from '../constants'
 import assertCatch from '../helpers/assertCatch'
 import Electra from '../libs/electra/index'
 
@@ -399,7 +401,8 @@ describe('Wallet (hard)', function() {
   this.timeout(20000)
 
   before(function() {
-    childProcess.execSync('rm -Rf ~/.Electra')
+    // Remove the daemon user directory to simulate a brand new installation
+    rimraf.sync(DAEMON_USER_DIR_PATH)
   })
 
   describe(`WHEN instantiating a new wallet WITH an RPC Server`, () => {
@@ -410,6 +413,7 @@ describe('Wallet (hard)', function() {
 
   describe(`AFTER instantiating this new wallet`, () => {
     it(`#daemonState SHOULD be "STOPPED"`, () => { assert.strictEqual(wallet.daemonState, 'STOPPED') })
+    it(`#isNew SHOULD be TRUE`, () => { assert.strictEqual(wallet.isNew, true) })
     it(`#state SHOULD be "STOPPED"`, () => { assert.strictEqual(wallet.state, 'EMPTY') })
 
     it(`#addresses SHOULD throw an error`, () => { assert.throws(() => wallet.addresses) })
