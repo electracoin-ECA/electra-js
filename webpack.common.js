@@ -1,3 +1,5 @@
+const webpackNodeExternals = require('webpack-node-externals')
+
 module.exports = {
   target: 'node',
 
@@ -30,7 +32,5 @@ module.exports = {
     setImmediate: true,
   },
 
-  externals: {
-    child_process: 'child_process',
-  },
+  externals: [webpackNodeExternals()],
 }
