@@ -3,10 +3,28 @@ import * as bitcoinJs from 'bitcoinjs-lib'
 import { DaemonConfig } from './types'
 
 let binariesPath: string | undefined
+let daemonUserDirPath: string | undefined
 
 if ((process as NodeJS.Process | undefined) !== undefined) {
-  // tslint:disable-next-line:no-require-imports no-var-requires
-  binariesPath = require('path').resolve(__dirname, `../bin`)
+  // tslint:disable:no-require-imports no-var-requires typedef
+  const os = require('os')
+  const path = require('path')
+  // tslint:enable:no-require-imports no-var-requires typedef
+
+  binariesPath = path.resolve(__dirname, `../bin`)
+
+  switch (process.platform) {
+    case 'darwin':
+      daemonUserDirPath = path.resolve(os.homedir(), 'Library/Application Support/Electra')
+      break
+
+    case 'win32':
+      daemonUserDirPath = path.resolve(os.homedir(), 'AppData/Roaming/.Electra')
+      break
+
+    default:
+      daemonUserDirPath = path.resolve(os.homedir(), '.Electra')
+  }
 }
 
 export const BINARIES_PATH: string | undefined = binariesPath
@@ -19,6 +37,8 @@ export const DAEMON_CONFIG: DaemonConfig = {
 }
 
 export const DAEMON_URI: string = `http://127.0.0.1:${DAEMON_CONFIG.rpcport}`
+
+export const DAEMON_USER_DIR_PATH: string | undefined = daemonUserDirPath
 
 export const ECA_NETWORK: bitcoinJs.Network = {
   bip32: { public: 0, private: 0 },

@@ -24,6 +24,7 @@ declare class ElectraJs {
     BINARIES_PATH: string | undefined;
     DAEMON_CONFIG: DaemonConfig;
     DAEMON_URI: string;
+    DAEMON_USER_DIR_PATH: string | undefined;
     ECA_NETWORK: any;
     ECA_TRANSACTION_FEE: number;
   }
