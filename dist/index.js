@@ -11497,7 +11497,7 @@ const SETTINGS_DEFAULT = {
  * ElectraJs version.
  * DO NOT CHANGE THIS LINE SINCE THE VERSION IS AUTOMATICALLY INJECTED !
  */
-const VERSION = '0.5.12';
+const VERSION = '0.5.13';
 /**
  * Main ElectraJS class.
  */
@@ -11843,8 +11843,12 @@ class Wallet {
      */
     lock(passphrase) {
         return __awaiter(this, void 0, void 0, function* () {
-            if (this.STATE !== types_1.WalletState.READY) {
+            if (!this.isHard && this.STATE !== types_1.WalletState.READY) {
                 throw new Error(`ElectraJs.Wallet: The #lock() method can only be called on a ready wallet (#state = "READY").`);
+            }
+            if (this.isHard && this.DAEMON_STATE !== types_1.WalletDaemonState.STARTED) {
+                throw new Error(`ElectraJs.Wallet:
+        The #lock() method can only be called on a started wallet (#daemonState = "STARTED").`);
             }
             if (this.LOCK_STATE === types_1.WalletLockState.LOCKED)
                 return;
@@ -11905,6 +11909,10 @@ class Wallet {
         return __awaiter(this, void 0, void 0, function* () {
             if (!this.isHard && this.STATE !== types_1.WalletState.READY) {
                 throw new Error(`ElectraJs.Wallet: The #unlock() method can only be called on a ready wallet (#state = "READY").`);
+            }
+            if (this.isHard && this.DAEMON_STATE !== types_1.WalletDaemonState.STARTED) {
+                throw new Error(`ElectraJs.Wallet:
+        The #unlock() method can only be called on a started wallet (#daemonState = "STARTED").`);
             }
             if (this.isHard) {
                 if (!forStakingOnly && this.LOCK_STATE === types_1.WalletLockState.STAKING
