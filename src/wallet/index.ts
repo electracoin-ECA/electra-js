@@ -79,7 +79,7 @@ export default class Wallet {
   private readonly isHard: boolean
 
   /** Is it a brand new wallet (= no pre-existing ".Electra directory") ? */
-  public readonly isNew: boolean
+  public isNew: boolean
 
   /** Is this wallet locked ? */
   private LOCK_STATE: WalletLockState | undefined
@@ -412,14 +412,7 @@ export default class Wallet {
     if (this.LOCK_STATE === WalletLockState.LOCKED) return
 
     if (this.isHard) {
-      try {
-        await this.rpc.lock()
-      }
-      catch (err) {
-        const currentState: WalletState = this.STATE
-
-        // If there is an error, this is surely because the wallet has never been encrypted,
-        // so let's try to encrypt it as if it was the first time
+      if (this.isNew) {
         const [err1] = await to(this.rpc.encryptWallet(passphrase))
         if (err1 !== null) { throw err1 }
 
@@ -432,8 +425,13 @@ export default class Wallet {
         // Encrypting the wallet has stopped the deamon, so we need to start it again
         await this.startDaemon()
 
-        this.STATE = currentState
+        this.isNew = false
+        this.LOCK_STATE = WalletLockState.LOCKED
+
+        return
       }
+
+      await this.rpc.lock()
 
       this.LOCK_STATE = WalletLockState.LOCKED
 
