@@ -12,7 +12,7 @@
   "scripts": {
     "build": "webpack --config webpack.prod.js && npm run check",
     "check": "mocha test/index.js && mocha -r ts-node/register test/index.ts",
-    "postinstall": "node tasks/downloadBinaries",
+    "postinstall": "node ./tasks/downloadBinaries",
     "start": "npm run watch",
     "test": "npm run validate && npm run test:unit && npm run test:browser && npm run build",
     "test:browser": "webpack --config webpack.test.js && mocha -r ts-node/register test/browser/index.ts",
@@ -21,7 +21,7 @@
     "validate:lint": "tslint -p tsconfig.json",
     "validate:tsc": "tsc -p tsconfig.json --noEmit --pretty",
     "preversion": "npm test",
-    "version": "node ./tasks/injectVersion && git add .",
+    "version": "node tasks/injectVersion && git add .",
     "watch": "concurrently \"npm run watch:build\" \"npm run watch:validate\"",
     "watch:build": "webpack --config webpack.dev.js --watch",
     "watch:validate": "npm run validate:tsc -- -w"
