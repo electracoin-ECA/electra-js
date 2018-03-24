@@ -11512,7 +11512,7 @@ const SETTINGS_DEFAULT = {
  * ElectraJs version.
  * DO NOT CHANGE THIS LINE SINCE THE VERSION IS AUTOMATICALLY INJECTED !
  */
-const VERSION = '0.5.18';
+const VERSION = '0.5.19';
 /**
  * Main ElectraJS class.
  */
@@ -11874,13 +11874,7 @@ class Wallet {
             if (this.LOCK_STATE === types_1.WalletLockState.LOCKED)
                 return;
             if (this.isHard) {
-                try {
-                    yield this.rpc.lock();
-                }
-                catch (err) {
-                    const currentState = this.STATE;
-                    // If there is an error, this is surely because the wallet has never been encrypted,
-                    // so let's try to encrypt it as if it was the first time
+                if (this.isNew) {
                     const [err1] = yield await_to_js_1.default(this.rpc.encryptWallet(passphrase));
                     if (err1 !== null) {
                         throw err1;
@@ -11892,8 +11886,11 @@ class Wallet {
                     }
                     // Encrypting the wallet has stopped the deamon, so we need to start it again
                     yield this.startDaemon();
-                    this.STATE = currentState;
+                    this.isNew = false;
+                    this.LOCK_STATE = types_1.WalletLockState.LOCKED;
+                    return;
                 }
+                yield this.rpc.lock();
                 this.LOCK_STATE = types_1.WalletLockState.LOCKED;
                 return;
             }
