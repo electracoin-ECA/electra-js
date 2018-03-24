@@ -396,8 +396,13 @@ export default class Wallet {
    * Lock the wallet, that is cipher all its private keys.
    */
   public async lock(passphrase: string): Promise<void> {
-    if (this.STATE !== WalletState.READY) {
+    if (!this.isHard && this.STATE !== WalletState.READY) {
       throw new Error(`ElectraJs.Wallet: The #lock() method can only be called on a ready wallet (#state = "READY").`)
+    }
+
+    if (this.isHard && this.DAEMON_STATE !== WalletDaemonState.STARTED) {
+      throw new Error(`ElectraJs.Wallet:
+        The #lock() method can only be called on a started wallet (#daemonState = "STARTED").`)
     }
 
     if (this.LOCK_STATE === WalletLockState.LOCKED) return
@@ -407,7 +412,7 @@ export default class Wallet {
         await this.rpc.lock()
       }
       catch (err) {
-        const currentState: WalletState = this.STATE as WalletState
+        const currentState: WalletState = this.STATE
 
         // If there is an error, this is surely because the wallet has never been encrypted,
         // so let's try to encrypt it as if it was the first time
@@ -466,6 +471,11 @@ export default class Wallet {
   public async unlock(passphrase: string, forStakingOnly: boolean = true): Promise<void> {
     if (!this.isHard && this.STATE !== WalletState.READY) {
       throw new Error(`ElectraJs.Wallet: The #unlock() method can only be called on a ready wallet (#state = "READY").`)
+    }
+
+    if (this.isHard && this.DAEMON_STATE !== WalletDaemonState.STARTED) {
+      throw new Error(`ElectraJs.Wallet:
+        The #unlock() method can only be called on a started wallet (#daemonState = "STARTED").`)
     }
 
     if (this.isHard) {
