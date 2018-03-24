@@ -1,14 +1,15 @@
 // tslint:disable
 
+import { DAEMON_USER_DIR_PATH } from '../constants'
+
 export default function() {
-  const electraUserDirectoryPath = `${require('os').homedir()}/.Electra`
-  const electraConfigFilePath = `${electraUserDirectoryPath}/Electra.conf`
+  const electraConfigFilePath = `${DAEMON_USER_DIR_PATH}/Electra.conf`
   const fs = require('fs')
 
   if (fs.existsSync(electraConfigFilePath)) return
 
-  if (!fs.existsSync(electraConfigFilePath)) {
-    fs.mkdirSync(electraUserDirectoryPath)
+  if (!fs.existsSync(DAEMON_USER_DIR_PATH)) {
+    fs.mkdirSync(DAEMON_USER_DIR_PATH)
   }
 
   fs.writeFileSync(electraConfigFilePath, `
