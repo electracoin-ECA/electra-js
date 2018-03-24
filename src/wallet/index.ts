@@ -6,6 +6,7 @@ import { BINARIES_PATH, DAEMON_CONFIG, DAEMON_URI, DAEMON_USER_DIR_PATH, ECA_TRA
 import closeElectraDaemons from '../helpers/closeElectraDaemons'
 import getMaxItemFromList from '../helpers/getMaxItemFromList'
 import injectElectraConfig from '../helpers/injectElectraConfig'
+import isPortAvailable from '../helpers/isPortAvailable'
 import tryCatch from '../helpers/tryCatch'
 import wait from '../helpers/wait'
 import Crypto from '../libs/crypto'
@@ -32,7 +33,7 @@ const ONE_YEAR_IN_SECONDS: number = 60 * 60 * 24 * 365
 const PLATFORM_BINARY: PlatformBinary = {
   darwin: 'electrad-macos',
   linux: 'electrad-linux',
-  win32: 'electrad-win.exe'
+  win32: 'electrad-windows.exe'
 }
 const WALLET_INDEX: number = 0
 
@@ -192,12 +193,14 @@ export default class Wallet {
 
     this.DAEMON_STATE = WalletDaemonState.STARTING
 
-    // Stop any existing Electra deamon process first
-    await closeElectraDaemons()
+    if (!await isPortAvailable(Number(DAEMON_CONFIG.port))) {
+      // Stop any existing Electra deamon process first
+      await closeElectraDaemons()
+    }
 
     // Inject Electra.conf file if it doesn't already exist
-    const [err] = tryCatch(injectElectraConfig)
-    if (err !== undefined) throw err
+    const [err1] = tryCatch(injectElectraConfig)
+    if (err1 !== undefined) throw err1
 
     const binaryPath: string = `${BINARIES_PATH}/${PLATFORM_BINARY[process.platform]}`
 
@@ -228,12 +231,13 @@ export default class Wallet {
       console.log(`The wallet daemon exited with the code: ${code}.`)
     })
 
-    // tslint:disable-next-line:no-magic-numbers
-    await wait(2000)
-
-    this.LOCK_STATE = await this.getDaemonLockState()
-
-    this.DAEMON_STATE = WalletDaemonState.STARTED
+    while (this.DAEMON_STATE === WalletDaemonState.STARTING) {
+      const [err2] = await to(this.rpc.getInfo())
+      if (err2 === null) {
+        this.LOCK_STATE = await this.getDaemonLockState()
+        this.DAEMON_STATE = WalletDaemonState.STARTED
+      }
+    }
   }
 
   /**
