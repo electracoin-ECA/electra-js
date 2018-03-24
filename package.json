@@ -12,6 +12,7 @@
   "scripts": {
     "build": "webpack --config webpack.prod.js && npm run check",
     "check": "mocha test/index.js && mocha -r ts-node/register test/index.ts",
+    "postinstall": "node tasks/downloadBinaries",
     "start": "npm run watch",
     "test": "npm run validate && npm run test:unit && npm run test:browser && npm run build",
     "test:browser": "webpack --config webpack.test.js && mocha -r ts-node/register test/browser/index.ts",
@@ -33,6 +34,7 @@
     "bip38": "^2.0.2",
     "bip39": "^2.5.0",
     "bitcoinjs-lib": "^3.3.2",
+    "blake2": "github:ludios/node-blake2",
     "ramda": "^0.25.0",
     "tree-kill": "^1.2.0",
     "wif": "^2.0.6"
@@ -47,7 +49,6 @@
     "@types/ramda": "^0.25.19",
     "@types/selenium-webdriver": "^3.0.8",
     "awesome-typescript-loader": "^3.5.0",
-    "blake2": "github:ludios/node-blake2",
     "chai": "^4.1.2",
     "chromedriver": "^2.36.0",
     "clean-webpack-plugin": "^0.1.19",
