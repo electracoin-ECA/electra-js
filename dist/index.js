@@ -11572,7 +11572,7 @@ const SETTINGS_DEFAULT = {
  * ElectraJs version.
  * DO NOT CHANGE THIS LINE SINCE THE VERSION IS AUTOMATICALLY INJECTED !
  */
-const VERSION = '0.5.24';
+const VERSION = '0.5.25';
 /**
  * Main ElectraJS class.
  */
@@ -11963,7 +11963,13 @@ class Wallet {
                     this.LOCK_STATE = types_1.WalletLockState.LOCKED;
                     return;
                 }
-                yield this.rpc.lock();
+                // TODO Find a better DRY way to optimize that check
+                const [err2] = yield await_to_js_1.default(this.rpc.lock());
+                if (err2 !== null && err2.message === 'DAEMON_RPC_LOCK_ATTEMPT_ON_UNENCRYPTED_WALLET') {
+                    this.isNew = true;
+                    yield this.lock(passphrase);
+                    return;
+                }
                 this.LOCK_STATE = types_1.WalletLockState.LOCKED;
                 return;
             }
