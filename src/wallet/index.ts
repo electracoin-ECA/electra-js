@@ -447,7 +447,14 @@ export default class Wallet {
         return
       }
 
-      await this.rpc.lock()
+      // TODO Find a better DRY way to optimize that check
+      const [err2] = await to(this.rpc.lock())
+      if (err2 !== null && err2.message === 'DAEMON_RPC_LOCK_ATTEMPT_ON_UNENCRYPTED_WALLET') {
+        this.isNew = true
+        await this.lock(passphrase)
+
+        return
+      }
 
       this.LOCK_STATE = WalletLockState.LOCKED
 
@@ -475,7 +482,9 @@ export default class Wallet {
         return randomAddress
       })
     }
-    catch (err) { throw err }
+    catch (err) {
+      throw err
+    }
 
     // Locking the wallet should delete any stored mnemonic
     if (this.MNEMONIC !== undefined) delete this.MNEMONIC
