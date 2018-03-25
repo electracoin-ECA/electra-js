@@ -185,12 +185,6 @@ export default class Wallet {
       throw new Error(`ElectraJs.Wallet: The #startDeamon() method can only be called on a hard wallet`)
     }
 
-    if (this.DAEMON_STATE !== WalletDaemonState.STOPPED) {
-      throw new Error(`ElectraJs.Wallet:
-        The #startDeamon() method can only be called on an stopped wallet (#daemonState = "STOPPED").
-      `)
-    }
-
     this.DAEMON_STATE = WalletDaemonState.STARTING
 
     if (!await isPortAvailable(Number(DAEMON_CONFIG.port))) {
