@@ -32,7 +32,6 @@ declare class ElectraJs {
   wallet: Wallet;
 
   webServices: WebServices;
-  test: WalletInfo;
 
   constructor(settings?: Settings);
 
