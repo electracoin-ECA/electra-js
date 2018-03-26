@@ -20,7 +20,7 @@ export default function() {
     rpcpassword=pass
     rpcallowip=127.0.0.1
     rpcport=5788
-    walletnotify=curl -X POST http://localhost:3005/transaction
+    walletnotify=curl -X POST http://localhost:3005/transaction/txid=%s
     addnode=175.156.111.14:5817
     addnode=174.89.254.197:5817
     addnode=76.176.172.191:5817
