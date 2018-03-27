@@ -32,6 +32,8 @@ function toArrayOfLines(output: string): string[] {
 }
 
 export default async function(): Promise<void> {
+  if (await isPortAvailable(Number(DAEMON_CONFIG.port))) return
+
   const rpc = new Rpc(DAEMON_URI, {
     password: DAEMON_CONFIG.rpcpassword,
     username: DAEMON_CONFIG.rpcuser,
