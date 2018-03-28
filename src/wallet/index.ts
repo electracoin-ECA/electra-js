@@ -893,9 +893,9 @@ export default class Wallet {
       const [err1, transactionsRaw] = await to(this.rpc.listTransactions('*', count, fromIndex))
       if (err1 !== null || transactionsRaw === undefined) throw err1
 
-      let index: number = 0
+      let index: number = -1
       const transactions: WalletTransaction[] = []
-      while (++index < transactions.length) {
+      while (++index < transactionsRaw.length) {
         const transactionRaw: RpcMethodResult<'listtransactions'>[0] = transactionsRaw[index]
         const transaction: Partial<WalletTransaction> = {
           amount: transactionRaw.amount,
