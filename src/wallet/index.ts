@@ -813,7 +813,7 @@ export default class Wallet {
         connectionsCount: peersInfo.length,
         isHD: Boolean(this.MASTER_NODE_ADDRESS),
         isStaking: stakingInfo.staking,
-        isSynchonized: localBlockchainHeight === networkBlockchainHeight,
+        isSynchonized: localBlockchainHeight >= networkBlockchainHeight,
         localBlockchainHeight,
         localStakingWeight: stakingInfo.weight,
         networkBlockchainHeight,
