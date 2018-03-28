@@ -109,6 +109,20 @@ export default class Rpc {
   }
 
   /**
+   * Get best (~ last) block hash.
+   */
+  public async getBestBlockHash(): Promise<RpcMethodResult<'getbestblockhash'>> {
+    return this.query('getbestblockhash', null)
+  }
+
+  /**
+   * Get block info.
+   */
+  public async getBlockInfo(hash: string): Promise<RpcMethodResult<'getblock'>> {
+    return this.query('getblock', [hash])
+  }
+
+  /**
    * Get connection count.
    */
   public async getConnectionCount(): Promise<RpcMethodResult<'getconnectioncount'>> {
