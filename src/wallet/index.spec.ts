@@ -2,13 +2,20 @@
 
 import * as assert from 'assert'
 import * as bip39 from 'bip39'
+import chalk from 'chalk'
 import * as childProcess from 'child_process'
 import * as dotenv from 'dotenv'
+import * as fs from 'fs'
+import * as path from 'path'
+import * as ProgressBar from 'progress'
 import * as rimraf from 'rimraf'
+import * as unzip from 'unzip'
 
 import Wallet from '.'
 import { DAEMON_USER_DIR_PATH } from '../constants'
 import assertCatch from '../helpers/assertCatch'
+import closeElectraDaemons from '../helpers/closeElectraDaemons'
+import wait from '../helpers/wait'
 import Electra from '../libs/electra/index'
 
 // Loads ".env" variables into process.env properties
@@ -400,9 +407,29 @@ describe('Wallet (hard)', function() {
 
   this.timeout(20000)
 
-  before(function() {
+  before(async function() {
+    // Close potential already running daemons
+    console.log(chalk.green('    ♦ Closing Electra daemons...'))
+    await closeElectraDaemons()
+
     // Remove the daemon user directory to simulate a brand new installation
+    console.log(chalk.green('    ♦ Removing Electra daemon user directory...'))
     rimraf.sync(DAEMON_USER_DIR_PATH)
+
+    await wait(1000)
+
+    // Create the daemon user directory
+    console.log(chalk.green('    ♦ Creating Electra daemon user directory...'))
+    fs.mkdirSync(DAEMON_USER_DIR_PATH)
+
+    console.log(chalk.green('    ♦ Copying stored blockchain data...'))
+    await new Promise(resolve => {
+      // Copy the blockchain data
+      fs
+        .createReadStream(path.resolve(__dirname, `../../test/data/Electra.zip`))
+        .once('close', resolve)
+        .pipe(unzip.Extract({ path: path.resolve(DAEMON_USER_DIR_PATH, '..') }))
+    })
   })
 
   describe(`WHEN instantiating a new wallet WITH an RPC Server`, () => {
@@ -413,8 +440,8 @@ describe('Wallet (hard)', function() {
 
   describe(`AFTER instantiating this new wallet`, () => {
     it(`#daemonState SHOULD be "STOPPED"`, () => { assert.strictEqual(wallet.daemonState, 'STOPPED') })
-    it(`#isNew SHOULD be TRUE`, () => { assert.strictEqual(wallet.isNew, true) })
-    it(`#state SHOULD be "STOPPED"`, () => { assert.strictEqual(wallet.state, 'EMPTY') })
+    it(`#isNew SHOULD be FALSE`, () => { assert.strictEqual(wallet.isNew, false) })
+    it(`#state SHOULD be "EMPTY"`, () => { assert.strictEqual(wallet.state, 'EMPTY') })
 
     it(`#addresses SHOULD throw an error`, () => { assert.throws(() => wallet.addresses) })
     it(`#allAddresses SHOULD throw an error`, () => { assert.throws(() => wallet.allAddresses) })
@@ -445,12 +472,9 @@ describe('Wallet (hard)', function() {
   })
 
   describe(`AFTER starting the same wallet deamon`, () => {
-    it(`#daemonState SHOULD be "STARTED"`, () => { assert.strictEqual(wallet.daemonState, 'STARTED') })
-    it(`#lockState SHOULD be "UNLOCKED"`, () => { assert.strictEqual(wallet.lockState, 'UNLOCKED') })
-
-    it(`#lock() SHOULD not throw any error`, async () => {
-      assert.strictEqual(await assertCatch(() => wallet.lock(HD_PASSPHRASE_TEST)), false)
-    })
+    // it(`#lock() SHOULD not throw any error`, async () => {
+    //   assert.strictEqual(await assertCatch(() => wallet.lock(HD_PASSPHRASE_TEST)), false)
+    // })
     it(`#daemonState SHOULD be "STARTED"`, () => { assert.strictEqual(wallet.daemonState, 'STARTED') })
     it(`#isNew SHOULD be FALSE`, () => { assert.strictEqual(wallet.isNew, false) })
     it(`#lockState SHOULD be "LOCKED"`, () => { assert.strictEqual(wallet.lockState, 'LOCKED') })
@@ -535,6 +559,46 @@ describe('Wallet (hard)', function() {
     })
 
     it(`#generate() SHOULD throw an error`, async () => { assert.strictEqual(await assertCatch(() => wallet.generate()), true) })
+  })
+
+  describe(`WHILE downloading the blockchain`, function() {
+    this.timeout(3600000)
+
+    it(`#getInfo() SHOULD NOT throw any error`, async () => {
+      let info
+      let localBlockchainHeight = 0
+      let networkBlockchainHeight = 0
+
+      console.log(chalk.green('      ♦ Waiting for peers connection...'))
+      while (networkBlockchainHeight <= 0) {
+        await wait(250)
+        info = await wallet.getInfo()
+        networkBlockchainHeight = info.networkBlockchainHeight
+      }
+
+      var bar = new ProgressBar(chalk.green('      ♦ Downloading blockchain [:bar] :rate/bps :percent :etas'), {
+        clear: true,
+        complete: '█',
+        incomplete: '-',
+        width: 20,
+        total: networkBlockchainHeight - localBlockchainHeight
+      })
+
+      while (info.localBlockchainHeight < networkBlockchainHeight) {
+        await wait(250)
+        info = await wallet.getInfo()
+        bar.tick(info.localBlockchainHeight - localBlockchainHeight)
+        localBlockchainHeight = info.localBlockchainHeight
+      }
+
+      assert.ok(true)
+    })
+  })
+
+  describe(`AFTER downloading the blockchain`, () => {
+    it(`#getTransactions() SHOULD return an array with a lenght greater than 0`, async () => {
+      assert.strictEqual((await wallet.getTransactions()).length > 0, true)
+    })
   })
 
   describe(`WHEN stopping the same wallet deamon`, () => {
