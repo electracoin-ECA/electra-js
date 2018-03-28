@@ -271,7 +271,10 @@ export default class Wallet {
       await wait(250)
     }*/
 
-    this.DAEMON_STATE = WalletDaemonState.STOPPED
+    if ((this.DAEMON_STATE as WalletDaemonState) !== WalletDaemonState.STOPPED) {
+      this.DAEMON_STATE = WalletDaemonState.STOPPED
+      this.daemon.kill()
+    }
   }
 
   /**
