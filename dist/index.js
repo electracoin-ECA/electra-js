@@ -10903,7 +10903,7 @@ const bip39 = __webpack_require__(438);
 const bitcoinJs = __webpack_require__(450);
 const constants_1 = __webpack_require__(24);
 const CHAIN_CODE_BUFFER_SIZE = 32;
-const ENTROPY_STRENGTH = 128;
+const ENTROPY_STRENGTH = 256;
 /**
  * Electra blockchain functions.
  */
@@ -10962,18 +10962,17 @@ class Electra {
         };
     }
     /**
-     * Generate a crypto-random mnemonic, using a 128-bits entropy.
+     * Generate a crypto-random mnemonic, using a 256-bits entropy.
      *
-     * @note A 128-bits entropy generates a 12 words mnemonic.
+     * @note A 256-bits entropy generates a 24 words mnemonic.
      * @see https://github.com/bitcoinjs/bip39
      */
     static getRandomMnemonic() {
         return bip39.generateMnemonic(ENTROPY_STRENGTH);
     }
     /**
-     * Generate a crypto-random mnemonic, using a 128-bits entropy.
+     * Validate a mnemonic.
      *
-     * @note A 128-bits entropy generates a 12 words mnemonic.
      * @see https://github.com/bitcoinjs/bip39
      */
     static validateMnemonic(mnemonic) {
@@ -11772,7 +11771,7 @@ const SETTINGS_DEFAULT = {
  * ElectraJs version.
  * DO NOT CHANGE THIS LINE SINCE THE VERSION IS AUTOMATICALLY INJECTED !
  */
-const VERSION = '0.9.0';
+const VERSION = '0.10.0';
 /**
  * Main ElectraJS class.
  */
