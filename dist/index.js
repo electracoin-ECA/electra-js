@@ -11771,7 +11771,7 @@ const SETTINGS_DEFAULT = {
  * ElectraJs version.
  * DO NOT CHANGE THIS LINE SINCE THE VERSION IS AUTOMATICALLY INJECTED !
  */
-const VERSION = '0.10.0';
+const VERSION = '0.10.1';
 /**
  * Main ElectraJS class.
  */
@@ -11896,7 +11896,12 @@ class WalletHard {
     get masterNodeAddress() {
         if (this.STATE !== types_1.WalletState.READY) {
             throw new Error(`ElectraJs.Wallet:
-        #mnemonic is only available after a brand new Wallet has been generated the #state is "READY".
+        #masterNodeAddress is only available after a brand new Wallet has been generated the #state is "READY".
+      `);
+        }
+        if (this.LOCK_STATE === types_1.WalletLockState.UNLOCKED) {
+            throw new Error(`ElectraJs.Wallet:
+        #masterNodeAddress is only available on a staking or locked wallet (#lockState = "STAKING" | "LOCKED").
       `);
         }
         return this.MASTER_NODE_ADDRESS;
@@ -26896,7 +26901,12 @@ class WalletLight {
     get masterNodeAddress() {
         if (this.STATE !== types_1.WalletState.READY) {
             throw new Error(`ElectraJs.Wallet:
-        #mnemonic is only available after a brand new Wallet has been generated the #state is "READY".
+        #masterNodeAddress is only available after a brand new Wallet has been generated the #state is "READY".
+      `);
+        }
+        if (this.LOCK_STATE === types_1.WalletLockState.UNLOCKED) {
+            throw new Error(`ElectraJs.Wallet:
+        #masterNodeAddress is only available on a locked wallet (#lockState = "LOCKED").
       `);
         }
         return this.MASTER_NODE_ADDRESS;
