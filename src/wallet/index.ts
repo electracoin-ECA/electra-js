@@ -29,6 +29,7 @@ import {
   WalletTransactionType
 } from './types'
 
+const LIST_TRANSACTIONS_LENGTH: number = 1000000
 // tslint:disable-next-line:no-magic-numbers
 const ONE_YEAR_IN_SECONDS: number = 60 * 60 * 24 * 365
 const PLATFORM_BINARY: PlatformBinary = {
@@ -895,15 +896,15 @@ export default class Wallet {
   }
 
   /**
-   * List the last wallet transactions.
+   * List the last wallet transactions (from the newer to the older one).
    */
-  public async getTransactions(count: number = 10, fromIndex: number = 0): Promise<WalletTransaction[]> {
+  public async getTransactions(count: number = LIST_TRANSACTIONS_LENGTH): Promise<WalletTransaction[]> {
     if (this.STATE !== WalletState.READY) {
       throw new Error(`ElectraJs.Wallet: #getTransactions() is only available when the #state is "READY".`)
     }
 
     if (this.isHard) {
-      const [err1, transactionsRaw] = await to(this.rpc.listTransactions('*', count, fromIndex))
+      const [err1, transactionsRaw] = await to(this.rpc.listTransactions('*', LIST_TRANSACTIONS_LENGTH))
       if (err1 !== null || transactionsRaw === undefined) throw err1
 
       let index: number = -1
@@ -944,7 +945,9 @@ export default class Wallet {
         transactions.push(transaction as WalletTransaction)
       }
 
-      return transactions
+      return count < LIST_TRANSACTIONS_LENGTH
+        ? transactions.reverse().slice(0, count)
+        : transactions.reverse()
     }
 
     return []
