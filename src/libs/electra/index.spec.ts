@@ -42,6 +42,8 @@ if (([
   process.exit(1)
 }
 
+console.log(Electra.getRandomMnemonic())
+
 describe('libs/Electra', function() {
   let firstAddress, masterNodeAddress, mnemonic, secondAddress
 
@@ -168,10 +170,10 @@ describe('libs/Electra', function() {
       assert.doesNotThrow(() => mnemonic = Electra.getRandomMnemonic())
     })
 
-    it(`SHOULD return a non-empty string made of 12 lowercase regular letters`, function() {
+    it(`SHOULD return a non-empty string made of 24 lowercase regular letters`, function() {
       assert.strictEqual(typeof mnemonic, 'string')
       assert.strictEqual(mnemonic.length > 0, true)
-      assert.strictEqual(mnemonic.split(' ').length, 12)
+      assert.strictEqual(mnemonic.split(' ').length, 24)
       assert.strictEqual(mnemonic, mnemonic.toLocaleLowerCase())
     })
 

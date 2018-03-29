@@ -8,7 +8,7 @@ import { ECA_NETWORK } from '../../constants'
 import { Address } from '../../types'
 
 const CHAIN_CODE_BUFFER_SIZE: number = 32
-const ENTROPY_STRENGTH: number = 128
+const ENTROPY_STRENGTH: number = 256
 
 /**
  * Electra blockchain functions.
@@ -79,9 +79,9 @@ export default class Electra {
   }
 
   /**
-   * Generate a crypto-random mnemonic, using a 128-bits entropy.
+   * Generate a crypto-random mnemonic, using a 256-bits entropy.
    *
-   * @note A 128-bits entropy generates a 12 words mnemonic.
+   * @note A 256-bits entropy generates a 24 words mnemonic.
    * @see https://github.com/bitcoinjs/bip39
    */
   public static getRandomMnemonic(): string {
@@ -89,9 +89,8 @@ export default class Electra {
   }
 
   /**
-   * Generate a crypto-random mnemonic, using a 128-bits entropy.
+   * Validate a mnemonic.
    *
-   * @note A 128-bits entropy generates a 12 words mnemonic.
    * @see https://github.com/bitcoinjs/bip39
    */
   public static validateMnemonic(mnemonic: string): boolean {

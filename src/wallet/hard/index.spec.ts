@@ -45,12 +45,12 @@ const TEST_AMOUNT = 0.00001
 // As a result, the generated private keys are different and listed here.
 export const HD_WALLET_WITHOUT_MNEMONIC_EXTENSION_TEST = {
   chains: [
-    { hash: 'EMLhrYaSf8jn3BbVFHZYTFQGJd3Fps2vum', privateKey: 'QxB8fYQAeMPD1HDzjdno9dJB8Z4reT1UZzNcPRKmGgCwQ1brDpK3' },
-    { hash: 'EdrLwe4T2zuyi42YZdFN68ozgbPovJbYdb', privateKey: 'QtMi7u7cjxQoBn4fQdNKWudNtEQUvNW6NL8e1oEUVwg4m1k1THJ3' }
+    { hash: 'EfpfV1KAyq89icrxrXVaDh4E75hVNmFuJT', privateKey: 'Qwny9NruQytsQQe71njNZg4LS7UY2CFjUdCxB32vrbuHdgQatHxY' },
+    { hash: 'EdEaaVZtasPnzgDTKZQkAqLWSGQq6W5xW4', privateKey: 'QqcsbxDZ5rnbkNmFcBLPPbwniyk9CrYPa6NHnFpZ8LBwsNE8BJT2' }
   ],
   masterNode: {
-    hash: 'EgLq5EkwdkyNVf9jxXSm6zuwUtnZhsgcMs',
-    privateKey: 'QuHd7Pov2yYqz8ixAoXQJaTaEdYaVPFJ6zo4sHhYzFnjyXZGyKvj'
+    hash: 'ETzng9niv9Wpjak2LGKG1Q39JjYLsxXQxy',
+    privateKey: 'Qr7N5u52BAUJSk7W4NVS9G9YLG6XE66HRZhcbPJRv6U9jmcyyXaF'
   },
 }
 

@@ -18,6 +18,8 @@ import closeElectraDaemons from '../../helpers/closeElectraDaemons'
 import wait from '../../helpers/wait'
 import Electra from '../../libs/electra/index'
 
+import { HD_WALLET_WITHOUT_MNEMONIC_EXTENSION_TEST } from '../hard/index.spec'
+
 // Loads ".env" variables into process.env properties
 dotenv.config()
 
@@ -40,19 +42,6 @@ const {
 } = process.env
 
 const TEST_AMOUNT = 0.00001
-
-// This HD wallet i seeded by the same wallet mnemonic than the one above, but without the mnemonic extension.
-// As a result, the generated private keys are different and listed here.
-export const HD_WALLET_WITHOUT_MNEMONIC_EXTENSION_TEST = {
-  chains: [
-    { hash: 'EMLhrYaSf8jn3BbVFHZYTFQGJd3Fps2vum', privateKey: 'QxB8fYQAeMPD1HDzjdno9dJB8Z4reT1UZzNcPRKmGgCwQ1brDpK3' },
-    { hash: 'EdrLwe4T2zuyi42YZdFN68ozgbPovJbYdb', privateKey: 'QtMi7u7cjxQoBn4fQdNKWudNtEQUvNW6NL8e1oEUVwg4m1k1THJ3' }
-  ],
-  masterNode: {
-    hash: 'EgLq5EkwdkyNVf9jxXSm6zuwUtnZhsgcMs',
-    privateKey: 'QuHd7Pov2yYqz8ixAoXQJaTaEdYaVPFJ6zo4sHhYzFnjyXZGyKvj'
-  },
-}
 
 if (([
   HD_CHAIN_1_HASH_TEST,
@@ -126,7 +115,7 @@ describe('Wallet (light)', function() {
 
     it(`#mnemonic SHOULD be a string`, () => { assert.strictEqual(typeof wallet.mnemonic, 'string') })
     it(`#mnemonic SHOULD be a non-empty string`, () => { assert.strictEqual(wallet.mnemonic.length > 0, true) })
-    it(`#mnemonic SHOULD be a 12-words string`, () => { assert.strictEqual(wallet.mnemonic.split(' ').length, 12) })
+    it(`#mnemonic SHOULD be a 24-words string`, () => { assert.strictEqual(wallet.mnemonic.split(' ').length, 24) })
     it(`#mnemonic SHOULD be a lowercase string`, () => { assert.strictEqual(wallet.mnemonic, wallet.mnemonic.toLocaleLowerCase()) })
     it(`#mnemonic SHOULD be a valid BIP39 mnemonic`, () => { assert.strictEqual(bip39.validateMnemonic(wallet.mnemonic), true) })
 
