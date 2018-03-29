@@ -11557,7 +11557,7 @@ const SETTINGS_DEFAULT = {
  * ElectraJs version.
  * DO NOT CHANGE THIS LINE SINCE THE VERSION IS AUTOMATICALLY INJECTED !
  */
-const VERSION = '0.7.1';
+const VERSION = '0.7.2';
 /**
  * Main ElectraJS class.
  */
@@ -22634,7 +22634,6 @@ function default_1() {
     rpcpassword=pass
     rpcallowip=127.0.0.1
     rpcport=5788
-    walletnotify=curl -X POST http://localhost:3005/transaction/txid=%s
     addnode=175.156.111.14:5817
     addnode=174.89.254.197:5817
     addnode=76.176.172.191:5817
