@@ -104,8 +104,8 @@ export default class Rpc {
   /**
    * Get the total available balance.
    */
-  public async getBalance(): Promise<RpcMethodResult<'getbalance'>> {
-    return this.query('getbalance', null)
+  public async getBalance(account: string = '*', minConfirmations: number = 1): Promise<RpcMethodResult<'getbalance'>> {
+    return this.query('getbalance', Array.prototype.slice.call(arguments))
   }
 
   /**
