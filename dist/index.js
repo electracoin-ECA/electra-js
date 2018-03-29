@@ -11771,7 +11771,7 @@ const SETTINGS_DEFAULT = {
  * ElectraJs version.
  * DO NOT CHANGE THIS LINE SINCE THE VERSION IS AUTOMATICALLY INJECTED !
  */
-const VERSION = '0.10.1';
+const VERSION = '0.10.2';
 /**
  * Main ElectraJS class.
  */
@@ -12147,21 +12147,25 @@ class WalletHard {
                 throw new Error(`ElectraJs.Wallet:
         The #lock() method can only be called on a started wallet (#daemonState = "STARTED").`);
             }
+            if (this.isNew && passphrase === undefined) {
+                throw new Error(`ElectraJs.Wallet:
+        This is a first time #lock() call. You need to provide a [passphrase] in order to set the passphrase.`);
+            }
             if (this.LOCK_STATE === types_1.WalletLockState.LOCKED)
                 return;
-            try {
-                if (this.MASTER_NODE_ADDRESS !== undefined && !this.MASTER_NODE_ADDRESS.isCiphered) {
-                    this.MASTER_NODE_ADDRESS.privateKey = crypto_1.default.cipherPrivateKey(this.MASTER_NODE_ADDRESS.privateKey, passphrase);
-                    this.MASTER_NODE_ADDRESS.isCiphered = true;
+            if (passphrase !== undefined) {
+                try {
+                    if (this.MASTER_NODE_ADDRESS !== undefined && !this.MASTER_NODE_ADDRESS.isCiphered) {
+                        this.MASTER_NODE_ADDRESS.privateKey = crypto_1.default.cipherPrivateKey(this.MASTER_NODE_ADDRESS.privateKey, passphrase);
+                        this.MASTER_NODE_ADDRESS.isCiphered = true;
+                    }
                 }
-            }
-            catch (err) {
-                throw err;
-            }
-            if (this.isNew) {
-                const [err1] = yield await_to_js_1.default(this.rpc.encryptWallet(passphrase));
-                if (err1 !== null) {
-                    throw err1;
+                catch (err) {
+                    throw err;
+                }
+                const [err2] = yield await_to_js_1.default(this.rpc.encryptWallet(passphrase));
+                if (err2 !== null) {
+                    throw err2;
                 }
                 // Dirty hack since we have no idea how long the deamon process will take to exit
                 while (this.DAEMON_STATE !== types_1.WalletDaemonState.STOPPED) {
@@ -12175,12 +12179,9 @@ class WalletHard {
                 return;
             }
             // TODO Find a better DRY way to optimize that check
-            const [err2] = yield await_to_js_1.default(this.rpc.lock());
-            if (err2 !== null && err2.message === 'DAEMON_RPC_LOCK_ATTEMPT_ON_UNENCRYPTED_WALLET') {
-                this.isNew = true;
-                yield this.lock(passphrase);
-                return;
-            }
+            const [err3] = yield await_to_js_1.default(this.rpc.lock());
+            if (err3 !== null)
+                throw err3;
             this.LOCK_STATE = types_1.WalletLockState.LOCKED;
         });
     }
