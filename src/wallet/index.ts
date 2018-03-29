@@ -103,13 +103,29 @@ export default class Wallet {
    * Wallet HD Master Node address.
    *
    * @note
-   * THIS ADDRESS MUST BE KEPT AN	INACCESSIBLE PRIVATE PROPERTY !
+   * NEVER USE THIS ADDRESS AS "NORMAL" ADDRESS !
    * While revealing the Master Node address hash would not be a security risk, it still would be privacy risk.
    * Indeed, "guessing" the children addresses from this address hash is really difficult, but NOT impossible.
    *
    * @see https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki#security
    */
   private MASTER_NODE_ADDRESS: WalletAddress | undefined
+  /**
+   * Wallet HD Master Node address.
+   *
+   * @note
+   * ONLY available when generating a brand new Wallet, which happens after calling #generate()
+   * with an undefined <mnemonic> parameter on a Wallet instance with an "EMPTY" #state.
+   */
+  public get masterNodeAddress(): WalletAddress {
+    if (this.STATE !== WalletState.READY) {
+      throw new Error(`ElectraJs.Wallet:
+        #mnemonic is only available after a brand new Wallet has been generated the #state is "READY".
+      `)
+    }
+
+    return this.MASTER_NODE_ADDRESS as WalletAddress
+  }
 
   /** Mnenonic. */
   private MNEMONIC: string | undefined

@@ -132,6 +132,7 @@ export interface Wallet {
   daemonState: WalletDaemonState;
   isNew: boolean;
   lockState: WalletLockState;
+  masterNodeAddress: WalletAddress;
   mnemonic: string;
   randomAddresses: WalletAddress[];
   state: WalletState;
