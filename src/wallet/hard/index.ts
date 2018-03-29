@@ -25,7 +25,7 @@ import {
   WalletExchangeFormat,
   WalletInfo,
   WalletLockState,
-  WalletStartData,
+  WalletStartDataHard,
   WalletState,
   WalletTransaction,
   WalletTransactionType
@@ -279,7 +279,7 @@ export default class WalletHard {
   /**
    * Start a wallet with already generated addresses data.
    */
-  public start(data: WalletStartData): void {
+  public start(data: WalletStartDataHard): void {
     if (this.STATE !== WalletState.EMPTY) {
       throw new Error(`ElectraJs.Wallet:
         The #start() method can only be called on an empty wallet (#state = "EMPTY").

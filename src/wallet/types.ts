@@ -50,7 +50,13 @@ export enum WalletLockState {
   UNLOCKED = 'UNLOCKED',
 }
 
-export interface WalletStartData {
+export interface WalletStartDataHard {
+  addresses: WalletAddressWithoutPK[]
+  masterNodeAddress: WalletAddress
+  randomAddresses: WalletAddressWithoutPK[]
+}
+
+export interface WalletStartDataLight {
   addresses: WalletAddress[]
   masterNodeAddress: WalletAddress
   randomAddresses: WalletAddress[]

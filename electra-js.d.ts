@@ -103,10 +103,16 @@ export enum WalletLockState {
   UNLOCKED = 'UNLOCKED',
 }
 
-export interface WalletStartData {
-  addresses: WalletAddress[]
-  masterNodeAddress: WalletAddress
-  randomAddresses: WalletAddress[]
+export interface WalletStartDataHard {
+  addresses: WalletAddressWithoutPK[];
+  masterNodeAddress: WalletAddress;
+  randomAddresses: WalletAddressWithoutPK[];
+}
+
+export interface WalletStartDataLight {
+  addresses: WalletAddress[];
+  masterNodeAddress: WalletAddress;
+  randomAddresses: WalletAddress[];
 }
 
 export enum WalletState {
@@ -148,7 +154,7 @@ export interface WalletHard {
   import(wefData: WalletExchangeFormat, passphrase: string): Promise<void>;
   export(): string;
   reset(): void;
-  start(data: WalletStartData): void;
+  start(data: WalletStartDataHard): void;
 
   importRandomAddress(privateKey: string, passphrase?: string): Promise<void>;
 
@@ -175,7 +181,7 @@ export interface WalletLight {
   import(wefData: WalletExchangeFormat, passphrase: string): Promise<void>;
   export(): string;
   reset(): void;
-  start(data: WalletStartData): void;
+  start(data: WalletStartDataLight): void;
 
   importRandomAddress(privateKey: string, passphrase?: string): Promise<void>;
 
