@@ -65,7 +65,7 @@ export default class Wallet {
   }
 
   /** Hard wallet daemon Node child process. */
-  private daemon: ChildProcess
+  private daemon: ChildProcess | undefined
 
   /** Electra Daemon state. */
   private DAEMON_STATE: WalletDaemonState
@@ -206,7 +206,7 @@ export default class Wallet {
       // require('child_process').execSync(`icacls ${binaryPath} /grant Everyone:F`)
 
       // tslint:disable-next-line:no-require-imports
-      this.daemon = require('child_process').exec(binaryPath)
+      this.daemon = require('child_process').exec(binaryPath) as ChildProcess
 
       // TODO Add a debug mode in ElectraJs settings
       this.daemon.stdout.setEncoding('utf8').on('data', console.log.bind(this))
@@ -234,7 +234,7 @@ export default class Wallet {
         `--rpcuser=${DAEMON_CONFIG.rpcuser}`,
         `--rpcpassword=${DAEMON_CONFIG.rpcpassword}`,
         `--rpcport=${DAEMON_CONFIG.rpcport}`
-        ])
+        ]) as ChildProcess
 
       // TODO Add a debug mode in ElectraJs settings
       this.daemon.stdout.setEncoding('utf8').on('data', console.log.bind(this))
@@ -277,7 +277,7 @@ export default class Wallet {
 
     if ((this.DAEMON_STATE as WalletDaemonState) !== WalletDaemonState.STOPPED) {
       this.DAEMON_STATE = WalletDaemonState.STOPPED
-      this.daemon.kill()
+      if (this.daemon !== undefined) this.daemon.kill()
     }
   }
 
