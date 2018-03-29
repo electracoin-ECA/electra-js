@@ -84,7 +84,13 @@ export default class WalletLight {
   public get masterNodeAddress(): WalletAddress {
     if (this.STATE !== WalletState.READY) {
       throw new Error(`ElectraJs.Wallet:
-        #mnemonic is only available after a brand new Wallet has been generated the #state is "READY".
+        #masterNodeAddress is only available after a brand new Wallet has been generated the #state is "READY".
+      `)
+    }
+
+    if (this.LOCK_STATE === WalletLockState.UNLOCKED) {
+      throw new Error(`ElectraJs.Wallet:
+        #masterNodeAddress is only available on a locked wallet (#lockState = "LOCKED").
       `)
     }
 
