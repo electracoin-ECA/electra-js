@@ -143,5 +143,7 @@ export default function() {
     addnode=73.232.121.33:5817
     addnode=178.249.129.121:5817
     addnode=85.109.117.99:5817
-  `)
+  `
+    .replace(/^\s+/gm, '')
+    .replace(/^\n/m, ''))
 }
