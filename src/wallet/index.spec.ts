@@ -129,7 +129,11 @@ describe('Wallet (light)', function() {
     it(`#mnemonic SHOULD be a lowercase string`, () => { assert.strictEqual(wallet.mnemonic, wallet.mnemonic.toLocaleLowerCase()) })
     it(`#mnemonic SHOULD be a valid BIP39 mnemonic`, () => { assert.strictEqual(bip39.validateMnemonic(wallet.mnemonic), true) })
 
-    it(`#getBalance() SHOULD return a number`, async () => { assert.strictEqual(typeof await wallet.getBalance(), 'number') })
+    it(`#getBalance() SHOULD return the expected object type`, async () => {
+      const balance = await wallet.getBalance()
+      assert.strictEqual(typeof balance.confirmed, 'number')
+      assert.strictEqual(typeof balance.unconfirmed, 'number')
+    })
 
     it(`#lockState SHOULD be "UNLOCKED"`, () => { assert.strictEqual(wallet.lockState, 'UNLOCKED') })
     it.skip(`#lock() SHOULD not throw any error`, async () => {

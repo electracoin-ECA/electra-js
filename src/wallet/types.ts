@@ -8,6 +8,11 @@ export interface WalletAddress extends Address {
   label: OrNull<string>
 }
 
+export interface WalletBalance {
+  confirmed: number
+  unconfirmed: number
+}
+
 export enum WalletDaemonState {
   STARTED = 'STARTED',
   STARTING = 'STARTING',

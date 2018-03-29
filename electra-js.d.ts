@@ -61,6 +61,11 @@ export interface WalletAddress extends Address {
   label: OrNull<string>;
 }
 
+export interface WalletBalance {
+  confirmed: number
+  unconfirmed: number
+}
+
 export enum WalletDaemonState {
   STARTED = 'STARTED',
   STARTING = 'STARTING',
@@ -138,7 +143,7 @@ export interface Wallet {
   lock(passphrase: string): Promise<void>;
   unlock(passphrase: string, forStakingOnly?: boolean): Promise<void>;
 
-  getBalance(addressHash?: string): Promise<number>;
+  getBalance(addressHash?: string): Promise<WalletBalance>;
   getInfo(): Promise<WalletInfo>;
   send(amount: number, toAddressHash: string, fromAddressHash?: string): Promise<void>;
   getTransactions(count?: number): Promise<WalletTransaction[]>;

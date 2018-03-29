@@ -20,6 +20,7 @@ import { Address } from '../types'
 import {
   PlatformBinary,
   WalletAddress,
+  WalletBalance,
   WalletDaemonState,
   WalletExchangeFormat,
   WalletInfo,
@@ -748,16 +749,32 @@ export default class Wallet {
   /**
    * Get the global wallet balance, or the <address> balance if specified.
    */
-  public async getBalance(addressHash?: string): Promise<number> {
+  public async getBalance(addressHash?: string): Promise<WalletBalance> {
     if (this.STATE !== WalletState.READY) {
       throw new Error(`ElectraJs.Wallet: You can only #getBalance() from a ready wallet (#state = "READY").`)
     }
 
     if (this.isHard) {
-      const [err, balance] = await to(this.rpc.getBalance())
-      if (err !== null) throw err
+      try {
+        const [confirmedBalance, fullBalance]: [
+          RpcMethodResult<'getbalance'>,
+          RpcMethodResult<'getbalance'>
+        ] = await Promise.all<
+          RpcMethodResult<'getbalance'>,
+          RpcMethodResult<'getbalance'>
+        >([
+          this.rpc.getBalance(),
+          this.rpc.getBalance('*', 0),
+        ])
 
-      return balance as number
+        return {
+          confirmed: confirmedBalance,
+          unconfirmed: fullBalance - confirmedBalance,
+        }
+      }
+      catch (err) {
+        throw err
+      }
     }
 
     const addresses: WalletAddress[] = this.allAddresses
@@ -771,7 +788,10 @@ export default class Wallet {
       const [err, balance] = await to(webServices.getBalanceFor(addressHash))
       if (err !== null) throw err
 
-      return balance as number
+      return {
+        confirmed: balance as number,
+        unconfirmed: 0,
+      }
     }
 
     let index: number = addresses.length
@@ -782,7 +802,10 @@ export default class Wallet {
       balanceTotal += balance
     }
 
-    return balanceTotal
+    return {
+      confirmed: balanceTotal,
+      unconfirmed: 0,
+    }
   }
 
   /**
@@ -857,8 +880,8 @@ export default class Wallet {
       throw new Error(`ElectraJs.Wallet: You can't #send() from an address that is not part of the current wallet.`)
     }
 
-    if (amount > (await this.getBalance() - ECA_TRANSACTION_FEE)) {
-      throw new Error(`ElectraJs.Wallet: You can't #send() from an address that is not part of the current wallet.`)
+    if (amount > ((await this.getBalance()).confirmed - ECA_TRANSACTION_FEE)) {
+      throw new Error(`ElectraJs.Wallet: You can't #send() more than the current wallet addresses hold.`)
     }
 
     if (this.isHard) {
