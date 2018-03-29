@@ -11557,7 +11557,7 @@ const SETTINGS_DEFAULT = {
  * ElectraJs version.
  * DO NOT CHANGE THIS LINE SINCE THE VERSION IS AUTOMATICALLY INJECTED !
  */
-const VERSION = '0.6.0';
+const VERSION = '0.7.0';
 /**
  * Main ElectraJS class.
  */
@@ -12346,7 +12346,7 @@ class Wallet {
         });
     }
     /**
-     * List the last wallet transactions (from the newer to the older one).
+     * List the wallet transactions (from the newer to the older one).
      */
     getTransactions(count = LIST_TRANSACTIONS_LENGTH) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -12397,6 +12397,23 @@ class Wallet {
                     : transactions.reverse();
             }
             return [];
+        });
+    }
+    /**
+     * Get the transaction info of <transactionHash>.
+     */
+    getTransaction(transactionHash) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (this.STATE !== types_1.WalletState.READY) {
+                throw new Error(`ElectraJs.Wallet: #getTransaction() is only available when the #state is "READY".`);
+            }
+            // if (this.isHard) {
+            const [err, transactions] = yield await_to_js_1.default(this.getTransactions());
+            if (err !== null || transactions === undefined)
+                throw err;
+            const found = transactions.filter(({ hash }) => hash === transactionHash);
+            return found.length !== 0 ? found[0] : undefined;
+            // }
         });
     }
     /**
