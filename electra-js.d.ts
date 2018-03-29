@@ -80,6 +80,7 @@ export interface WalletInfo {
   isHD: boolean;
   isStaking: boolean;
   isSynchonized?: boolean;
+  lastBlockGeneratedAt: number;
   localBlockchainHeight?: number;
   localStakingWeight?: number;
   networkBlockchainHeight: number;

@@ -1,3 +1,5 @@
+// tslint:disable:max-file-line-count
+
 import to from 'await-to-js'
 import { ChildProcess } from 'child_process'
 import * as R from 'ramda'
@@ -791,19 +793,24 @@ export default class Wallet {
     }
 
     try {
-      const [localBlockchainHeight, peersInfo, stakingInfo]: [
+      const [bestBlockHash, localBlockchainHeight, peersInfo, stakingInfo]: [
+        RpcMethodResult<'getbestblockhash'>,
         RpcMethodResult<'getblockcount'>,
         RpcMethodResult<'getpeerinfo'>,
         RpcMethodResult<'getstakinginfo'>
       ] = await Promise.all<
+        RpcMethodResult<'getbestblockhash'>,
         RpcMethodResult<'getblockcount'>,
         RpcMethodResult<'getpeerinfo'>,
         RpcMethodResult<'getstakinginfo'>
       >([
+        this.rpc.getBestBlockHash(),
         this.rpc.getLocalBlockHeight(),
         this.rpc.getPeersInfo(),
         this.rpc.getStakingInfo(),
       ])
+
+      const lastBlockInfo: RpcMethodResult<'getblock'> = await this.rpc.getBlockInfo(bestBlockHash)
 
       const networkBlockchainHeight: number = peersInfo.length !== 0
         ? getMaxItemFromList(peersInfo, 'startingheight').startingheight
@@ -814,6 +821,7 @@ export default class Wallet {
         isHD: Boolean(this.MASTER_NODE_ADDRESS),
         isStaking: stakingInfo.staking,
         isSynchonized: localBlockchainHeight >= networkBlockchainHeight,
+        lastBlockGeneratedAt: lastBlockInfo.time,
         localBlockchainHeight,
         localStakingWeight: stakingInfo.weight,
         networkBlockchainHeight,

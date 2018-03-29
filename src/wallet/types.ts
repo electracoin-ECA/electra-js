@@ -29,6 +29,7 @@ export interface WalletInfo {
   isHD: boolean
   isStaking: boolean
   isSynchonized?: boolean
+  lastBlockGeneratedAt: number // Unix timestamp in seconds
   localBlockchainHeight?: number
   localStakingWeight?: number
   networkBlockchainHeight: number
