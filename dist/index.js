@@ -11557,7 +11557,7 @@ const SETTINGS_DEFAULT = {
  * ElectraJs version.
  * DO NOT CHANGE THIS LINE SINCE THE VERSION IS AUTOMATICALLY INJECTED !
  */
-const VERSION = '0.8.0';
+const VERSION = '0.8.1';
 /**
  * Main ElectraJS class.
  */
@@ -11680,6 +11680,21 @@ class Wallet {
             throw new Error(`ElectraJs.Wallet: You need to #startDaemon in order to know the wallet #lockState.`);
         }
         return this.LOCK_STATE;
+    }
+    /**
+     * Wallet HD Master Node address.
+     *
+     * @note
+     * ONLY available when generating a brand new Wallet, which happens after calling #generate()
+     * with an undefined <mnemonic> parameter on a Wallet instance with an "EMPTY" #state.
+     */
+    get masterNodeAddress() {
+        if (this.STATE !== types_1.WalletState.READY) {
+            throw new Error(`ElectraJs.Wallet:
+        #mnemonic is only available after a brand new Wallet has been generated the #state is "READY".
+      `);
+        }
+        return this.MASTER_NODE_ADDRESS;
     }
     /**
      * Mnenonic.
