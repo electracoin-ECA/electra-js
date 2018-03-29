@@ -11557,7 +11557,7 @@ const SETTINGS_DEFAULT = {
  * ElectraJs version.
  * DO NOT CHANGE THIS LINE SINCE THE VERSION IS AUTOMATICALLY INJECTED !
  */
-const VERSION = '0.7.0';
+const VERSION = '0.7.1';
 /**
  * Main ElectraJS class.
  */
@@ -11795,7 +11795,8 @@ class Wallet {
             }*/
             if (this.DAEMON_STATE !== types_1.WalletDaemonState.STOPPED) {
                 this.DAEMON_STATE = types_1.WalletDaemonState.STOPPED;
-                this.daemon.kill();
+                if (this.daemon !== undefined)
+                    this.daemon.kill();
             }
         });
     }
