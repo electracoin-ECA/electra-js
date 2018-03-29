@@ -11557,7 +11557,7 @@ const SETTINGS_DEFAULT = {
  * ElectraJs version.
  * DO NOT CHANGE THIS LINE SINCE THE VERSION IS AUTOMATICALLY INJECTED !
  */
-const VERSION = '0.7.2';
+const VERSION = '0.7.3';
 /**
  * Main ElectraJS class.
  */
@@ -22757,7 +22757,9 @@ function default_1() {
     addnode=73.232.121.33:5817
     addnode=178.249.129.121:5817
     addnode=85.109.117.99:5817
-  `);
+  `
+        .replace(/^\s+/gm, '')
+        .replace(/^\n/m, ''));
 }
 exports.default = default_1;
 
