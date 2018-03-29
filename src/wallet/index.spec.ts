@@ -31,6 +31,7 @@ const {
   HD_MNEMONIC_EXTENSION_TEST,
   HD_MNEMONIC_TEST,
   HD_PASSPHRASE_TEST,
+  HD_TRANSACTION_TEST,
   RANDOM_ADDRESS_HASH_TEST,
   RANDOM_ADDRESS_PRIVATE_KEY_TEST,
   RPC_SERVER_PASSWORD_TEST,
@@ -460,7 +461,12 @@ describe('Wallet (hard)', function() {
     // it(`#lock() SHOULD throw an error`, async () => {
     //   assert.strictEqual(await assertCatch(() => wallet.lock(HD_PASSPHRASE_TEST)), true)
     // })
-    it(`#reset() SHOULD throw an error`, () => { assert.throws(() => wallet.reset()) })
+    it(`#getTransaction() SHOULD throw an error`, async () => {
+      assert.strictEqual(await assertCatch(() => wallet.getTransaction(HD_TRANSACTION_TEST)), true)
+    })
+    it(`#getTransactions() SHOULD throw an error`, async () => {
+      assert.strictEqual(await assertCatch(() => wallet.getTransactions()), true)
+    })
     it(`#send() SHOULD throw an error`, async () => {
       assert.strictEqual(await assertCatch(() => wallet.send(TEST_AMOUNT, HD_CHAIN_1_HASH_TEST)), true)
     })

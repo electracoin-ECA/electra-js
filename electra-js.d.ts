@@ -147,6 +147,7 @@ export interface Wallet {
   getInfo(): Promise<WalletInfo>;
   send(amount: number, toAddressHash: string, fromAddressHash?: string): Promise<void>;
   getTransactions(count?: number): Promise<WalletTransaction[]>;
+  getTransaction(transactionHash: string): Promise<WalletTransaction | undefined>;
 }
 
 export interface WebServices {

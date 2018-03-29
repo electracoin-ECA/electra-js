@@ -919,7 +919,7 @@ export default class Wallet {
   }
 
   /**
-   * List the last wallet transactions (from the newer to the older one).
+   * List the wallet transactions (from the newer to the older one).
    */
   public async getTransactions(count: number = LIST_TRANSACTIONS_LENGTH): Promise<WalletTransaction[]> {
     if (this.STATE !== WalletState.READY) {
@@ -974,6 +974,24 @@ export default class Wallet {
     }
 
     return []
+  }
+
+  /**
+   * Get the transaction info of <transactionHash>.
+   */
+  public async getTransaction(transactionHash: string): Promise<WalletTransaction | undefined> {
+    if (this.STATE !== WalletState.READY) {
+      throw new Error(`ElectraJs.Wallet: #getTransaction() is only available when the #state is "READY".`)
+    }
+
+    // if (this.isHard) {
+    const [err, transactions] = await to(this.getTransactions())
+    if (err !== null || transactions === undefined) throw err
+
+    const found: WalletTransaction[] = transactions.filter(({ hash }: WalletTransaction) => hash === transactionHash)
+
+    return found.length !== 0 ? found[0] : undefined
+    // }
   }
 
   /**
