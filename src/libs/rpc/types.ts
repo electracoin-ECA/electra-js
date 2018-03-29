@@ -189,7 +189,20 @@ export interface RpcMethods {
     amount: number
     confirmations: number
   }>
-  listsinceblock: any
+  listsinceblock: Array<{
+    account: string
+    address: string
+    category: 'generate' | 'receive' | 'send'
+    amount: number
+    fee?: number
+    confirmations: number
+    blockhash?: string
+    blockindex?: number
+    blocktime?: number
+    txid: string
+    time: number
+    timereceived: number
+  }>
   listtransactions: Array<{
     account: string
     address: string
