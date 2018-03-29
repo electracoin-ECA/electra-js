@@ -1,5 +1,6 @@
 import * as constants from './constants'
-import Wallet from './wallet'
+import WalletHard from './wallet/hard'
+import WalletLight from './wallet/light'
 import webServices, { CoinMarketCapCurrency, WebServices } from './web-services'
 
 export { CoinMarketCapCurrency }
@@ -24,7 +25,7 @@ export default class ElectraJs {
   public readonly constants: typeof constants = constants
 
   /** Wallet management. */
-  public wallet: Wallet
+  public wallet: WalletHard | WalletLight
 
   /** Web services. */
   public webServices: WebServices
@@ -32,7 +33,7 @@ export default class ElectraJs {
   public constructor(settings: Settings = {}) {
     const { isHard } = { ...SETTINGS_DEFAULT, ...settings }
 
-    this.wallet = new Wallet(isHard)
+    this.wallet = Boolean(isHard) ? new WalletHard() : new WalletLight()
     this.webServices = webServices
   }
 

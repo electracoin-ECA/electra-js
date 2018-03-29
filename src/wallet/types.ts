@@ -1,4 +1,4 @@
-import { Address, OrNull } from '../types'
+import { Address, Omit, OrNull } from '../types'
 
 export type PlatformBinary = {
   [P in NodeJS.Platform]?: string
@@ -7,6 +7,8 @@ export type PlatformBinary = {
 export interface WalletAddress extends Address {
   label: OrNull<string>
 }
+
+export type WalletAddressWithoutPK = Omit<WalletAddress, 'isCiphered' | 'privateKey'>
 
 export interface WalletBalance {
   confirmed: number

@@ -1,5 +1,7 @@
-type OrNull<T> = T | null;
-type PartialOrNull<T> = OrNull<Partial<T>>;
+type Diff<T extends string, U extends string> = ({[P in T]: P } & {[P in U]: never } & { [x: string]: never })[T]
+type Omit<T, K extends keyof T> = Pick<T, Diff<keyof T, K>>
+type OrNull<T> = T | null
+type PartialOrNull<T> = OrNull<Partial<T>>
 
 interface Address {
   hash: string;
@@ -19,7 +21,7 @@ interface Settings {
   isHard?: boolean;
 }
 
-declare class ElectraJs {
+declare class ElectraJs<T extends WalletHard | WalletLight> {
   readonly constants: {
     BINARIES_PATH: string | undefined;
     DAEMON_CONFIG: DaemonConfig;
@@ -29,7 +31,7 @@ declare class ElectraJs {
     ECA_TRANSACTION_FEE: number;
   }
 
-  wallet: Wallet;
+  wallet: T;
 
   webServices: WebServices;
 
@@ -60,6 +62,8 @@ export type CoinMarketCapCurrency =
 export interface WalletAddress extends Address {
   label: OrNull<string>;
 }
+
+export type WalletAddressWithoutPK = Omit<WalletAddress, 'isCiphered' | 'privateKey'>
 
 export interface WalletBalance {
   confirmed: number
@@ -126,9 +130,9 @@ export enum WalletTransactionType {
   SENT = 'SENT',
 }
 
-export interface Wallet {
-  addresses: WalletAddress[];
-  allAddresses: WalletAddress[];
+export interface WalletHard {
+  addresses: WalletAddressWithoutPK[];
+  allAddresses: WalletAddressWithoutPK[];
   daemonState: WalletDaemonState;
   isNew: boolean;
   lockState: WalletLockState;
@@ -139,6 +143,33 @@ export interface Wallet {
 
   startDaemon(): Promise<void>;
   stopDaemon(): Promise<void>;
+
+  generate(mnemonic?: string, mnemonicExtension?: string, chainsCount?: number): Promise<void>;
+  import(wefData: WalletExchangeFormat, passphrase: string): Promise<void>;
+  export(): string;
+  reset(): void;
+  start(data: WalletStartData): void;
+
+  importRandomAddress(privateKey: string, passphrase?: string): Promise<void>;
+
+  lock(passphrase: string): Promise<void>;
+  unlock(passphrase: string, forStakingOnly?: boolean): Promise<void>;
+
+  getBalance(addressHash?: string): Promise<WalletBalance>;
+  getInfo(): Promise<WalletInfo>;
+  send(amount: number, toAddressHash: string, fromAddressHash?: string): Promise<void>;
+  getTransactions(count?: number): Promise<WalletTransaction[]>;
+  getTransaction(transactionHash: string): Promise<WalletTransaction | undefined>;
+}
+
+export interface WalletLight {
+  addresses: WalletAddress[];
+  allAddresses: WalletAddress[];
+  lockState: WalletLockState;
+  masterNodeAddress: WalletAddress;
+  mnemonic: string;
+  randomAddresses: WalletAddress[];
+  state: WalletState;
 
   generate(mnemonic?: string, mnemonicExtension?: string, chainsCount?: number): Promise<void>;
   import(wefData: WalletExchangeFormat, passphrase: string): Promise<void>;

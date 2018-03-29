@@ -1,50 +1,35 @@
-// tslint:disable:max-file-line-count
-
 import to from 'await-to-js'
-import { ChildProcess } from 'child_process'
 import * as R from 'ramda'
 
-import { BINARIES_PATH, DAEMON_CONFIG, DAEMON_URI, DAEMON_USER_DIR_PATH, ECA_TRANSACTION_FEE } from '../constants'
-import closeElectraDaemons from '../helpers/closeElectraDaemons'
-import getMaxItemFromList from '../helpers/getMaxItemFromList'
-import injectElectraConfig from '../helpers/injectElectraConfig'
-import tryCatch from '../helpers/tryCatch'
-import wait from '../helpers/wait'
-import Crypto from '../libs/crypto'
-import Electra from '../libs/electra'
-import Rpc from '../libs/rpc'
-import webServices from '../web-services'
+import { ECA_TRANSACTION_FEE } from '../../constants'
+import getMaxItemFromList from '../../helpers/getMaxItemFromList'
+// import tryCatch from '../../helpers/tryCatch'
+// import wait from '../../helpers/wait'
+import Crypto from '../../libs/crypto'
+import Electra from '../../libs/electra'
+import Rpc from '../../libs/rpc'
+import webServices from '../../web-services'
 
-import { RpcMethodResult } from '../libs/rpc/types'
-import { Address } from '../types'
+import { RpcMethodResult } from '../../libs/rpc/types'
+import { Address } from '../../types'
 import {
-  PlatformBinary,
   WalletAddress,
   WalletBalance,
-  WalletDaemonState,
   WalletExchangeFormat,
   WalletInfo,
   WalletLockState,
   WalletStartData,
   WalletState,
   WalletTransaction,
-  WalletTransactionType
-} from './types'
+} from '../types'
 
 const LIST_TRANSACTIONS_LENGTH: number = 1000000
-// tslint:disable-next-line:no-magic-numbers
-const ONE_YEAR_IN_SECONDS: number = 60 * 60 * 24 * 365
-const PLATFORM_BINARY: PlatformBinary = {
-  darwin: 'electrad-macos',
-  linux: 'electrad-linux',
-  win32: 'electrad-windows.exe'
-}
 const WALLET_INDEX: number = 0
 
 /**
  * Wallet management.
  */
-export default class Wallet {
+export default class WalletLight {
   /** List of the wallet HD addresses. */
   private ADDRESSES: WalletAddress[] = []
   /** List of the wallet HD addresses. */
@@ -65,23 +50,6 @@ export default class Wallet {
     return [...this.addresses, ...this.randomAddresses]
   }
 
-  /** Hard wallet daemon Node child process. */
-  private daemon: ChildProcess | undefined
-
-  /** Electra Daemon state. */
-  private DAEMON_STATE: WalletDaemonState
-  /** Electra Daemon state. */
-  public get daemonState(): WalletDaemonState {
-    if (!this.isHard) {
-      throw new Error(`ElectraJs.Wallet: #daemonState is only available when using the hard wallet.`)
-    }
-
-    return this.DAEMON_STATE
-  }
-
-  /** Is it a hard wallet (= using the daemon binary) ? */
-  private readonly isHard: boolean
-
   /** Is it a brand new wallet (= no pre-existing ".Electra directory") ? */
   public isNew: boolean
 
@@ -92,10 +60,6 @@ export default class Wallet {
    * The wallet is considered as locked when all its addresses private keys are currently ciphered.
    */
   public get lockState(): WalletLockState {
-    if (this.LOCK_STATE === undefined && this.DAEMON_STATE !== WalletDaemonState.STARTED) {
-      throw new Error(`ElectraJs.Wallet: You need to #startDaemon in order to know the wallet #lockState.`)
-    }
-
     return this.LOCK_STATE as WalletLockState
   }
 
@@ -176,126 +140,9 @@ export default class Wallet {
     return this.STATE
   }
 
-  public constructor(isHard: boolean = false) {
-    this.isHard = isHard
+  public constructor() {
     this.STATE = WalletState.EMPTY
-
-    if (isHard) {
-      this.rpc = new Rpc(DAEMON_URI, {
-        password: DAEMON_CONFIG.rpcpassword,
-        username: DAEMON_CONFIG.rpcuser
-      })
-
-      // tslint:disable-next-line:no-require-imports
-      this.isNew = !this.isDaemonUserDirectory()
-
-      this.DAEMON_STATE = WalletDaemonState.STOPPED
-
-      return
-    }
-
     this.LOCK_STATE = WalletLockState.UNLOCKED
-  }
-
-  /**
-   * Start the hard wallet daemon.
-   */
-  public async startDaemon(): Promise<void> {
-    if (!this.isHard) {
-      throw new Error(`ElectraJs.Wallet: The #startDeamon() method can only be called on a hard wallet`)
-    }
-
-    this.DAEMON_STATE = WalletDaemonState.STARTING
-
-    // Stop any existing Electra deamon process first
-    await closeElectraDaemons()
-
-    // Inject Electra.conf file if it doesn't already exist
-    const [err1] = tryCatch(injectElectraConfig)
-    if (err1 !== undefined) throw err1
-
-    if (process.platform === 'win32') {
-      // TODO Temporary hack for dev while the Windows binary is being fixed
-      const binaryPath: string = BINARIES_PATH as string
-
-      // TODO An Everyone:F may be too much...
-      // tslint:disable-next-line:no-require-imports
-      // require('child_process').execSync(`icacls ${binaryPath} /grant Everyone:F`)
-
-      // tslint:disable-next-line:no-require-imports
-      this.daemon = require('child_process').exec(binaryPath) as ChildProcess
-
-      // TODO Add a debug mode in ElectraJs settings
-      this.daemon.stdout.setEncoding('utf8').on('data', console.log.bind(this))
-      this.daemon.stderr.setEncoding('utf8').on('data', console.log.bind(this))
-
-      this.daemon.on('close', (code: number) => {
-        this.DAEMON_STATE = WalletDaemonState.STOPPED
-
-        // tslint:disable-next-line:no-console
-        console.log(`The wallet daemon exited with the code: ${code}.`)
-      })
-    } else {
-      const binaryPath: string = `${BINARIES_PATH}/${PLATFORM_BINARY[process.platform]}`
-
-      // Dirty hack to give enough permissions to the binary in order to be run
-      // tslint:disable-next-line:no-require-imports
-      require('child_process').execSync(`chmod 755 ${binaryPath}`)
-
-      // tslint:disable-next-line:no-require-imports
-      this.daemon = require('child_process').spawn(
-        binaryPath,
-        [
-        `--deamon=1`,
-        `--port=${DAEMON_CONFIG.port}`,
-        `--rpcuser=${DAEMON_CONFIG.rpcuser}`,
-        `--rpcpassword=${DAEMON_CONFIG.rpcpassword}`,
-        `--rpcport=${DAEMON_CONFIG.rpcport}`
-        ]) as ChildProcess
-
-      // TODO Add a debug mode in ElectraJs settings
-      this.daemon.stdout.setEncoding('utf8').on('data', console.log.bind(this))
-      this.daemon.stderr.setEncoding('utf8').on('data', console.log.bind(this))
-
-      this.daemon.on('close', (code: number) => {
-        this.DAEMON_STATE = WalletDaemonState.STOPPED
-
-        // tslint:disable-next-line:no-console
-        console.log(`The wallet daemon exited with the code: ${code}.`)
-      })
-    }
-
-    while (this.DAEMON_STATE === WalletDaemonState.STARTING) {
-      const [err2] = await to(this.rpc.getInfo())
-      if (err2 === null) {
-        this.LOCK_STATE = await this.getDaemonLockState()
-        this.DAEMON_STATE = WalletDaemonState.STARTED
-      }
-    }
-  }
-
-  /**
-   * Stop the hard wallet daemon.
-   */
-  public async stopDaemon(): Promise<void> {
-    if (!this.isHard) {
-      throw new Error(`ElectraJs.Wallet: The #stopDeamon() method can only be called on a hard wallet`)
-    }
-
-    this.DAEMON_STATE = WalletDaemonState.STOPPING
-
-    await closeElectraDaemons()
-
-    // Dirty hack since we have no idea how long the deamon process will take to be killed
-    /*while ((this.DAEMON_STATE as WalletDaemonState) !== WalletDaemonState.STOPPED) {
-      // tslint:disable-next-line:no-magic-numbers
-      await wait(250)
-    }*/
-
-    if ((this.DAEMON_STATE as WalletDaemonState) !== WalletDaemonState.STOPPED) {
-      this.DAEMON_STATE = WalletDaemonState.STOPPED
-      if (this.daemon !== undefined) this.daemon.kill()
-    }
   }
 
   /**
@@ -306,13 +153,6 @@ export default class Wallet {
       throw new Error(`ElectraJs.Wallet:
         The #start() method can only be called on an empty wallet (#state = "EMPTY").
         Maybe you want to #reset() it first ?
-      `)
-    }
-
-    if (this.isHard && this.DAEMON_STATE !== WalletDaemonState.STARTED) {
-      throw new Error(`ElectraJs.Wallet:
-        The #start() method can only be called on a started hard wallet (#daemon = "STARTED").
-        You need to #startDaemon() first.
       `)
     }
 
@@ -338,20 +178,6 @@ export default class Wallet {
       throw new Error(`ElectraJs.Wallet:
         The #generate() method can only be called on an empty wallet (#state = "EMPTY").
         You need to #reset() it first, then #initialize() it again in order to #generate() a new one.
-      `)
-    }
-
-    if (this.isHard && this.DAEMON_STATE !== WalletDaemonState.STARTED) {
-      throw new Error(`ElectraJs.Wallet:
-        The #generate() method can only be called on a started hard wallet (#daemon = "STARTED").
-        You need to #startDaemon() first.
-      `)
-    }
-
-    if (this.isHard && this.LOCK_STATE !== WalletLockState.UNLOCKED) {
-      throw new Error(`ElectraJs.Wallet:
-        The #generate() method can only be called once the hard wallet has been unlocked (#lockState = "UNLOCKED").
-        You need to #unlock() it first.
       `)
     }
 
@@ -409,54 +235,6 @@ export default class Wallet {
     }
     catch (err) { throw err }
 
-    /*
-      ----------------------------------
-      STEP 4: RPC SERVER
-    */
-
-    if (this.isHard) {
-      let i: number
-
-      // We try to export all the used addresses from the RPC daemon
-      const daemonAddresses: string[] = []
-      const [err, entries] = await to(this.rpc.listAddressGroupings())
-      if (err !== null || entries === undefined) throw err
-      // tslint:disable-next-line:typedef
-      entries.forEach((group) => group.forEach(([addressHash]) => daemonAddresses.push(addressHash)))
-
-      // We filter out all the HD addresses
-      const randomAddresses: string[] = daemonAddresses
-        .filter((daemonAddressHash: string) =>
-          this.ADDRESSES.filter(({ hash }: WalletAddress) => daemonAddressHash === hash).length === 0)
-
-      // We try to retrieve the random addresses private keys and import them
-      i = randomAddresses.length
-      while (--i >= 0) {
-        try {
-          await this.rpc.importPrivateKey(this.ADDRESSES[i].privateKey)
-          this.RANDOM_ADDRESSES.push({
-            hash: randomAddresses[i],
-            isCiphered: false,
-            isHD: false,
-            label: null,
-            privateKey: await this.rpc.getPrivateKey(randomAddresses[i])
-          })
-        }
-        catch (err) {
-          // We ignore this error for now.
-        }
-      }
-
-      // We try to import the HD addresses into the RPC deamon
-      i = this.ADDRESSES.length
-      while (--i >= 0) {
-        try { await this.rpc.importPrivateKey(this.ADDRESSES[i].privateKey) }
-        catch (err) {
-          // We ignore this error in case the private key is already registered by the RPC deamon.
-        }
-      }
-    }
-
     this.STATE = WalletState.READY
   }
 
@@ -464,50 +242,13 @@ export default class Wallet {
    * Lock the wallet, that is cipher all its private keys.
    */
   public async lock(passphrase: string): Promise<void> {
-    if (!this.isHard && this.STATE !== WalletState.READY) {
-      throw new Error(`ElectraJs.Wallet: The #lock() method can only be called on a ready wallet (#state = "READY").`)
-    }
-
-    if (this.isHard && this.DAEMON_STATE !== WalletDaemonState.STARTED) {
+    if (this.STATE !== WalletState.READY) {
       throw new Error(`ElectraJs.Wallet:
-        The #lock() method can only be called on a started wallet (#daemonState = "STARTED").`)
+        The #lock() method can only be called on an ready wallet (#state = "READY").
+      `)
     }
 
     if (this.LOCK_STATE === WalletLockState.LOCKED) return
-
-    if (this.isHard) {
-      if (this.isNew) {
-        const [err1] = await to(this.rpc.encryptWallet(passphrase))
-        if (err1 !== null) { throw err1 }
-
-        // Dirty hack since we have no idea how long the deamon process will take to exit
-        while (this.DAEMON_STATE !== WalletDaemonState.STOPPED) {
-          // tslint:disable-next-line:no-magic-numbers
-          await wait(250)
-        }
-
-        // Encrypting the wallet has stopped the deamon, so we need to start it again
-        await this.startDaemon()
-
-        this.isNew = false
-        this.LOCK_STATE = WalletLockState.LOCKED
-
-        return
-      }
-
-      // TODO Find a better DRY way to optimize that check
-      const [err2] = await to(this.rpc.lock())
-      if (err2 !== null && err2.message === 'DAEMON_RPC_LOCK_ATTEMPT_ON_UNENCRYPTED_WALLET') {
-        this.isNew = true
-        await this.lock(passphrase)
-
-        return
-      }
-
-      this.LOCK_STATE = WalletLockState.LOCKED
-
-      return
-    }
 
     try {
       if (this.MASTER_NODE_ADDRESS !== undefined && !this.MASTER_NODE_ADDRESS.isCiphered) {
@@ -544,29 +285,10 @@ export default class Wallet {
    * Unlock the wallet, that is decipher all its private keys.
    */
   public async unlock(passphrase: string, forStakingOnly: boolean = true): Promise<void> {
-    if (!this.isHard && this.STATE !== WalletState.READY) {
-      throw new Error(`ElectraJs.Wallet: The #unlock() method can only be called on a ready wallet (#state = "READY").`)
-    }
-
-    if (this.isHard && this.DAEMON_STATE !== WalletDaemonState.STARTED) {
+    if (this.STATE !== WalletState.READY) {
       throw new Error(`ElectraJs.Wallet:
-        The #unlock() method can only be called on a started wallet (#daemonState = "STARTED").`)
-    }
-
-    if (this.isHard) {
-      if (
-        !forStakingOnly && this.LOCK_STATE === WalletLockState.STAKING
-        || forStakingOnly && this.LOCK_STATE === WalletLockState.UNLOCKED
-      ) {
-        const [err1] = await to(this.lock(passphrase))
-        if (err1 !== null) throw err1
-      }
-
-      const [err2] = await to(this.rpc.unlock(passphrase, ONE_YEAR_IN_SECONDS, forStakingOnly))
-      if (err2 !== null) throw err2
-      this.LOCK_STATE = forStakingOnly ? WalletLockState.STAKING : WalletLockState.UNLOCKED
-
-      return
+        The #unlock() method can only be called on an ready wallet (#state = "READY").
+      `)
     }
 
     if (this.LOCK_STATE === WalletLockState.UNLOCKED) return
@@ -609,13 +331,6 @@ export default class Wallet {
       throw new Error(`ElectraJs.Wallet:
         The #import() method can only be called on an empty wallet (#state = "EMPTY").
         Maybe you want to #reset() it first ?
-      `)
-    }
-
-    if (this.isHard && this.DAEMON_STATE !== WalletDaemonState.STARTED) {
-      throw new Error(`ElectraJs.Wallet:
-        The #import() method can only be called on a started hard wallet (#daemon = "STARTED").
-        You need to #startDaemon() first.
       `)
     }
 
@@ -686,22 +401,6 @@ export default class Wallet {
       }
     }
     catch (err) { throw err }
-
-    /*
-      ----------------------------------
-      STEP 4: RPC SERVER
-    */
-
-    if (this.isHard) {
-      let i: number
-
-      // We try to import the HD and the random (non-HD) addresses into the RPC deamon
-      i = this.allAddresses.length
-      while (--i >= 0) {
-        try { await this.rpc.importPrivateKey(this.ADDRESSES[i].privateKey) }
-        catch (err) { /* We ignore this error in case the private key is already registered by the RPC deamon. */ }
-      }
-    }
 
     this.STATE = WalletState.READY
   }
@@ -799,29 +498,6 @@ export default class Wallet {
   public async getBalance(addressHash?: string): Promise<WalletBalance> {
     if (this.STATE !== WalletState.READY) {
       throw new Error(`ElectraJs.Wallet: You can only #getBalance() from a ready wallet (#state = "READY").`)
-    }
-
-    if (this.isHard) {
-      try {
-        const [confirmedBalance, fullBalance]: [
-          RpcMethodResult<'getbalance'>,
-          RpcMethodResult<'getbalance'>
-        ] = await Promise.all<
-          RpcMethodResult<'getbalance'>,
-          RpcMethodResult<'getbalance'>
-        >([
-          this.rpc.getBalance(),
-          this.rpc.getBalance('*', 0),
-        ])
-
-        return {
-          confirmed: confirmedBalance,
-          unconfirmed: fullBalance - confirmedBalance,
-        }
-      }
-      catch (err) {
-        throw err
-      }
     }
 
     const addresses: WalletAddress[] = this.allAddresses
@@ -931,13 +607,6 @@ export default class Wallet {
       throw new Error(`ElectraJs.Wallet: You can't #send() more than the current wallet addresses hold.`)
     }
 
-    if (this.isHard) {
-      const [err2] = await to(this.rpc.sendBasicTransaction(toAddressHash, amount))
-      if (err2 !== null) throw err2
-
-      return
-    }
-
     /*
       STEP 1: UNSPENT TRANSACTIONS
     */
@@ -973,53 +642,6 @@ export default class Wallet {
       throw new Error(`ElectraJs.Wallet: #getTransactions() is only available when the #state is "READY".`)
     }
 
-    if (this.isHard) {
-      const [err1, transactionsRaw] = await to(this.rpc.listTransactions('*', LIST_TRANSACTIONS_LENGTH))
-      if (err1 !== null || transactionsRaw === undefined) throw err1
-
-      let index: number = -1
-      const transactions: WalletTransaction[] = []
-      while (++index < transactionsRaw.length) {
-        const transactionRaw: RpcMethodResult<'listtransactions'>[0] = transactionsRaw[index]
-        const transaction: Partial<WalletTransaction> = {
-          amount: transactionRaw.amount,
-          confimationsCount: transactionRaw.confirmations,
-          date: transactionRaw.time,
-          hash: transactionRaw.txid,
-        }
-
-        if (transactionRaw.category === 'generate') {
-          transaction.to = [transactionRaw.address]
-          transaction.type = WalletTransactionType.GENERATED
-        } else {
-          const [err2, transactionInfo] = await to(this.rpc.getTransaction(transaction.hash as string))
-          if (err2 !== null || transactionInfo === undefined) throw err2
-
-          if (transactionRaw.category === 'send') {
-            transaction.from = [transactionRaw.address]
-            transaction.to = transactionInfo.details
-              .filter(({ category }: RpcMethodResult<'gettransaction'>['details'][0]) => category === 'receive')
-              .map(({ address }: RpcMethodResult<'gettransaction'>['details'][0]) => address)
-            transaction.type = WalletTransactionType.SENT
-          }
-
-          if (transactionRaw.category === 'receive') {
-            transaction.from = transactionInfo.details
-              .filter(({ category }: RpcMethodResult<'gettransaction'>['details'][0]) => category === 'send')
-              .map(({ address }: RpcMethodResult<'gettransaction'>['details'][0]) => address)
-            transaction.to = [transactionRaw.address]
-            transaction.type = WalletTransactionType.RECEIVED
-          }
-        }
-
-        transactions.push(transaction as WalletTransaction)
-      }
-
-      return count < LIST_TRANSACTIONS_LENGTH
-        ? transactions.reverse().slice(0, count)
-        : transactions.reverse()
-    }
-
     return []
   }
 
@@ -1039,35 +661,6 @@ export default class Wallet {
 
     return found.length !== 0 ? found[0] : undefined
     // }
-  }
-
-  /**
-   * Does the daemon user directory exist ?
-   */
-  private isDaemonUserDirectory(): boolean {
-    // tslint:disable-next-line:no-require-imports
-    return (require('fs').existsSync(DAEMON_USER_DIR_PATH) as boolean)
-  }
-
-  /**
-   * Try to guess the daemon lock state by checking if the 'lock' method is available.
-   */
-  private async getDaemonLockState(): Promise<WalletLockState> {
-    if (!this.isHard) {
-      throw new Error(`ElectraJs.Wallet: #getLockState() is only available on a hard wallet.`)
-    }
-
-    if (this.DAEMON_STATE !== WalletDaemonState.STARTING) {
-      throw new Error(`ElectraJs.Wallet:
-        #getLockState() is only available when the hard wallet is starting (#DAEMON_STATE = 'STARTING').`)
-    }
-
-    const [err] = await to(this.rpc.lock())
-    if (err !== null && err.message === 'DAEMON_RPC_LOCK_ATTEMPT_ON_UNENCRYPTED_WALLET') {
-      return WalletLockState.UNLOCKED
-    }
-
-    return WalletLockState.LOCKED
   }
 
   /** List the wallet unspent transactions, ordered by descending amount. */

@@ -6,7 +6,7 @@ import * as dotenv from 'dotenv'
 
 import Electra from '.'
 
-import { HD_WALLET_WITHOUT_MNEMONIC_EXTENSION_TEST } from '../../wallet/index.spec'
+import { HD_WALLET_WITHOUT_MNEMONIC_EXTENSION_TEST } from '../../wallet/hard/index.spec'
 
 // Loads ".env" variables into process.env properties
 dotenv.config()
