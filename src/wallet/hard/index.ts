@@ -425,26 +425,32 @@ export default class WalletHard {
   /**
    * Lock the wallet, that is cipher all its private keys.
    */
-  public async lock(passphrase: string): Promise<void> {
+  public async lock(passphrase?: string): Promise<void> {
     if (this.DAEMON_STATE !== WalletDaemonState.STARTED) {
       throw new Error(`ElectraJs.Wallet:
         The #lock() method can only be called on a started wallet (#daemonState = "STARTED").`)
     }
 
-    if (this.LOCK_STATE === WalletLockState.LOCKED) return
-    try {
-      if (this.MASTER_NODE_ADDRESS !== undefined && !this.MASTER_NODE_ADDRESS.isCiphered) {
-        this.MASTER_NODE_ADDRESS.privateKey = Crypto.cipherPrivateKey(this.MASTER_NODE_ADDRESS.privateKey, passphrase)
-        this.MASTER_NODE_ADDRESS.isCiphered = true
-      }
-    }
-    catch (err) {
-      throw err
+    if (this.isNew && passphrase === undefined) {
+      throw new Error(`ElectraJs.Wallet:
+        This is a first time #lock() call. You need to provide a [passphrase] in order to set the passphrase.`)
     }
 
-    if (this.isNew) {
-      const [err1] = await to(this.rpc.encryptWallet(passphrase))
-      if (err1 !== null) { throw err1 }
+    if (this.LOCK_STATE === WalletLockState.LOCKED) return
+
+    if (passphrase !== undefined) {
+      try {
+        if (this.MASTER_NODE_ADDRESS !== undefined && !this.MASTER_NODE_ADDRESS.isCiphered) {
+          this.MASTER_NODE_ADDRESS.privateKey = Crypto.cipherPrivateKey(this.MASTER_NODE_ADDRESS.privateKey, passphrase)
+          this.MASTER_NODE_ADDRESS.isCiphered = true
+        }
+      }
+      catch (err) {
+        throw err
+      }
+
+      const [err2] = await to(this.rpc.encryptWallet(passphrase))
+      if (err2 !== null) { throw err2 }
 
       // Dirty hack since we have no idea how long the deamon process will take to exit
       while ((this.DAEMON_STATE as WalletDaemonState) !== WalletDaemonState.STOPPED) {
@@ -462,13 +468,8 @@ export default class WalletHard {
     }
 
     // TODO Find a better DRY way to optimize that check
-    const [err2] = await to(this.rpc.lock())
-    if (err2 !== null && err2.message === 'DAEMON_RPC_LOCK_ATTEMPT_ON_UNENCRYPTED_WALLET') {
-      this.isNew = true
-      await this.lock(passphrase)
-
-      return
-    }
+    const [err3] = await to(this.rpc.lock())
+    if (err3 !== null) throw err3
 
     this.LOCK_STATE = WalletLockState.LOCKED
   }
