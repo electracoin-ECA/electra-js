@@ -7964,9 +7964,25 @@ class Rpc {
     /**
      * Get the total available balance.
      */
-    getBalance() {
+    getBalance(account = '*', minConfirmations = 1) {
+        return __awaiter(this, arguments, void 0, function* () {
+            return this.query('getbalance', Array.prototype.slice.call(arguments));
+        });
+    }
+    /**
+     * Get best (~ last) block hash.
+     */
+    getBestBlockHash() {
         return __awaiter(this, void 0, void 0, function* () {
-            return this.query('getbalance', null);
+            return this.query('getbestblockhash', null);
+        });
+    }
+    /**
+     * Get block info.
+     */
+    getBlockInfo(hash) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return this.query('getblock', [hash]);
         });
     }
     /**
@@ -11541,7 +11557,7 @@ const SETTINGS_DEFAULT = {
  * ElectraJs version.
  * DO NOT CHANGE THIS LINE SINCE THE VERSION IS AUTOMATICALLY INJECTED !
  */
-const VERSION = '0.5.27';
+const VERSION = '0.6.0';
 /**
  * Main ElectraJS class.
  */
@@ -11579,6 +11595,7 @@ module.exports = require("path");
 
 "use strict";
 
+// tslint:disable:max-file-line-count
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
@@ -11601,6 +11618,7 @@ const electra_1 = __webpack_require__(436);
 const rpc_1 = __webpack_require__(152);
 const web_services_1 = __webpack_require__(182);
 const types_1 = __webpack_require__(476);
+const LIST_TRANSACTIONS_LENGTH = 1000000;
 // tslint:disable-next-line:no-magic-numbers
 const ONE_YEAR_IN_SECONDS = 60 * 60 * 24 * 365;
 const PLATFORM_BINARY = {
@@ -12195,10 +12213,19 @@ class Wallet {
                 throw new Error(`ElectraJs.Wallet: You can only #getBalance() from a ready wallet (#state = "READY").`);
             }
             if (this.isHard) {
-                const [err, balance] = yield await_to_js_1.default(this.rpc.getBalance());
-                if (err !== null)
+                try {
+                    const [confirmedBalance, fullBalance] = yield Promise.all([
+                        this.rpc.getBalance(),
+                        this.rpc.getBalance('*', 0),
+                    ]);
+                    return {
+                        confirmed: confirmedBalance,
+                        unconfirmed: fullBalance - confirmedBalance,
+                    };
+                }
+                catch (err) {
                     throw err;
-                return balance;
+                }
             }
             const addresses = this.allAddresses;
             if (addressHash !== undefined) {
@@ -12209,7 +12236,10 @@ class Wallet {
                 const [err, balance] = yield await_to_js_1.default(web_services_1.default.getBalanceFor(addressHash));
                 if (err !== null)
                     throw err;
-                return balance;
+                return {
+                    confirmed: balance,
+                    unconfirmed: 0,
+                };
             }
             let index = addresses.length;
             let balanceTotal = 0;
@@ -12219,7 +12249,10 @@ class Wallet {
                     throw err;
                 balanceTotal += balance;
             }
-            return balanceTotal;
+            return {
+                confirmed: balanceTotal,
+                unconfirmed: 0,
+            };
         });
     }
     /**
@@ -12231,11 +12264,13 @@ class Wallet {
                 return Promise.reject(new Error(`ElectraJs.Wallet: #getInfo() is only available when the #state is "READY".`));
             }
             try {
-                const [localBlockchainHeight, peersInfo, stakingInfo] = yield Promise.all([
+                const [bestBlockHash, localBlockchainHeight, peersInfo, stakingInfo] = yield Promise.all([
+                    this.rpc.getBestBlockHash(),
                     this.rpc.getLocalBlockHeight(),
                     this.rpc.getPeersInfo(),
                     this.rpc.getStakingInfo(),
                 ]);
+                const lastBlockInfo = yield this.rpc.getBlockInfo(bestBlockHash);
                 const networkBlockchainHeight = peersInfo.length !== 0
                     ? getMaxItemFromList_1.default(peersInfo, 'startingheight').startingheight
                     : 0;
@@ -12243,7 +12278,8 @@ class Wallet {
                     connectionsCount: peersInfo.length,
                     isHD: Boolean(this.MASTER_NODE_ADDRESS),
                     isStaking: stakingInfo.staking,
-                    isSynchonized: localBlockchainHeight === networkBlockchainHeight,
+                    isSynchonized: localBlockchainHeight >= networkBlockchainHeight,
+                    lastBlockGeneratedAt: lastBlockInfo.time,
                     localBlockchainHeight,
                     localStakingWeight: stakingInfo.weight,
                     networkBlockchainHeight,
@@ -12275,8 +12311,8 @@ class Wallet {
             if (fromAddressHash !== undefined && !R.contains({ hash: fromAddressHash }, this.allAddresses)) {
                 throw new Error(`ElectraJs.Wallet: You can't #send() from an address that is not part of the current wallet.`);
             }
-            if (amount > ((yield this.getBalance()) - constants_1.ECA_TRANSACTION_FEE)) {
-                throw new Error(`ElectraJs.Wallet: You can't #send() from an address that is not part of the current wallet.`);
+            if (amount > ((yield this.getBalance()).confirmed - constants_1.ECA_TRANSACTION_FEE)) {
+                throw new Error(`ElectraJs.Wallet: You can't #send() more than the current wallet addresses hold.`);
             }
             if (this.isHard) {
                 const [err2] = yield await_to_js_1.default(this.rpc.sendBasicTransaction(toAddressHash, amount));
@@ -12310,15 +12346,15 @@ class Wallet {
         });
     }
     /**
-     * List the last wallet transactions.
+     * List the last wallet transactions (from the newer to the older one).
      */
-    getTransactions(count = 10, fromIndex = 0) {
+    getTransactions(count = LIST_TRANSACTIONS_LENGTH) {
         return __awaiter(this, void 0, void 0, function* () {
             if (this.STATE !== types_1.WalletState.READY) {
                 throw new Error(`ElectraJs.Wallet: #getTransactions() is only available when the #state is "READY".`);
             }
             if (this.isHard) {
-                const [err1, transactionsRaw] = yield await_to_js_1.default(this.rpc.listTransactions('*', count, fromIndex));
+                const [err1, transactionsRaw] = yield await_to_js_1.default(this.rpc.listTransactions('*', LIST_TRANSACTIONS_LENGTH));
                 if (err1 !== null || transactionsRaw === undefined)
                     throw err1;
                 let index = -1;
@@ -12356,7 +12392,9 @@ class Wallet {
                     }
                     transactions.push(transaction);
                 }
-                return transactions;
+                return count < LIST_TRANSACTIONS_LENGTH
+                    ? transactions.reverse().slice(0, count)
+                    : transactions.reverse();
             }
             return [];
         });
