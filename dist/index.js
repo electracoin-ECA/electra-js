@@ -11557,7 +11557,7 @@ const SETTINGS_DEFAULT = {
  * ElectraJs version.
  * DO NOT CHANGE THIS LINE SINCE THE VERSION IS AUTOMATICALLY INJECTED !
  */
-const VERSION = '0.7.3';
+const VERSION = '0.8.0';
 /**
  * Main ElectraJS class.
  */
@@ -11801,6 +11801,27 @@ class Wallet {
         });
     }
     /**
+     * Start a wallet with already generated addresses data.
+     */
+    start(data) {
+        if (this.STATE !== types_1.WalletState.EMPTY) {
+            throw new Error(`ElectraJs.Wallet:
+        The #start() method can only be called on an empty wallet (#state = "EMPTY").
+        Maybe you want to #reset() it first ?
+      `);
+        }
+        if (this.isHard && this.DAEMON_STATE !== types_1.WalletDaemonState.STARTED) {
+            throw new Error(`ElectraJs.Wallet:
+        The #start() method can only be called on a started hard wallet (#daemon = "STARTED").
+        You need to #startDaemon() first.
+      `);
+        }
+        this.MASTER_NODE_ADDRESS = data.masterNodeAddress;
+        this.ADDRESSES = data.addresses;
+        this.RANDOM_ADDRESSES = data.randomAddresses;
+        this.STATE = types_1.WalletState.READY;
+    }
+    /**
      * Generate an HD wallet from either the provided mnemonic seed, or a randomly generated one,
      * including ‒ at least ‒ the first derived address.
      *
@@ -12042,19 +12063,23 @@ class Wallet {
      * Import a wallet data containing ciphered private keys.
      *
      * @note
-     * The <data> must be a stringified JSON WEF following the EIP-0002 specifications.
+     * The <wefData> must be a (JSON) WEF following the EIP-0002 specifications.
      * https://github.com/Electra-project/Electra-Improvement-Proposals/blob/master/EIP-0002.md
      */
-    import(data, passphrase) {
+    import(wefData, passphrase) {
         return __awaiter(this, void 0, void 0, function* () {
             if (this.STATE !== types_1.WalletState.EMPTY) {
                 throw new Error(`ElectraJs.Wallet:
         The #import() method can only be called on an empty wallet (#state = "EMPTY").
+        Maybe you want to #reset() it first ?
       `);
             }
-            const [err, wefData] = tryCatch_1.default(() => JSON.parse(data));
-            if (err !== undefined)
-                throw err;
+            if (this.isHard && this.DAEMON_STATE !== types_1.WalletDaemonState.STARTED) {
+                throw new Error(`ElectraJs.Wallet:
+        The #import() method can only be called on a started hard wallet (#daemon = "STARTED").
+        You need to #startDaemon() first.
+      `);
+            }
             const [version, chainsCount, hdPrivateKeyX, randomPrivateKeysX] = wefData;
             // tslint:disable-next-line:no-magic-numbers
             if (version !== 2) {
