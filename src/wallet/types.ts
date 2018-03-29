@@ -48,6 +48,12 @@ export enum WalletLockState {
   UNLOCKED = 'UNLOCKED',
 }
 
+export interface WalletStartData {
+  addresses: WalletAddress[]
+  masterNodeAddress: WalletAddress
+  randomAddresses: WalletAddress[]
+}
+
 export enum WalletState {
   EMPTY = 'EMPTY',
   READY = 'READY',

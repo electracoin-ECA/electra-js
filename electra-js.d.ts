@@ -99,6 +99,12 @@ export enum WalletLockState {
   UNLOCKED = 'UNLOCKED',
 }
 
+export interface WalletStartData {
+  addresses: WalletAddress[]
+  masterNodeAddress: WalletAddress
+  randomAddresses: WalletAddress[]
+}
+
 export enum WalletState {
   EMPTY = 'EMPTY',
   READY = 'READY',
@@ -137,6 +143,7 @@ export interface Wallet {
   import(data: string, passphrase: string): Promise<void>;
   export(): string;
   reset(): void;
+  start(data: WalletStartData): void;
 
   importRandomAddress(privateKey: string, passphrase?: string): Promise<void>;
 

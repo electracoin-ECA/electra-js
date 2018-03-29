@@ -25,6 +25,7 @@ import {
   WalletExchangeFormat,
   WalletInfo,
   WalletLockState,
+  WalletStartData,
   WalletState,
   WalletTransaction,
   WalletTransactionType
@@ -279,6 +280,31 @@ export default class Wallet {
       this.DAEMON_STATE = WalletDaemonState.STOPPED
       if (this.daemon !== undefined) this.daemon.kill()
     }
+  }
+
+  /**
+   * Start a wallet with already generated addresses data.
+   */
+  public start(data: WalletStartData): void {
+    if (this.STATE !== WalletState.EMPTY) {
+      throw new Error(`ElectraJs.Wallet:
+        The #start() method can only be called on an empty wallet (#state = "EMPTY").
+        Maybe you want to #reset() it first ?
+      `)
+    }
+
+    if (this.isHard && this.DAEMON_STATE !== WalletDaemonState.STARTED) {
+      throw new Error(`ElectraJs.Wallet:
+        The #start() method can only be called on a started hard wallet (#daemon = "STARTED").
+        You need to #startDaemon() first.
+      `)
+    }
+
+    this.MASTER_NODE_ADDRESS = data.masterNodeAddress
+    this.ADDRESSES = data.addresses
+    this.RANDOM_ADDRESSES = data.randomAddresses
+
+    this.STATE = WalletState.READY
   }
 
   /**
