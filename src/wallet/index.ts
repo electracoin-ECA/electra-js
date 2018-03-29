@@ -585,20 +585,25 @@ export default class Wallet {
    * Import a wallet data containing ciphered private keys.
    *
    * @note
-   * The <data> must be a stringified JSON WEF following the EIP-0002 specifications.
+   * The <wefData> must be a (JSON) WEF following the EIP-0002 specifications.
    * https://github.com/Electra-project/Electra-Improvement-Proposals/blob/master/EIP-0002.md
    */
-  public async import(data: string, passphrase: string): Promise<void> {
+  public async import(wefData: WalletExchangeFormat, passphrase: string): Promise<void> {
     if (this.STATE !== WalletState.EMPTY) {
       throw new Error(`ElectraJs.Wallet:
         The #import() method can only be called on an empty wallet (#state = "EMPTY").
+        Maybe you want to #reset() it first ?
       `)
     }
 
-    const [err, wefData] = tryCatch(() => JSON.parse(data) as WalletExchangeFormat)
-    if (err !== undefined) throw err
+    if (this.isHard && this.DAEMON_STATE !== WalletDaemonState.STARTED) {
+      throw new Error(`ElectraJs.Wallet:
+        The #import() method can only be called on a started hard wallet (#daemon = "STARTED").
+        You need to #startDaemon() first.
+      `)
+    }
 
-    const [version, chainsCount, hdPrivateKeyX, randomPrivateKeysX] = wefData as WalletExchangeFormat
+    const [version, chainsCount, hdPrivateKeyX, randomPrivateKeysX] = wefData
 
     // tslint:disable-next-line:no-magic-numbers
     if (version !== 2) {

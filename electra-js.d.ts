@@ -140,7 +140,7 @@ export interface Wallet {
   stopDaemon(): Promise<void>;
 
   generate(mnemonic?: string, mnemonicExtension?: string, chainsCount?: number): Promise<void>;
-  import(data: string, passphrase: string): Promise<void>;
+  import(wefData: WalletExchangeFormat, passphrase: string): Promise<void>;
   export(): string;
   reset(): void;
   start(data: WalletStartData): void;
