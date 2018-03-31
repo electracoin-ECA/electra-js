@@ -42,8 +42,6 @@ if (([
   process.exit(1)
 }
 
-console.log(Electra.getRandomMnemonic())
-
 describe('libs/Electra', function() {
   let firstAddress, masterNodeAddress, mnemonic, secondAddress
 
