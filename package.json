@@ -28,6 +28,7 @@
   },
   "dependencies": {
     "@types/bitcoinjs-lib": "^3.3.3",
+    "ajv": "^6.4.0",
     "await-to-js": "^2.0.1",
     "axios": "^0.17.1",
     "bigi": "^1.4.2",
