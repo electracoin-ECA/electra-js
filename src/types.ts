@@ -18,5 +18,6 @@ export interface DaemonConfig {
 }
 
 export interface Settings {
+  binariesPath?: string
   isHard?: boolean
 }

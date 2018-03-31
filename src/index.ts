@@ -31,9 +31,9 @@ export default class ElectraJs {
   public webServices: WebServices
 
   public constructor(settings: Settings = {}) {
-    const { isHard } = { ...SETTINGS_DEFAULT, ...settings }
+    const { binariesPath, isHard } = { ...SETTINGS_DEFAULT, ...settings }
 
-    this.wallet = Boolean(isHard) ? new WalletHard() : new WalletLight()
+    this.wallet = Boolean(isHard) ? new WalletHard(binariesPath) : new WalletLight()
     this.webServices = webServices
   }
 

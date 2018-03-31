@@ -18,6 +18,7 @@ interface DaemonConfig {
 }
 
 interface Settings {
+  binariesPath?: string
   isHard?: boolean;
 }
 

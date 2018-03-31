@@ -276,9 +276,12 @@ describe('Wallet (hard)', function() {
     })
   })
 
-  describe(`AFTER downloading the blockchain`, () => {
-    it(`#getTransactions() SHOULD return an array with a lenght greater than 0`, async () => {
+  describe.skip(`AFTER downloading the blockchain`, () => {
+    it(`#getTransactions() SHOULD return an array with a length greater than 0`, async () => {
       assert.strictEqual((await wallet.getTransactions()).length > 0, true)
+    })
+    it(`#getBalance() SHOULD return an confirmed balanced greater than 0`, async () => {
+      assert.strictEqual((await wallet.getBalance()).confirmed > 0, true)
     })
   })
 

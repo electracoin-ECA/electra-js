@@ -62,8 +62,11 @@ export default class WalletHard {
       throw new Error(`ElectraJs.Wallet: #allAddresses are only available when the #state is "READY".`)
     }
 
-    return [...this.addresses, ...this.randomAddresses]
+    return [...this.ADDRESSES, ...this.RANDOM_ADDRESSES]
   }
+
+  /** Daemon binaries directory path. */
+  private readonly binariesPath: string
 
   /** Hard wallet daemon Node child process. */
   private daemon: ChildProcess | undefined
@@ -175,18 +178,17 @@ export default class WalletHard {
     return this.STATE
   }
 
-  public constructor() {
-    this.STATE = WalletState.EMPTY
-
+  public constructor(binariesPath: string = BINARIES_PATH as string) {
+    this.binariesPath = binariesPath
+    this.DAEMON_STATE = WalletDaemonState.STOPPED
+    // tslint:disable-next-line:no-require-imports
     this.rpc = new Rpc(DAEMON_URI, {
       password: DAEMON_CONFIG.rpcpassword,
       username: DAEMON_CONFIG.rpcuser
     })
+    this.STATE = WalletState.EMPTY
 
-    // tslint:disable-next-line:no-require-imports
     this.isNew = !this.isDaemonUserDirectory()
-
-    this.DAEMON_STATE = WalletDaemonState.STOPPED
   }
 
   /**
@@ -204,7 +206,7 @@ export default class WalletHard {
 
     if (process.platform === 'win32') {
       // TODO Temporary hack for dev while the Windows binary is being fixed
-      const binaryPath: string = BINARIES_PATH as string
+      const binaryPath: string = this.binariesPath
 
       // TODO An Everyone:F may be too much...
       // tslint:disable-next-line:no-require-imports
@@ -224,7 +226,7 @@ export default class WalletHard {
         console.log(`The wallet daemon exited with the code: ${code}.`)
       })
     } else {
-      const binaryPath: string = `${BINARIES_PATH}/${PLATFORM_BINARY[process.platform]}`
+      const binaryPath: string = `${this.binariesPath}/${PLATFORM_BINARY[process.platform]}`
 
       // Dirty hack to give enough permissions to the binary in order to be run
       // tslint:disable-next-line:no-require-imports
