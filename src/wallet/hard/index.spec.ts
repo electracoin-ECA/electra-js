@@ -98,7 +98,7 @@ describe('Wallet (hard)', function() {
     await new Promise(resolve => {
       // Copy the blockchain data
       fs
-        .createReadStream(path.resolve(__dirname, `../../../test/data/Electra.zip`))
+        .createReadStream(path.resolve(__dirname, `../../../test/data/Electra-${process.platform}.zip`))
         .once('close', resolve)
         .pipe(unzip.Extract({ path: path.resolve(DAEMON_USER_DIR_PATH, '..') }))
     })
