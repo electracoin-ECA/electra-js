@@ -35,6 +35,7 @@
     "bip39": "^2.5.0",
     "bitcoinjs-lib": "^3.3.2",
     "blake2": "github:ludios/node-blake2",
+    "chalk": "^2.3.2",
     "ramda": "^0.25.0",
     "request": "^2.85.0",
     "request-progress": "^3.0.0",
