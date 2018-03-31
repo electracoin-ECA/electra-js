@@ -11771,7 +11771,7 @@ const SETTINGS_DEFAULT = {
  * ElectraJs version.
  * DO NOT CHANGE THIS LINE SINCE THE VERSION IS AUTOMATICALLY INJECTED !
  */
-const VERSION = '0.10.3';
+const VERSION = '0.10.4';
 /**
  * Main ElectraJS class.
  */
@@ -11849,9 +11849,9 @@ class WalletHard {
         this.ADDRESSES = [];
         /** List of the wallet random (non-HD) addresses. */
         this.RANDOM_ADDRESSES = [];
-        this.binariesPath = binariesPath;
-        this.DAEMON_STATE = types_1.WalletDaemonState.STOPPED;
         // tslint:disable-next-line:no-require-imports
+        this.binariesPath = process.platform !== 'win32' ? binariesPath.replace(/\s/g, '\\ ') : binariesPath;
+        this.DAEMON_STATE = types_1.WalletDaemonState.STOPPED;
         this.rpc = new rpc_1.default(constants_1.DAEMON_URI, {
             password: constants_1.DAEMON_CONFIG.rpcpassword,
             username: constants_1.DAEMON_CONFIG.rpcuser
