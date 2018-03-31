@@ -16,7 +16,7 @@
     "start": "npm run watch",
     "test": "npm run validate && npm run test:unit && npm run test:browser && npm run build",
     "test:browser": "webpack --config webpack.test.js && mocha -r ts-node/register test/browser/index.ts",
-    "test:unit": "mocha -r ts-node/register src/**/*.spec.ts",
+    "test:unit": "mocha -r ts-node/register 'src/**/*.spec.ts'",
     "validate": "npm run validate:lint && npm run validate:tsc",
     "validate:lint": "tslint -p tsconfig.json",
     "validate:tsc": "tsc -p tsconfig.json --noEmit --pretty",
