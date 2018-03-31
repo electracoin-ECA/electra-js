@@ -179,9 +179,9 @@ export default class WalletHard {
   }
 
   public constructor(binariesPath: string = BINARIES_PATH as string) {
-    this.binariesPath = binariesPath
-    this.DAEMON_STATE = WalletDaemonState.STOPPED
     // tslint:disable-next-line:no-require-imports
+    this.binariesPath = process.platform !== 'win32' ? binariesPath.replace(/\s/g, '\\ ') : binariesPath
+    this.DAEMON_STATE = WalletDaemonState.STOPPED
     this.rpc = new Rpc(DAEMON_URI, {
       password: DAEMON_CONFIG.rpcpassword,
       username: DAEMON_CONFIG.rpcuser
