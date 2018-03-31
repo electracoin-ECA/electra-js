@@ -11771,7 +11771,7 @@ const SETTINGS_DEFAULT = {
  * ElectraJs version.
  * DO NOT CHANGE THIS LINE SINCE THE VERSION IS AUTOMATICALLY INJECTED !
  */
-const VERSION = '0.10.2';
+const VERSION = '0.10.3';
 /**
  * Main ElectraJS class.
  */
@@ -11779,8 +11779,8 @@ class ElectraJs {
     constructor(settings = {}) {
         /** Electra blockchain specific constants. */
         this.constants = constants;
-        const { isHard } = Object.assign({}, SETTINGS_DEFAULT, settings);
-        this.wallet = Boolean(isHard) ? new hard_1.default() : new light_1.default();
+        const { binariesPath, isHard } = Object.assign({}, SETTINGS_DEFAULT, settings);
+        this.wallet = Boolean(isHard) ? new hard_1.default(binariesPath) : new light_1.default();
         this.webServices = web_services_1.default;
     }
     /**
@@ -11844,19 +11844,20 @@ const WALLET_INDEX = 0;
  * Wallet management.
  */
 class WalletHard {
-    constructor() {
+    constructor(binariesPath = constants_1.BINARIES_PATH) {
         /** List of the wallet HD addresses. */
         this.ADDRESSES = [];
         /** List of the wallet random (non-HD) addresses. */
         this.RANDOM_ADDRESSES = [];
-        this.STATE = types_1.WalletState.EMPTY;
+        this.binariesPath = binariesPath;
+        this.DAEMON_STATE = types_1.WalletDaemonState.STOPPED;
+        // tslint:disable-next-line:no-require-imports
         this.rpc = new rpc_1.default(constants_1.DAEMON_URI, {
             password: constants_1.DAEMON_CONFIG.rpcpassword,
             username: constants_1.DAEMON_CONFIG.rpcuser
         });
-        // tslint:disable-next-line:no-require-imports
+        this.STATE = types_1.WalletState.EMPTY;
         this.isNew = !this.isDaemonUserDirectory();
-        this.DAEMON_STATE = types_1.WalletDaemonState.STOPPED;
     }
     /** List of the wallet HD addresses. */
     get addresses() {
@@ -11870,7 +11871,7 @@ class WalletHard {
         if (this.STATE !== types_1.WalletState.READY) {
             throw new Error(`ElectraJs.Wallet: #allAddresses are only available when the #state is "READY".`);
         }
-        return [...this.addresses, ...this.randomAddresses];
+        return [...this.ADDRESSES, ...this.RANDOM_ADDRESSES];
     }
     /** Electra Daemon state. */
     get daemonState() {
@@ -11954,7 +11955,7 @@ class WalletHard {
                 throw err1;
             if (process.platform === 'win32') {
                 // TODO Temporary hack for dev while the Windows binary is being fixed
-                const binaryPath = constants_1.BINARIES_PATH;
+                const binaryPath = this.binariesPath;
                 // TODO An Everyone:F may be too much...
                 // tslint:disable-next-line:no-require-imports
                 // require('child_process').execSync(`icacls ${binaryPath} /grant Everyone:F`)
@@ -11970,7 +11971,7 @@ class WalletHard {
                 });
             }
             else {
-                const binaryPath = `${constants_1.BINARIES_PATH}/${PLATFORM_BINARY[process.platform]}`;
+                const binaryPath = `${this.binariesPath}/${PLATFORM_BINARY[process.platform]}`;
                 // Dirty hack to give enough permissions to the binary in order to be run
                 // tslint:disable-next-line:no-require-imports
                 __webpack_require__(39).execSync(`chmod 755 ${binaryPath}`);
@@ -20569,7 +20570,7 @@ function default_1() {
             // Let's wait for 2s to let the daemon close
             yield wait_1.default(2000);
         }
-        catch (err) { }
+        catch (err) { /* We can ignore any error here. */ }
         if (isPortAvailable_1.default(Number(constants_1.DAEMON_CONFIG.rpcport)))
             return;
         if (process.platform === 'win32') {
@@ -20585,7 +20586,7 @@ function default_1() {
                 try {
                     yield rpc.stop();
                 }
-                catch (err) { }
+                catch (err) { /* We can ignore any error here. */ }
                 // tslint:disable-next-line:no-require-imports
                 __webpack_require__(423)(daemonPid, 'SIGKILL');
             }
@@ -22185,7 +22186,7 @@ module.exports = require("zlib");
 /* 410 */
 /***/ (function(module, exports) {
 
-module.exports = {"_args":[["axios@0.17.1","C:\\Users\\ivang\\Workspace\\Electra-JS"]],"_from":"axios@0.17.1","_id":"axios@0.17.1","_inBundle":false,"_integrity":"sha1-LY4+XQvb1zJ/kbyBT1xXZg+Bgk0=","_location":"/axios","_phantomChildren":{},"_requested":{"type":"version","registry":true,"raw":"axios@0.17.1","name":"axios","escapedName":"axios","rawSpec":"0.17.1","saveSpec":null,"fetchSpec":"0.17.1"},"_requiredBy":["/"],"_resolved":"https://registry.npmjs.org/axios/-/axios-0.17.1.tgz","_spec":"0.17.1","_where":"C:\\Users\\ivang\\Workspace\\Electra-JS","author":{"name":"Matt Zabriskie"},"browser":{"./lib/adapters/http.js":"./lib/adapters/xhr.js"},"bugs":{"url":"https://github.com/axios/axios/issues"},"bundlesize":[{"path":"./dist/axios.min.js","threshold":"5kB"}],"dependencies":{"follow-redirects":"^1.2.5","is-buffer":"^1.1.5"},"description":"Promise based HTTP client for the browser and node.js","devDependencies":{"bundlesize":"^0.5.7","coveralls":"^2.11.9","es6-promise":"^4.0.5","grunt":"^1.0.1","grunt-banner":"^0.6.0","grunt-cli":"^1.2.0","grunt-contrib-clean":"^1.0.0","grunt-contrib-nodeunit":"^1.0.0","grunt-contrib-watch":"^1.0.0","grunt-eslint":"^19.0.0","grunt-karma":"^2.0.0","grunt-ts":"^6.0.0-beta.3","grunt-webpack":"^1.0.18","istanbul-instrumenter-loader":"^1.0.0","jasmine-core":"^2.4.1","karma":"^1.3.0","karma-chrome-launcher":"^2.0.0","karma-coverage":"^1.0.0","karma-firefox-launcher":"^1.0.0","karma-jasmine":"^1.0.2","karma-jasmine-ajax":"^0.1.13","karma-opera-launcher":"^1.0.0","karma-phantomjs-launcher":"^1.0.0","karma-safari-launcher":"^1.0.0","karma-sauce-launcher":"^1.1.0","karma-sinon":"^1.0.5","karma-sourcemap-loader":"^0.3.7","karma-webpack":"^1.7.0","load-grunt-tasks":"^3.5.2","minimist":"^1.2.0","phantomjs-prebuilt":"^2.1.7","sinon":"^1.17.4","typescript":"^2.0.3","url-search-params":"^0.6.1","webpack":"^1.13.1","webpack-dev-server":"^1.14.1"},"homepage":"https://github.com/axios/axios","keywords":["xhr","http","ajax","promise","node"],"license":"MIT","main":"index.js","name":"axios","repository":{"type":"git","url":"git+https://github.com/axios/axios.git"},"scripts":{"build":"NODE_ENV=production grunt build","coveralls":"cat coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js","examples":"node ./examples/server.js","postversion":"git push && git push --tags","preversion":"npm test","start":"node ./sandbox/server.js","test":"grunt test && bundlesize","version":"npm run build && grunt version && git add -A dist && git add CHANGELOG.md bower.json package.json"},"typings":"./index.d.ts","version":"0.17.1"}
+module.exports = {"_args":[["axios@0.17.1","/home/ivan/Workspace/Electra-JS"]],"_from":"axios@0.17.1","_id":"axios@0.17.1","_inBundle":false,"_integrity":"sha1-LY4+XQvb1zJ/kbyBT1xXZg+Bgk0=","_location":"/axios","_phantomChildren":{},"_requested":{"type":"version","registry":true,"raw":"axios@0.17.1","name":"axios","escapedName":"axios","rawSpec":"0.17.1","saveSpec":null,"fetchSpec":"0.17.1"},"_requiredBy":["/"],"_resolved":"https://registry.npmjs.org/axios/-/axios-0.17.1.tgz","_spec":"0.17.1","_where":"/home/ivan/Workspace/Electra-JS","author":{"name":"Matt Zabriskie"},"browser":{"./lib/adapters/http.js":"./lib/adapters/xhr.js"},"bugs":{"url":"https://github.com/axios/axios/issues"},"bundlesize":[{"path":"./dist/axios.min.js","threshold":"5kB"}],"dependencies":{"follow-redirects":"^1.2.5","is-buffer":"^1.1.5"},"description":"Promise based HTTP client for the browser and node.js","devDependencies":{"bundlesize":"^0.5.7","coveralls":"^2.11.9","es6-promise":"^4.0.5","grunt":"^1.0.1","grunt-banner":"^0.6.0","grunt-cli":"^1.2.0","grunt-contrib-clean":"^1.0.0","grunt-contrib-nodeunit":"^1.0.0","grunt-contrib-watch":"^1.0.0","grunt-eslint":"^19.0.0","grunt-karma":"^2.0.0","grunt-ts":"^6.0.0-beta.3","grunt-webpack":"^1.0.18","istanbul-instrumenter-loader":"^1.0.0","jasmine-core":"^2.4.1","karma":"^1.3.0","karma-chrome-launcher":"^2.0.0","karma-coverage":"^1.0.0","karma-firefox-launcher":"^1.0.0","karma-jasmine":"^1.0.2","karma-jasmine-ajax":"^0.1.13","karma-opera-launcher":"^1.0.0","karma-phantomjs-launcher":"^1.0.0","karma-safari-launcher":"^1.0.0","karma-sauce-launcher":"^1.1.0","karma-sinon":"^1.0.5","karma-sourcemap-loader":"^0.3.7","karma-webpack":"^1.7.0","load-grunt-tasks":"^3.5.2","minimist":"^1.2.0","phantomjs-prebuilt":"^2.1.7","sinon":"^1.17.4","typescript":"^2.0.3","url-search-params":"^0.6.1","webpack":"^1.13.1","webpack-dev-server":"^1.14.1"},"homepage":"https://github.com/axios/axios","keywords":["xhr","http","ajax","promise","node"],"license":"MIT","main":"index.js","name":"axios","repository":{"type":"git","url":"git+https://github.com/axios/axios.git"},"scripts":{"build":"NODE_ENV=production grunt build","coveralls":"cat coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js","examples":"node ./examples/server.js","postversion":"git push && git push --tags","preversion":"npm test","start":"node ./sandbox/server.js","test":"grunt test && bundlesize","version":"npm run build && grunt version && git add -A dist && git add CHANGELOG.md bower.json package.json"},"typings":"./index.d.ts","version":"0.17.1"}
 
 /***/ }),
 /* 411 */
@@ -23517,7 +23518,7 @@ module.exports = function xorInplace (a, b) {
 /* 434 */
 /***/ (function(module, exports) {
 
-module.exports = {"_args":[["bigi@1.4.2","C:\\Users\\ivang\\Workspace\\Electra-JS"]],"_from":"bigi@1.4.2","_id":"bigi@1.4.2","_inBundle":false,"_integrity":"sha1-nGZalfiLiwj8Bc/XMfVhhZ1yWCU=","_location":"/bigi","_phantomChildren":{},"_requested":{"type":"version","registry":true,"raw":"bigi@1.4.2","name":"bigi","escapedName":"bigi","rawSpec":"1.4.2","saveSpec":null,"fetchSpec":"1.4.2"},"_requiredBy":["/","/bip38","/bitcoinjs-lib","/ecurve"],"_resolved":"https://registry.npmjs.org/bigi/-/bigi-1.4.2.tgz","_spec":"1.4.2","_where":"C:\\Users\\ivang\\Workspace\\Electra-JS","bugs":{"url":"https://github.com/cryptocoinjs/bigi/issues"},"dependencies":{},"description":"Big integers.","devDependencies":{"coveralls":"^2.11.2","istanbul":"^0.3.5","jshint":"^2.5.1","mocha":"^2.1.0","mochify":"^2.1.0"},"homepage":"https://github.com/cryptocoinjs/bigi#readme","keywords":["cryptography","math","bitcoin","arbitrary","precision","arithmetic","big","integer","int","number","biginteger","bigint","bignumber","decimal","float"],"main":"./lib/index.js","name":"bigi","repository":{"url":"git+https://github.com/cryptocoinjs/bigi.git","type":"git"},"scripts":{"browser-test":"mochify --wd -R spec","coverage":"istanbul cover ./node_modules/.bin/_mocha -- --reporter list test/*.js","coveralls":"npm run-script coverage && node ./node_modules/.bin/coveralls < coverage/lcov.info","jshint":"jshint --config jshint.json lib/*.js ; true","test":"_mocha -- test/*.js","unit":"mocha"},"testling":{"files":"test/*.js","harness":"mocha","browsers":["ie/9..latest","firefox/latest","chrome/latest","safari/6.0..latest","iphone/6.0..latest","android-browser/4.2..latest"]},"version":"1.4.2"}
+module.exports = {"_args":[["bigi@1.4.2","/home/ivan/Workspace/Electra-JS"]],"_from":"bigi@1.4.2","_id":"bigi@1.4.2","_inBundle":false,"_integrity":"sha1-nGZalfiLiwj8Bc/XMfVhhZ1yWCU=","_location":"/bigi","_phantomChildren":{},"_requested":{"type":"version","registry":true,"raw":"bigi@1.4.2","name":"bigi","escapedName":"bigi","rawSpec":"1.4.2","saveSpec":null,"fetchSpec":"1.4.2"},"_requiredBy":["/","/bip38","/bitcoinjs-lib","/ecurve"],"_resolved":"https://registry.npmjs.org/bigi/-/bigi-1.4.2.tgz","_spec":"1.4.2","_where":"/home/ivan/Workspace/Electra-JS","bugs":{"url":"https://github.com/cryptocoinjs/bigi/issues"},"dependencies":{},"description":"Big integers.","devDependencies":{"coveralls":"^2.11.2","istanbul":"^0.3.5","jshint":"^2.5.1","mocha":"^2.1.0","mochify":"^2.1.0"},"homepage":"https://github.com/cryptocoinjs/bigi#readme","keywords":["cryptography","math","bitcoin","arbitrary","precision","arithmetic","big","integer","int","number","biginteger","bigint","bignumber","decimal","float"],"main":"./lib/index.js","name":"bigi","repository":{"url":"git+https://github.com/cryptocoinjs/bigi.git","type":"git"},"scripts":{"browser-test":"mochify --wd -R spec","coverage":"istanbul cover ./node_modules/.bin/_mocha -- --reporter list test/*.js","coveralls":"npm run-script coverage && node ./node_modules/.bin/coveralls < coverage/lcov.info","jshint":"jshint --config jshint.json lib/*.js ; true","test":"_mocha -- test/*.js","unit":"mocha"},"testling":{"files":"test/*.js","harness":"mocha","browsers":["ie/9..latest","firefox/latest","chrome/latest","safari/6.0..latest","iphone/6.0..latest","android-browser/4.2..latest"]},"version":"1.4.2"}
 
 /***/ }),
 /* 435 */
