@@ -63,7 +63,7 @@ if (([
   process.exit(1)
 }
 
-describe('Wallet (light)', function() {
+describe.skip('Wallet (light)', function() {
   let wallet: WalletLight
 
   // TODO We need a more efficient lock() and unlock() strategy
