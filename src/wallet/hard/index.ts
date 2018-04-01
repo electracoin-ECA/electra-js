@@ -205,7 +205,7 @@ export default class WalletHard {
 
     if (process.platform === 'win32') {
       // TODO Temporary hack for dev while the Windows binary is being fixed
-      const binaryPath: string = this.binariesPath
+      const binaryPath: string = BINARIES_PATH as string
 
       // TODO An Everyone:F may be too much...
       // tslint:disable-next-line:no-require-imports
