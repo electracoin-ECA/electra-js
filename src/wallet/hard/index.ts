@@ -179,8 +179,7 @@ export default class WalletHard {
   }
 
   public constructor(binariesPath: string = BINARIES_PATH as string) {
-    // tslint:disable-next-line:no-require-imports
-    this.binariesPath = process.platform !== 'win32' ? binariesPath.replace(/\s/g, '\\ ') : binariesPath
+    this.binariesPath = binariesPath
     this.DAEMON_STATE = WalletDaemonState.STOPPED
     this.rpc = new Rpc(DAEMON_URI, {
       password: DAEMON_CONFIG.rpcpassword,
@@ -227,10 +226,6 @@ export default class WalletHard {
       })
     } else {
       const binaryPath: string = `${this.binariesPath}/${PLATFORM_BINARY[process.platform]}`
-
-      // Dirty hack to give enough permissions to the binary in order to be run
-      // tslint:disable-next-line:no-require-imports
-      require('child_process').execSync(`chmod 755 ${binaryPath}`)
 
       // tslint:disable-next-line:no-require-imports
       this.daemon = require('child_process').spawn(
