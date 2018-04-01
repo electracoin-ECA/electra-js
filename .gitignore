@@ -1,6 +1,7 @@
-/bin
+/bin/*
 /build
 /node_modules
+/test/data/*
 
 .DS_Store
 .env
