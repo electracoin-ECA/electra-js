@@ -9,7 +9,7 @@ const PRIVATE_KEY_TEST = 'QqDPDtyVoA1wsdB2HkkofMoB567GGxLUEM8RHffvYfQ2UZ2UU6PB'
 const PRIVATE_KEY_CIPHER_TEST = '6PYKMytN8CmmD2MsyYdsrZNM116x9uieU6qNxYpNBHc8CmV2vZLyXfUSis'
 
 describe('Crypto', function() {
-  this.timeout(20000)
+  this.timeout(30000)
 
   describe(`#cipherPrivateKey()`, function() {
     it(`SHOULD return the expected cipher`, function() {
@@ -24,7 +24,7 @@ describe('Crypto', function() {
     })
 
     it(`SHOULD return a different cipher with a different passphrase`, function() {
-      assert.notDeepStrictEqual(
+      assert.notStrictEqual(
         Crypto.cipherPrivateKey(PRIVATE_KEY_TEST, PASSPHRASE_TEST + 'X'),
         PRIVATE_KEY_CIPHER_TEST
       )
