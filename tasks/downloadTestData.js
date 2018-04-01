@@ -64,7 +64,7 @@ async function run() {
   const { name, githubPath, b2sum, size } = BINARY[process.platform]
 
   console.log(`ElectraJs: Checking current ${name} binary.`)
-  if (fs.existsSync(path.resolve(__dirname, '../bin', name)) && getB2sum(name) === b2sum) return
+  if (fs.existsSync(path.resolve(__dirname, '../test/data', name)) && getB2sum(name) === b2sum) return
 
   console.log(`ElectraJs: Downloading ${name} binary.`)
   await download(githubPath, name, size)
