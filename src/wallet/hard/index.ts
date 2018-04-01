@@ -420,6 +420,34 @@ export default class WalletHard {
   }
 
   /**
+   * Create a new HD chain address.
+   */
+  public async createAddress(): Promise<void> {
+    if (this.STATE !== WalletState.READY) {
+      throw new Error(`ElectraJs.Wallet: The #export() method can only be called on a ready wallet (#state = "READY").`)
+    }
+
+    if (this.LOCK_STATE !== WalletLockState.UNLOCKED) {
+      throw new Error(`ElectraJs.Wallet:
+        The wallet is currently locked. You need to #unlock() it first with <forStakingOnly> param to FALSE.
+      `)
+    }
+
+    const address: Address = Electra.getDerivedChainFromMasterNodePrivateKey(
+      (this.MASTER_NODE_ADDRESS as WalletAddress).privateKey,
+      WALLET_INDEX,
+      this.ADDRESSES.length
+    )
+
+    await this.injectAddressInDaemon(address.privateKey)
+
+    this.ADDRESSES.push({
+      ...R.omit<Omit<Address, 'isCiphered' | 'privateKey'>>(['isCiphered', 'privateKey'], address),
+      label: null
+    })
+  }
+
+  /**
    * Lock the wallet, that is cipher all its private keys.
    */
   public async lock(passphrase?: string): Promise<void> {

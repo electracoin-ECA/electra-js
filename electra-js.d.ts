@@ -157,14 +157,14 @@ export interface WalletHard {
   reset(): void;
   start(data: WalletStartDataHard): void;
 
+  createAddress(): Promise<void>
   importRandomAddress(privateKey: string, passphrase?: string): Promise<void>;
-
   lock(passphrase: string): Promise<void>;
+  send(amount: number, toAddressHash: string, fromAddressHash?: string): Promise<void>;
   unlock(passphrase: string, forStakingOnly?: boolean): Promise<void>;
 
   getBalance(addressHash?: string): Promise<WalletBalance>;
   getInfo(): Promise<WalletInfo>;
-  send(amount: number, toAddressHash: string, fromAddressHash?: string): Promise<void>;
   getTransactions(count?: number): Promise<WalletTransaction[]>;
   getTransaction(transactionHash: string): Promise<WalletTransaction | undefined>;
 }
