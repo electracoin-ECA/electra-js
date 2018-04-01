@@ -11771,7 +11771,7 @@ const SETTINGS_DEFAULT = {
  * ElectraJs version.
  * DO NOT CHANGE THIS LINE SINCE THE VERSION IS AUTOMATICALLY INJECTED !
  */
-const VERSION = '0.11.2';
+const VERSION = '0.11.3';
 /**
  * Main ElectraJS class.
  */
@@ -12133,6 +12133,24 @@ class WalletHard {
                 label: null,
             }));
             this.STATE = types_1.WalletState.READY;
+        });
+    }
+    /**
+     * Create a new HD chain address.
+     */
+    createAddress() {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (this.STATE !== types_1.WalletState.READY) {
+                throw new Error(`ElectraJs.Wallet: The #export() method can only be called on a ready wallet (#state = "READY").`);
+            }
+            if (this.LOCK_STATE !== types_1.WalletLockState.UNLOCKED) {
+                throw new Error(`ElectraJs.Wallet:
+        The wallet is currently locked. You need to #unlock() it first with <forStakingOnly> param to FALSE.
+      `);
+            }
+            const address = electra_1.default.getDerivedChainFromMasterNodePrivateKey(this.MASTER_NODE_ADDRESS.privateKey, WALLET_INDEX, this.ADDRESSES.length);
+            yield this.injectAddressInDaemon(address.privateKey);
+            this.ADDRESSES.push(Object.assign({}, R.omit(['isCiphered', 'privateKey'], address), { label: null }));
         });
     }
     /**
