@@ -1,10 +1,15 @@
 language: node_js
 
-node_js:
-  - "9.4"
+os:
+  - linux
+  - osx
 
-before_install:
-  - sudo apt-get install -qq google-chrome-stable
+node_js:
+  - "9"
+  - "8"
+
+addons:
+  chrome: stable
 
 notifications:
   email: false
