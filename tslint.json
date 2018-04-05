@@ -8,6 +8,7 @@
     "max-line-length": [true, 120],
     "member-ordering": [false],
     "newline-per-chained-call": [false],
+    "no-console": [true, "log"],
     "no-default-export": [false],
     "no-implicit-dependencies": [true, "dev"],
     "no-inferrable-types": [false],
