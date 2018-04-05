@@ -32,12 +32,12 @@ function download(githubPath, name, size) {
 }
 
 const BINARY = {
-  /*'darwin': {
-    name: 'electrad-macos',
-    githubPath: '/Electra-project/Electra/releases/download/v1.2.0-beta.1/electrad-macos',
-    b2sum: 'd062f087531f6f99c75428dbfbdd4f94d4ceb962e422ff28528256b72b6404a1162ca0a8d0455223f84c88f76d04718b03fe365189f11ae7f9c3e63c17244618',
-    size: 18828580,
-  },*/
+  'darwin': {
+    name: 'electrad-darwin.zip',
+    githubPath: '/Electra-project/Electra-JS/releases/download/v0.11.1/Electra-darwin.zip',
+    b2sum: 'e75f1bbed63d3c9548418b26f39255a3c427a782df27a949c72a7cee548171decb363b1467abf068d5981c2d20add22d775319f8a3b4b7b0136461825a08e2ed',
+    size: 72837450,
+  },
   'linux': {
     name: 'Electra-linux.zip',
     githubPath: '/Electra-project/Electra-JS/releases/download/v0.11.1/Electra-linux.zip',
