@@ -5,11 +5,11 @@ import * as bip39 from 'bip39'
 import chalk from 'chalk'
 import * as childProcess from 'child_process'
 import * as dotenv from 'dotenv'
+import * as extractZip from 'extract-zip'
 import * as fs from 'fs'
 import * as path from 'path'
 import * as ProgressBar from 'progress'
 import * as rimraf from 'rimraf'
-import * as unzip from 'unzip'
 
 import WalletHard from '.'
 import { DAEMON_USER_DIR_PATH } from '../../constants'
@@ -78,7 +78,7 @@ if (([
 describe('Wallet (hard)', function() {
   let wallet: WalletHard
 
-  this.timeout(20000)
+  this.timeout(30000)
 
   before(async function() {
     // Close potential already running daemons
@@ -91,17 +91,14 @@ describe('Wallet (hard)', function() {
 
     await wait(1000)
 
-    // Create the daemon user directory
-    console.log(chalk.green('    ♦ Creating Electra daemon user directory...'))
-    fs.mkdirSync(DAEMON_USER_DIR_PATH)
-
     console.log(chalk.green('    ♦ Copying stored blockchain data...'))
     await new Promise(resolve => {
       // Copy the blockchain data
-      fs
-        .createReadStream(path.resolve(__dirname, `../../../test/data/Electra-${process.platform}.zip`))
-        .once('close', resolve)
-        .pipe(unzip.Extract({ path: path.resolve(DAEMON_USER_DIR_PATH, '..') }))
+      extractZip(
+        path.resolve(process.cwd(), `test/data/Electra-${process.platform}.zip`),
+        { dir: path.resolve(DAEMON_USER_DIR_PATH, '..') },
+        resolve
+      )
     })
   })
 
@@ -232,10 +229,10 @@ describe('Wallet (hard)', function() {
     })
   })
 
-  describe.skip(`AFTER downloading the blockchain`, function() {
+  describe(`AFTER downloading the blockchain`, function() {
     it(`#getTransactions() SHOULD return an array with a length greater than 0`, async () =>
       assert.strictEqual((await wallet.getTransactions()).length > 0, true))
-    it(`#getBalance() SHOULD return an confirmed balanced greater than 0`, async () =>
+    it(`#getBalance() SHOULD return a confirmed balanced greater than 0`, async () =>
       assert.strictEqual((await wallet.getBalance()).confirmed > 0, true))
   })
 

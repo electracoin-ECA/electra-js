@@ -81,6 +81,9 @@ export default class WalletHard {
   /** Is it a brand new wallet (= no pre-existing ".Electra directory") ? */
   public isNew: boolean
 
+  /** Does this wallet instance have been started before ? */
+  public isFirstStart: boolean = true
+
   /** Is this wallet locked ? */
   private LOCK_STATE: WalletLockState | undefined
   /**
@@ -197,7 +200,10 @@ export default class WalletHard {
     this.DAEMON_STATE = WalletDaemonState.STARTING
 
     // Stop any existing Electra deamon process first
-    await closeElectraDaemons()
+    if (this.isFirstStart) {
+      await closeElectraDaemons()
+      this.isFirstStart = false
+    }
 
     // Inject Electra.conf file if it doesn't already exist
     const [err1] = tryCatch(injectElectraConfig)
@@ -207,48 +213,45 @@ export default class WalletHard {
       // TODO Temporary hack for dev while the Windows binary is being fixed
       const binaryPath: string = BINARIES_PATH as string
 
-      // TODO An Everyone:F may be too much...
-      // tslint:disable-next-line:no-require-imports
-      // require('child_process').execSync(`icacls ${binaryPath} /grant Everyone:F`)
-
-      // tslint:disable-next-line:no-require-imports
-      this.daemon = require('child_process').exec(binaryPath) as ChildProcess
-
-      // TODO Add a debug mode in ElectraJs settings
-      this.daemon.stdout.setEncoding('utf8').on('data', console.log.bind(this))
-      this.daemon.stderr.setEncoding('utf8').on('data', console.log.bind(this))
-
-      this.daemon.on('close', (code: number) => {
-        this.DAEMON_STATE = WalletDaemonState.STOPPED
-
-        // tslint:disable-next-line:no-console
-        console.log(`The wallet daemon exited with the code: ${code}.`)
-      })
+      try {
+        // tslint:disable-next-line:no-require-imports
+        this.daemon = require('child_process').exec(binaryPath) as ChildProcess
+      }
+      catch (err) {
+        throw err
+      }
     } else {
       const binaryPath: string = `${this.binariesPath}/${PLATFORM_BINARY[process.platform]}`
 
-      // tslint:disable-next-line:no-require-imports
-      this.daemon = require('child_process').spawn(
-        binaryPath,
-        [
-        `--deamon=1`,
-        `--port=${DAEMON_CONFIG.port}`,
-        `--rpcuser=${DAEMON_CONFIG.rpcuser}`,
-        `--rpcpassword=${DAEMON_CONFIG.rpcpassword}`,
-        `--rpcport=${DAEMON_CONFIG.rpcport}`
-        ]) as ChildProcess
-
-      // TODO Add a debug mode in ElectraJs settings
-      this.daemon.stdout.setEncoding('utf8').on('data', console.log.bind(this))
-      this.daemon.stderr.setEncoding('utf8').on('data', console.log.bind(this))
-
-      this.daemon.on('close', (code: number) => {
-        this.DAEMON_STATE = WalletDaemonState.STOPPED
-
-        // tslint:disable-next-line:no-console
-        console.log(`The wallet daemon exited with the code: ${code}.`)
-      })
+      try {
+        // tslint:disable-next-line:no-require-imports
+        this.daemon = require('child_process').spawn(
+          binaryPath,
+          [
+            `--deamon=1`,
+            `--port=${DAEMON_CONFIG.port}`,
+            `--rpcuser=${DAEMON_CONFIG.rpcuser}`,
+            `--rpcpassword=${DAEMON_CONFIG.rpcpassword}`,
+            `--rpcport=${DAEMON_CONFIG.rpcport}`
+          ]
+        ) as ChildProcess
+      }
+      catch (err) {
+        throw err
+      }
     }
+
+    // TODO Add a debug mode in ElectraJs settings
+    this.daemon.stdout.setEncoding('utf8').on('data', console.log.bind(this))
+    this.daemon.stderr.setEncoding('utf8').on('data', console.log.bind(this))
+
+    this.daemon.on('close', (code: number) => {
+      this.DAEMON_STATE = WalletDaemonState.STOPPED
+      console.warn(`The wallet daemon process closed with the code: ${code}.`)
+    })
+    this.daemon.on('exit', (code: number) => {
+      console.warn(`The wallet daemon process exited with the code: ${code}.`)
+    })
 
     while (this.DAEMON_STATE === WalletDaemonState.STARTING) {
       const [err2] = await to(this.rpc.getInfo())
@@ -265,17 +268,10 @@ export default class WalletHard {
   public async stopDaemon(): Promise<void> {
     this.DAEMON_STATE = WalletDaemonState.STOPPING
 
-    await closeElectraDaemons()
-
-    // Dirty hack since we have no idea how long the deamon process will take to be killed
-    /*while ((this.DAEMON_STATE as WalletDaemonState) !== WalletDaemonState.STOPPED) {
+    await this.rpc.stop()
+    while ((this.DAEMON_STATE as WalletDaemonState) !== WalletDaemonState.STOPPED) {
       // tslint:disable-next-line:no-magic-numbers
       await wait(250)
-    }*/
-
-    if ((this.DAEMON_STATE as WalletDaemonState) !== WalletDaemonState.STOPPED) {
-      this.DAEMON_STATE = WalletDaemonState.STOPPED
-      if (this.daemon !== undefined) this.daemon.kill()
     }
   }
 

@@ -32,7 +32,7 @@ function toArrayOfLines(output: string): string[] {
 }
 
 export default async function(): Promise<void> {
-  // if (await isPortAvailable(Number(DAEMON_CONFIG.port))) return
+  if (await isPortAvailable(Number(DAEMON_CONFIG.port))) return
 
   const rpc = new Rpc(DAEMON_URI, {
     password: DAEMON_CONFIG.rpcpassword,
@@ -43,16 +43,21 @@ export default async function(): Promise<void> {
   try {
     await rpc.stop()
 
+    while (!await isPortAvailable(Number(DAEMON_CONFIG.rpcport))) {
+      await wait(250)
+    }
     // Let's wait for 2s to let the daemon close
-    await wait(2000)
+    // await wait(2000)
   }
-  catch(err) { /* We can ignore any error here. */ }
-
-  if (isPortAvailable(Number(DAEMON_CONFIG.rpcport))) return
+  catch(err) {
+    console.error(err)
+  }
 
   if (process.platform === 'win32') {
     // Last resort force kill
     await to(exec(`FOR /F "tokens=4 delims= " %%P IN ('netstat -a -n -o ^| findstr :${DAEMON_CONFIG.rpcport}') DO TaskKill.exe /PID %%P`))
+
+    return
   }
 
   const [err, stdout] = await to(exec(`lsof | grep :${DAEMON_CONFIG.rpcport}`))
@@ -70,7 +75,7 @@ export default async function(): Promise<void> {
     }
   }
 
-  if (isPortAvailable(Number(DAEMON_CONFIG.rpcport))) return
+  if (await isPortAvailable(Number(DAEMON_CONFIG.rpcport))) return
 
   // Last resort force kill
   // TODO Is it a possible case after a tree-kill ?
