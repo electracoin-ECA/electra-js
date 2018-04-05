@@ -6,8 +6,6 @@ export default function() {
   const electraConfigFilePath = `${DAEMON_USER_DIR_PATH}/Electra.conf`
   const fs = require('fs')
 
-  if (fs.existsSync(electraConfigFilePath)) return
-
   if (!fs.existsSync(DAEMON_USER_DIR_PATH)) {
     fs.mkdirSync(DAEMON_USER_DIR_PATH)
   }
