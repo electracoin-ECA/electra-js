@@ -11771,7 +11771,7 @@ const SETTINGS_DEFAULT = {
  * ElectraJs version.
  * DO NOT CHANGE THIS LINE SINCE THE VERSION IS AUTOMATICALLY INJECTED !
  */
-const VERSION = '0.11.3';
+const VERSION = '0.11.4';
 /**
  * Main ElectraJS class.
  */
@@ -11847,6 +11847,8 @@ class WalletHard {
     constructor(binariesPath = constants_1.BINARIES_PATH) {
         /** List of the wallet HD addresses. */
         this.ADDRESSES = [];
+        /** Does this wallet instance have been started before ? */
+        this.isFirstStart = true;
         /** List of the wallet random (non-HD) addresses. */
         this.RANDOM_ADDRESSES = [];
         this.binariesPath = binariesPath;
@@ -11947,7 +11949,10 @@ class WalletHard {
         return __awaiter(this, void 0, void 0, function* () {
             this.DAEMON_STATE = types_1.WalletDaemonState.STARTING;
             // Stop any existing Electra deamon process first
-            yield closeElectraDaemons_1.default();
+            if (this.isFirstStart) {
+                yield closeElectraDaemons_1.default();
+                this.isFirstStart = false;
+            }
             // Inject Electra.conf file if it doesn't already exist
             const [err1] = tryCatch_1.default(injectElectraConfig_1.default);
             if (err1 !== undefined)
@@ -11955,39 +11960,40 @@ class WalletHard {
             if (process.platform === 'win32') {
                 // TODO Temporary hack for dev while the Windows binary is being fixed
                 const binaryPath = constants_1.BINARIES_PATH;
-                // TODO An Everyone:F may be too much...
-                // tslint:disable-next-line:no-require-imports
-                // require('child_process').execSync(`icacls ${binaryPath} /grant Everyone:F`)
-                // tslint:disable-next-line:no-require-imports
-                this.daemon = __webpack_require__(56).exec(binaryPath);
-                // TODO Add a debug mode in ElectraJs settings
-                this.daemon.stdout.setEncoding('utf8').on('data', console.log.bind(this));
-                this.daemon.stderr.setEncoding('utf8').on('data', console.log.bind(this));
-                this.daemon.on('close', (code) => {
-                    this.DAEMON_STATE = types_1.WalletDaemonState.STOPPED;
-                    // tslint:disable-next-line:no-console
-                    console.log(`The wallet daemon exited with the code: ${code}.`);
-                });
+                try {
+                    // tslint:disable-next-line:no-require-imports
+                    this.daemon = __webpack_require__(56).exec(binaryPath);
+                }
+                catch (err) {
+                    throw err;
+                }
             }
             else {
                 const binaryPath = `${this.binariesPath}/${PLATFORM_BINARY[process.platform]}`;
-                // tslint:disable-next-line:no-require-imports
-                this.daemon = __webpack_require__(56).spawn(binaryPath, [
-                    `--deamon=1`,
-                    `--port=${constants_1.DAEMON_CONFIG.port}`,
-                    `--rpcuser=${constants_1.DAEMON_CONFIG.rpcuser}`,
-                    `--rpcpassword=${constants_1.DAEMON_CONFIG.rpcpassword}`,
-                    `--rpcport=${constants_1.DAEMON_CONFIG.rpcport}`
-                ]);
-                // TODO Add a debug mode in ElectraJs settings
-                this.daemon.stdout.setEncoding('utf8').on('data', console.log.bind(this));
-                this.daemon.stderr.setEncoding('utf8').on('data', console.log.bind(this));
-                this.daemon.on('close', (code) => {
-                    this.DAEMON_STATE = types_1.WalletDaemonState.STOPPED;
-                    // tslint:disable-next-line:no-console
-                    console.log(`The wallet daemon exited with the code: ${code}.`);
-                });
+                try {
+                    // tslint:disable-next-line:no-require-imports
+                    this.daemon = __webpack_require__(56).spawn(binaryPath, [
+                        `--deamon=1`,
+                        `--port=${constants_1.DAEMON_CONFIG.port}`,
+                        `--rpcuser=${constants_1.DAEMON_CONFIG.rpcuser}`,
+                        `--rpcpassword=${constants_1.DAEMON_CONFIG.rpcpassword}`,
+                        `--rpcport=${constants_1.DAEMON_CONFIG.rpcport}`
+                    ]);
+                }
+                catch (err) {
+                    throw err;
+                }
             }
+            // TODO Add a debug mode in ElectraJs settings
+            this.daemon.stdout.setEncoding('utf8').on('data', console.log.bind(this));
+            this.daemon.stderr.setEncoding('utf8').on('data', console.log.bind(this));
+            this.daemon.on('close', (code) => {
+                this.DAEMON_STATE = types_1.WalletDaemonState.STOPPED;
+                console.warn(`The wallet daemon process closed with the code: ${code}.`);
+            });
+            this.daemon.on('exit', (code) => {
+                console.warn(`The wallet daemon process exited with the code: ${code}.`);
+            });
             while (this.DAEMON_STATE === types_1.WalletDaemonState.STARTING) {
                 const [err2] = yield await_to_js_1.default(this.rpc.getInfo());
                 if (err2 === null) {
@@ -12003,16 +12009,10 @@ class WalletHard {
     stopDaemon() {
         return __awaiter(this, void 0, void 0, function* () {
             this.DAEMON_STATE = types_1.WalletDaemonState.STOPPING;
-            yield closeElectraDaemons_1.default();
-            // Dirty hack since we have no idea how long the deamon process will take to be killed
-            /*while ((this.DAEMON_STATE as WalletDaemonState) !== WalletDaemonState.STOPPED) {
-              // tslint:disable-next-line:no-magic-numbers
-              await wait(250)
-            }*/
-            if (this.DAEMON_STATE !== types_1.WalletDaemonState.STOPPED) {
-                this.DAEMON_STATE = types_1.WalletDaemonState.STOPPED;
-                if (this.daemon !== undefined)
-                    this.daemon.kill();
+            yield this.rpc.stop();
+            while (this.DAEMON_STATE !== types_1.WalletDaemonState.STOPPED) {
+                // tslint:disable-next-line:no-magic-numbers
+                yield wait_1.default(250);
             }
         });
     }
@@ -20573,7 +20573,8 @@ function toArrayOfLines(output) {
 }
 function default_1() {
     return __awaiter(this, void 0, void 0, function* () {
-        // if (await isPortAvailable(Number(DAEMON_CONFIG.port))) return
+        if (yield isPortAvailable_1.default(Number(constants_1.DAEMON_CONFIG.port)))
+            return;
         const rpc = new rpc_1.default(constants_1.DAEMON_URI, {
             password: constants_1.DAEMON_CONFIG.rpcpassword,
             username: constants_1.DAEMON_CONFIG.rpcuser,
@@ -20581,15 +20582,19 @@ function default_1() {
         // First, we can try to send a simple "stop" command
         try {
             yield rpc.stop();
+            while (!(yield isPortAvailable_1.default(Number(constants_1.DAEMON_CONFIG.rpcport)))) {
+                yield wait_1.default(250);
+            }
             // Let's wait for 2s to let the daemon close
-            yield wait_1.default(2000);
+            // await wait(2000)
         }
-        catch (err) { /* We can ignore any error here. */ }
-        if (isPortAvailable_1.default(Number(constants_1.DAEMON_CONFIG.rpcport)))
-            return;
+        catch (err) {
+            console.error(err);
+        }
         if (process.platform === 'win32') {
             // Last resort force kill
             yield await_to_js_1.default(exec(`FOR /F "tokens=4 delims= " %%P IN ('netstat -a -n -o ^| findstr :${constants_1.DAEMON_CONFIG.rpcport}') DO TaskKill.exe /PID %%P`));
+            return;
         }
         const [err, stdout] = yield await_to_js_1.default(exec(`lsof | grep :${constants_1.DAEMON_CONFIG.rpcport}`));
         if (err === null && stdout !== undefined) {
@@ -20605,7 +20610,7 @@ function default_1() {
                 __webpack_require__(423)(daemonPid, 'SIGKILL');
             }
         }
-        if (isPortAvailable_1.default(Number(constants_1.DAEMON_CONFIG.rpcport)))
+        if (yield isPortAvailable_1.default(Number(constants_1.DAEMON_CONFIG.rpcport)))
             return;
         // Last resort force kill
         // TODO Is it a possible case after a tree-kill ?
@@ -22200,7 +22205,7 @@ module.exports = require("zlib");
 /* 410 */
 /***/ (function(module, exports) {
 
-module.exports = {"_args":[["axios@0.17.1","C:\\Users\\ivang\\Workspace\\Electra-JS"]],"_from":"axios@0.17.1","_id":"axios@0.17.1","_inBundle":false,"_integrity":"sha1-LY4+XQvb1zJ/kbyBT1xXZg+Bgk0=","_location":"/axios","_phantomChildren":{},"_requested":{"type":"version","registry":true,"raw":"axios@0.17.1","name":"axios","escapedName":"axios","rawSpec":"0.17.1","saveSpec":null,"fetchSpec":"0.17.1"},"_requiredBy":["/"],"_resolved":"https://registry.npmjs.org/axios/-/axios-0.17.1.tgz","_spec":"0.17.1","_where":"C:\\Users\\ivang\\Workspace\\Electra-JS","author":{"name":"Matt Zabriskie"},"browser":{"./lib/adapters/http.js":"./lib/adapters/xhr.js"},"bugs":{"url":"https://github.com/axios/axios/issues"},"bundlesize":[{"path":"./dist/axios.min.js","threshold":"5kB"}],"dependencies":{"follow-redirects":"^1.2.5","is-buffer":"^1.1.5"},"description":"Promise based HTTP client for the browser and node.js","devDependencies":{"bundlesize":"^0.5.7","coveralls":"^2.11.9","es6-promise":"^4.0.5","grunt":"^1.0.1","grunt-banner":"^0.6.0","grunt-cli":"^1.2.0","grunt-contrib-clean":"^1.0.0","grunt-contrib-nodeunit":"^1.0.0","grunt-contrib-watch":"^1.0.0","grunt-eslint":"^19.0.0","grunt-karma":"^2.0.0","grunt-ts":"^6.0.0-beta.3","grunt-webpack":"^1.0.18","istanbul-instrumenter-loader":"^1.0.0","jasmine-core":"^2.4.1","karma":"^1.3.0","karma-chrome-launcher":"^2.0.0","karma-coverage":"^1.0.0","karma-firefox-launcher":"^1.0.0","karma-jasmine":"^1.0.2","karma-jasmine-ajax":"^0.1.13","karma-opera-launcher":"^1.0.0","karma-phantomjs-launcher":"^1.0.0","karma-safari-launcher":"^1.0.0","karma-sauce-launcher":"^1.1.0","karma-sinon":"^1.0.5","karma-sourcemap-loader":"^0.3.7","karma-webpack":"^1.7.0","load-grunt-tasks":"^3.5.2","minimist":"^1.2.0","phantomjs-prebuilt":"^2.1.7","sinon":"^1.17.4","typescript":"^2.0.3","url-search-params":"^0.6.1","webpack":"^1.13.1","webpack-dev-server":"^1.14.1"},"homepage":"https://github.com/axios/axios","keywords":["xhr","http","ajax","promise","node"],"license":"MIT","main":"index.js","name":"axios","repository":{"type":"git","url":"git+https://github.com/axios/axios.git"},"scripts":{"build":"NODE_ENV=production grunt build","coveralls":"cat coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js","examples":"node ./examples/server.js","postversion":"git push && git push --tags","preversion":"npm test","start":"node ./sandbox/server.js","test":"grunt test && bundlesize","version":"npm run build && grunt version && git add -A dist && git add CHANGELOG.md bower.json package.json"},"typings":"./index.d.ts","version":"0.17.1"}
+module.exports = {"_args":[["axios@0.17.1","/Users/igabriele/Workspace/Electra-JS"]],"_from":"axios@0.17.1","_id":"axios@0.17.1","_inBundle":false,"_integrity":"sha1-LY4+XQvb1zJ/kbyBT1xXZg+Bgk0=","_location":"/axios","_phantomChildren":{},"_requested":{"type":"version","registry":true,"raw":"axios@0.17.1","name":"axios","escapedName":"axios","rawSpec":"0.17.1","saveSpec":null,"fetchSpec":"0.17.1"},"_requiredBy":["/"],"_resolved":"https://registry.npmjs.org/axios/-/axios-0.17.1.tgz","_spec":"0.17.1","_where":"/Users/igabriele/Workspace/Electra-JS","author":{"name":"Matt Zabriskie"},"browser":{"./lib/adapters/http.js":"./lib/adapters/xhr.js"},"bugs":{"url":"https://github.com/axios/axios/issues"},"bundlesize":[{"path":"./dist/axios.min.js","threshold":"5kB"}],"dependencies":{"follow-redirects":"^1.2.5","is-buffer":"^1.1.5"},"description":"Promise based HTTP client for the browser and node.js","devDependencies":{"bundlesize":"^0.5.7","coveralls":"^2.11.9","es6-promise":"^4.0.5","grunt":"^1.0.1","grunt-banner":"^0.6.0","grunt-cli":"^1.2.0","grunt-contrib-clean":"^1.0.0","grunt-contrib-nodeunit":"^1.0.0","grunt-contrib-watch":"^1.0.0","grunt-eslint":"^19.0.0","grunt-karma":"^2.0.0","grunt-ts":"^6.0.0-beta.3","grunt-webpack":"^1.0.18","istanbul-instrumenter-loader":"^1.0.0","jasmine-core":"^2.4.1","karma":"^1.3.0","karma-chrome-launcher":"^2.0.0","karma-coverage":"^1.0.0","karma-firefox-launcher":"^1.0.0","karma-jasmine":"^1.0.2","karma-jasmine-ajax":"^0.1.13","karma-opera-launcher":"^1.0.0","karma-phantomjs-launcher":"^1.0.0","karma-safari-launcher":"^1.0.0","karma-sauce-launcher":"^1.1.0","karma-sinon":"^1.0.5","karma-sourcemap-loader":"^0.3.7","karma-webpack":"^1.7.0","load-grunt-tasks":"^3.5.2","minimist":"^1.2.0","phantomjs-prebuilt":"^2.1.7","sinon":"^1.17.4","typescript":"^2.0.3","url-search-params":"^0.6.1","webpack":"^1.13.1","webpack-dev-server":"^1.14.1"},"homepage":"https://github.com/axios/axios","keywords":["xhr","http","ajax","promise","node"],"license":"MIT","main":"index.js","name":"axios","repository":{"type":"git","url":"git+https://github.com/axios/axios.git"},"scripts":{"build":"NODE_ENV=production grunt build","coveralls":"cat coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js","examples":"node ./examples/server.js","postversion":"git push && git push --tags","preversion":"npm test","start":"node ./sandbox/server.js","test":"grunt test && bundlesize","version":"npm run build && grunt version && git add -A dist && git add CHANGELOG.md bower.json package.json"},"typings":"./index.d.ts","version":"0.17.1"}
 
 /***/ }),
 /* 411 */
@@ -22734,8 +22739,6 @@ const constants_1 = __webpack_require__(24);
 function default_1() {
     const electraConfigFilePath = `${constants_1.DAEMON_USER_DIR_PATH}/Electra.conf`;
     const fs = __webpack_require__(166);
-    if (fs.existsSync(electraConfigFilePath))
-        return;
     if (!fs.existsSync(constants_1.DAEMON_USER_DIR_PATH)) {
         fs.mkdirSync(constants_1.DAEMON_USER_DIR_PATH);
     }
@@ -23532,7 +23535,7 @@ module.exports = function xorInplace (a, b) {
 /* 434 */
 /***/ (function(module, exports) {
 
-module.exports = {"_args":[["bigi@1.4.2","C:\\Users\\ivang\\Workspace\\Electra-JS"]],"_from":"bigi@1.4.2","_id":"bigi@1.4.2","_inBundle":false,"_integrity":"sha1-nGZalfiLiwj8Bc/XMfVhhZ1yWCU=","_location":"/bigi","_phantomChildren":{},"_requested":{"type":"version","registry":true,"raw":"bigi@1.4.2","name":"bigi","escapedName":"bigi","rawSpec":"1.4.2","saveSpec":null,"fetchSpec":"1.4.2"},"_requiredBy":["/","/bip38","/bitcoinjs-lib","/ecurve"],"_resolved":"https://registry.npmjs.org/bigi/-/bigi-1.4.2.tgz","_spec":"1.4.2","_where":"C:\\Users\\ivang\\Workspace\\Electra-JS","bugs":{"url":"https://github.com/cryptocoinjs/bigi/issues"},"dependencies":{},"description":"Big integers.","devDependencies":{"coveralls":"^2.11.2","istanbul":"^0.3.5","jshint":"^2.5.1","mocha":"^2.1.0","mochify":"^2.1.0"},"homepage":"https://github.com/cryptocoinjs/bigi#readme","keywords":["cryptography","math","bitcoin","arbitrary","precision","arithmetic","big","integer","int","number","biginteger","bigint","bignumber","decimal","float"],"main":"./lib/index.js","name":"bigi","repository":{"url":"git+https://github.com/cryptocoinjs/bigi.git","type":"git"},"scripts":{"browser-test":"mochify --wd -R spec","coverage":"istanbul cover ./node_modules/.bin/_mocha -- --reporter list test/*.js","coveralls":"npm run-script coverage && node ./node_modules/.bin/coveralls < coverage/lcov.info","jshint":"jshint --config jshint.json lib/*.js ; true","test":"_mocha -- test/*.js","unit":"mocha"},"testling":{"files":"test/*.js","harness":"mocha","browsers":["ie/9..latest","firefox/latest","chrome/latest","safari/6.0..latest","iphone/6.0..latest","android-browser/4.2..latest"]},"version":"1.4.2"}
+module.exports = {"_args":[["bigi@1.4.2","/Users/igabriele/Workspace/Electra-JS"]],"_from":"bigi@1.4.2","_id":"bigi@1.4.2","_inBundle":false,"_integrity":"sha1-nGZalfiLiwj8Bc/XMfVhhZ1yWCU=","_location":"/bigi","_phantomChildren":{},"_requested":{"type":"version","registry":true,"raw":"bigi@1.4.2","name":"bigi","escapedName":"bigi","rawSpec":"1.4.2","saveSpec":null,"fetchSpec":"1.4.2"},"_requiredBy":["/","/bip38","/bitcoinjs-lib","/ecurve"],"_resolved":"https://registry.npmjs.org/bigi/-/bigi-1.4.2.tgz","_spec":"1.4.2","_where":"/Users/igabriele/Workspace/Electra-JS","bugs":{"url":"https://github.com/cryptocoinjs/bigi/issues"},"dependencies":{},"description":"Big integers.","devDependencies":{"coveralls":"^2.11.2","istanbul":"^0.3.5","jshint":"^2.5.1","mocha":"^2.1.0","mochify":"^2.1.0"},"homepage":"https://github.com/cryptocoinjs/bigi#readme","keywords":["cryptography","math","bitcoin","arbitrary","precision","arithmetic","big","integer","int","number","biginteger","bigint","bignumber","decimal","float"],"main":"./lib/index.js","name":"bigi","repository":{"url":"git+https://github.com/cryptocoinjs/bigi.git","type":"git"},"scripts":{"browser-test":"mochify --wd -R spec","coverage":"istanbul cover ./node_modules/.bin/_mocha -- --reporter list test/*.js","coveralls":"npm run-script coverage && node ./node_modules/.bin/coveralls < coverage/lcov.info","jshint":"jshint --config jshint.json lib/*.js ; true","test":"_mocha -- test/*.js","unit":"mocha"},"testling":{"files":"test/*.js","harness":"mocha","browsers":["ie/9..latest","firefox/latest","chrome/latest","safari/6.0..latest","iphone/6.0..latest","android-browser/4.2..latest"]},"version":"1.4.2"}
 
 /***/ }),
 /* 435 */
