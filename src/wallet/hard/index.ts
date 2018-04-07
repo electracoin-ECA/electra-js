@@ -32,7 +32,7 @@ import {
   WalletTransactionType
 } from '../types'
 
-const LIST_TRANSACTIONS_LENGTH: number = 1000000
+const LIST_TRANSACTIONS_LENGTH: number = 1_000_000
 // tslint:disable-next-line:no-magic-numbers
 const ONE_YEAR_IN_SECONDS: number = 60 * 60 * 24 * 365
 const PLATFORM_BINARY: PlatformBinary = {
@@ -200,11 +200,15 @@ export default class WalletHard {
   public async startDaemon(): Promise<void> {
     this.DAEMON_STATE = WalletDaemonState.STARTING
 
-    // Stop any existing Electra deamon process first
-    if (this.isFirstStart || !await isPortAvailable(Number(DAEMON_CONFIG.rpcport))) {
-      await closeElectraDaemons()
-      this.isFirstStart = false
+    if (!this.isFirstStart && this.daemon !== undefined && !await isPortAvailable(Number(DAEMON_CONFIG.rpcport))) {
+      this.DAEMON_STATE = WalletDaemonState.STARTED
+
+      return
     }
+
+    // Stop any existing Electra deamon process first
+    if (this.isFirstStart) this.isFirstStart = false
+    await closeElectraDaemons()
 
     // Inject Electra.conf file if it doesn't already exist
     const [err1] = tryCatch(injectElectraConfig)
