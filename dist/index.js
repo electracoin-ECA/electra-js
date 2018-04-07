@@ -7921,7 +7921,7 @@ class Rpc {
                     }
                     throw new Error(err.data.error.message);
                 }
-                throw new Error(err.message);
+                throw new Error(typeof err === 'string' ? err : err.message);
             }
             if (res === undefined || res.data === undefined) {
                 throw new Error(`We did't get the expected RPC response.`);
@@ -11802,7 +11802,7 @@ const SETTINGS_DEFAULT = {
  * ElectraJs version.
  * DO NOT CHANGE THIS LINE SINCE THE VERSION IS AUTOMATICALLY INJECTED !
  */
-const VERSION = '0.11.7';
+const VERSION = '0.11.8';
 /**
  * Main ElectraJS class.
  */
@@ -11980,11 +11980,14 @@ class WalletHard {
     startDaemon() {
         return __awaiter(this, void 0, void 0, function* () {
             this.DAEMON_STATE = types_1.WalletDaemonState.STARTING;
-            // Stop any existing Electra deamon process first
-            if (this.isFirstStart || !(yield isPortAvailable_1.default(Number(constants_1.DAEMON_CONFIG.rpcport)))) {
-                yield closeElectraDaemons_1.default();
-                this.isFirstStart = false;
+            if (!this.isFirstStart && this.daemon !== undefined && !(yield isPortAvailable_1.default(Number(constants_1.DAEMON_CONFIG.rpcport)))) {
+                this.DAEMON_STATE = types_1.WalletDaemonState.STARTED;
+                return;
             }
+            // Stop any existing Electra deamon process first
+            if (this.isFirstStart)
+                this.isFirstStart = false;
+            yield closeElectraDaemons_1.default();
             // Inject Electra.conf file if it doesn't already exist
             const [err1] = tryCatch_1.default(injectElectraConfig_1.default);
             if (err1 !== undefined)
