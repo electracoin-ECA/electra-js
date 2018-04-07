@@ -60,7 +60,7 @@ export default class Rpc {
         throw new Error(err.data.error.message)
       }
 
-      throw new Error(err.message)
+      throw new Error(typeof err === 'string' ? err : err.message)
     }
 
     if (res === undefined || res.data === undefined) {
