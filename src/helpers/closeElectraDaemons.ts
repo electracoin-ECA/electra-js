@@ -43,11 +43,13 @@ export default async function(): Promise<void> {
   try {
     await rpc.stop()
 
+    // Limit the clean stop attempt to 5s
+    let timeLeft: number = 5000
     while (!await isPortAvailable(Number(DAEMON_CONFIG.rpcport))) {
       await wait(250)
+      timeLeft -= 250
+      if (timeLeft <= 0) break
     }
-    // Let's wait for 2s to let the daemon close
-    // await wait(2000)
   }
   catch(err) {
     console.error(err)
