@@ -8,6 +8,7 @@ import { BINARIES_PATH, DAEMON_CONFIG, DAEMON_URI, DAEMON_USER_DIR_PATH, ECA_TRA
 import closeElectraDaemons from '../../helpers/closeElectraDaemons'
 import getMaxItemFromList from '../../helpers/getMaxItemFromList'
 import injectElectraConfig from '../../helpers/injectElectraConfig'
+import isPortAvailable from '../../helpers/isPortAvailable'
 import tryCatch from '../../helpers/tryCatch'
 import wait from '../../helpers/wait'
 import Crypto from '../../libs/crypto'
@@ -203,6 +204,10 @@ export default class WalletHard {
     if (this.isFirstStart) {
       await closeElectraDaemons()
       this.isFirstStart = false
+    } else {
+      if (!await isPortAvailable(Number(DAEMON_CONFIG.rpcport))) {
+        await this.stopDaemon()
+      }
     }
 
     // Inject Electra.conf file if it doesn't already exist
