@@ -11802,7 +11802,7 @@ const SETTINGS_DEFAULT = {
  * ElectraJs version.
  * DO NOT CHANGE THIS LINE SINCE THE VERSION IS AUTOMATICALLY INJECTED !
  */
-const VERSION = '0.11.6';
+const VERSION = '0.11.7';
 /**
  * Main ElectraJS class.
  */
@@ -11981,14 +11981,9 @@ class WalletHard {
         return __awaiter(this, void 0, void 0, function* () {
             this.DAEMON_STATE = types_1.WalletDaemonState.STARTING;
             // Stop any existing Electra deamon process first
-            if (this.isFirstStart) {
+            if (this.isFirstStart || !(yield isPortAvailable_1.default(Number(constants_1.DAEMON_CONFIG.rpcport)))) {
                 yield closeElectraDaemons_1.default();
                 this.isFirstStart = false;
-            }
-            else {
-                if (!(yield isPortAvailable_1.default(Number(constants_1.DAEMON_CONFIG.rpcport)))) {
-                    yield this.stopDaemon();
-                }
             }
             // Inject Electra.conf file if it doesn't already exist
             const [err1] = tryCatch_1.default(injectElectraConfig_1.default);
@@ -20619,11 +20614,14 @@ function default_1() {
         // First, we can try to send a simple "stop" command
         try {
             yield rpc.stop();
+            // Limit the clean stop attempt to 5s
+            let timeLeft = 5000;
             while (!(yield isPortAvailable_1.default(Number(constants_1.DAEMON_CONFIG.rpcport)))) {
                 yield wait_1.default(250);
+                timeLeft -= 250;
+                if (timeLeft <= 0)
+                    break;
             }
-            // Let's wait for 2s to let the daemon close
-            // await wait(2000)
         }
         catch (err) {
             console.error(err);
