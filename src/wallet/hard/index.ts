@@ -201,13 +201,9 @@ export default class WalletHard {
     this.DAEMON_STATE = WalletDaemonState.STARTING
 
     // Stop any existing Electra deamon process first
-    if (this.isFirstStart) {
+    if (this.isFirstStart || !await isPortAvailable(Number(DAEMON_CONFIG.rpcport))) {
       await closeElectraDaemons()
       this.isFirstStart = false
-    } else {
-      if (!await isPortAvailable(Number(DAEMON_CONFIG.rpcport))) {
-        await this.stopDaemon()
-      }
     }
 
     // Inject Electra.conf file if it doesn't already exist
