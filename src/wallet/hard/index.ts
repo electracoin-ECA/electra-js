@@ -390,8 +390,15 @@ export default class WalletHard {
           addressIndex,
           false,
         )
+        const addressChange: Address = Electra.getDerivedChainFromMasterNodePrivateKey(
+          this.MASTER_NODE_ADDRESS.privateKey,
+          WalletAddressCategory.PURSE,
+          addressIndex,
+          true,
+        )
 
         await this.injectAddressInDaemon(address.privateKey)
+        await this.injectAddressInDaemon(addressChange.privateKey)
 
         this.ADDRESSES.push({
           ...R.omit<Omit<Address, 'isCiphered' | 'privateKey'>>(['isCiphered', 'privateKey'], address),
@@ -655,6 +662,15 @@ export default class WalletHard {
           addressIndex,
           false
         )
+        const addressChange: Address = Electra.getDerivedChainFromMasterNodePrivateKey(
+          this.MASTER_NODE_ADDRESS.privateKey,
+          WalletAddressCategory.PURSE,
+          addressIndex,
+          false
+        )
+
+        await this.injectAddressInDaemon(address.privateKey)
+        await this.injectAddressInDaemon(addressChange.privateKey)
 
         this.ADDRESSES.push({
           ...R.omit<Omit<Address, 'isCiphered' | 'privateKey'>>(['isCiphered', 'privateKey'], address),
