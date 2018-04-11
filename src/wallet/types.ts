@@ -5,7 +5,14 @@ export type PlatformBinary = {
 }
 
 export interface WalletAddress extends Address {
+  category: OrNull<WalletAddressCategory>
   label: OrNull<string>
+}
+
+export enum WalletAddressCategory {
+  CHECKING = 1,
+  PURSE = 0,
+  SAVINGS = 2,
 }
 
 export type WalletAddressWithoutPK = Omit<WalletAddress, 'isCiphered' | 'privateKey'>
@@ -26,6 +33,8 @@ export enum WalletDaemonState {
 export type WalletExchangeFormat = [
   // tslint:disable-next-line:no-magic-numbers
   2,
+  number,
+  number,
   number,
   string,
   string[]

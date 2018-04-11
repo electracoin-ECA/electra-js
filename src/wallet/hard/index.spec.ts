@@ -18,15 +18,37 @@ import assertThen from '../../helpers/assertThen'
 import closeElectraDaemons from '../../helpers/closeElectraDaemons'
 import wait from '../../helpers/wait'
 import Electra from '../../libs/electra/index'
+import { WalletAddressCategory } from '../types'
 
 // Loads ".env" variables into process.env properties
 dotenv.config()
 
 const {
-  HD_CHAIN_1_HASH_TEST,
-  HD_CHAIN_1_PRIVATE_KEY_TEST,
-  HD_CHAIN_2_HASH_TEST,
-  HD_CHAIN_2_PRIVATE_KEY_TEST,
+  HD_PURSE_1_EXTERNAL_HASH_TEST,
+  HD_PURSE_1_EXTERNAL_PK_TEST,
+  HD_PURSE_1_CHANGE_HASH_TEST,
+  HD_PURSE_1_CHANGE_PK_TEST,
+  HD_PURSE_2_EXTERNAL_HASH_TEST,
+  HD_PURSE_2_EXTERNAL_PK_TEST,
+  HD_PURSE_2_CHANGE_HASH_TEST,
+  HD_PURSE_2_CHANGE_PK_TEST,
+  HD_CHECKING_1_EXTERNAL_HASH_TEST,
+  HD_CHECKING_1_EXTERNAL_PK_TEST,
+  HD_CHECKING_1_CHANGE_HASH_TEST,
+  HD_CHECKING_1_CHANGE_PK_TEST,
+  HD_CHECKING_2_EXTERNAL_HASH_TEST,
+  HD_CHECKING_2_EXTERNAL_PK_TEST,
+  HD_CHECKING_2_CHANGE_HASH_TEST,
+  HD_CHECKING_2_CHANGE_PK_TEST,
+  HD_SAVINGS_1_EXTERNAL_HASH_TEST,
+  HD_SAVINGS_1_EXTERNAL_PK_TEST,
+  HD_SAVINGS_1_CHANGE_HASH_TEST,
+  HD_SAVINGS_1_CHANGE_PK_TEST,
+  HD_SAVINGS_2_EXTERNAL_HASH_TEST,
+  HD_SAVINGS_2_EXTERNAL_PK_TEST,
+  HD_SAVINGS_2_CHANGE_HASH_TEST,
+  HD_SAVINGS_2_CHANGE_PK_TEST,
+
   HD_MASTER_NODE_HASH_TEST,
   HD_MASTER_NODE_PRIVATE_KEY_TEST,
   HD_MNEMONIC_EXTENSION_TEST,
@@ -42,40 +64,7 @@ const {
 
 const TEST_AMOUNT = 0.00001
 
-// This HD wallet i seeded by the same wallet mnemonic than the one above, but without the mnemonic extension.
-// As a result, the generated private keys are different and listed here.
-export const HD_WALLET_WITHOUT_MNEMONIC_EXTENSION_TEST = {
-  chains: [
-    { hash: 'EfpfV1KAyq89icrxrXVaDh4E75hVNmFuJT', privateKey: 'Qwny9NruQytsQQe71njNZg4LS7UY2CFjUdCxB32vrbuHdgQatHxY' },
-    { hash: 'EdEaaVZtasPnzgDTKZQkAqLWSGQq6W5xW4', privateKey: 'QqcsbxDZ5rnbkNmFcBLPPbwniyk9CrYPa6NHnFpZ8LBwsNE8BJT2' }
-  ],
-  masterNode: {
-    hash: 'ETzng9niv9Wpjak2LGKG1Q39JjYLsxXQxy',
-    privateKey: 'Qr7N5u52BAUJSk7W4NVS9G9YLG6XE66HRZhcbPJRv6U9jmcyyXaF'
-  },
-}
-
-if (([
-  HD_CHAIN_1_HASH_TEST,
-  HD_CHAIN_1_PRIVATE_KEY_TEST,
-  HD_CHAIN_2_HASH_TEST,
-  HD_CHAIN_2_PRIVATE_KEY_TEST,
-  HD_MASTER_NODE_HASH_TEST,
-  HD_MASTER_NODE_PRIVATE_KEY_TEST,
-  HD_MNEMONIC_EXTENSION_TEST,
-  HD_MNEMONIC_TEST,
-  HD_PASSPHRASE_TEST,
-  RANDOM_ADDRESS_HASH_TEST,
-  RANDOM_ADDRESS_PRIVATE_KEY_TEST,
-  RPC_SERVER_PASSWORD_TEST,
-  RPC_SERVER_URI_TEST,
-  RPC_SERVER_USERNAME_TEST,
-] as any).includes(undefined)) {
-  console.error('Error: You forgot to fill value(s) in your ".env" test wallet data. Please check ".env.sample".')
-  process.exit(1)
-}
-
-describe('Wallet (hard)', function() {
+describe.only('Wallet (hard)', function() {
   let wallet: WalletHard
 
   this.timeout(30000)
@@ -117,14 +106,14 @@ describe('Wallet (hard)', function() {
     it(`#state SHOULD be "EMPTY"`, () => assert.strictEqual(wallet.state, 'EMPTY'))
 
     // it(`#import() SHOULD throw an error`, () => assert.throws(() => wallet.import(`[2,2,"",[]]`, HD_PASSPHRASE_TEST)))
-    it(`#createAddress() SHOULD throw an error`, async () => await assertCatch(() => wallet.createAddress()))
+    it(`#createAddress() SHOULD throw an error`, async () => await assertCatch(() => wallet.createAddress(WalletAddressCategory.PURSE)))
     it(`#export() SHOULD throw an error`, () => assert.throws(() => wallet.export()))
     it(`#getBalance() SHOULD throw an error`, async () => await assertCatch(() => wallet.getBalance()))
     it(`#getInfo() SHOULD throw an error`, async () => await assertCatch(() => wallet.getInfo()))
     it(`#getTransaction() SHOULD throw an error`, async () => await assertCatch(() => wallet.getTransaction(HD_TRANSACTION_TEST)))
     it(`#getTransactions() SHOULD throw an error`, async () => await assertCatch(() => wallet.getTransactions()))
     it(`#lock() SHOULD throw an error`, async () => await assertCatch(() => wallet.lock()))
-    it(`#send() SHOULD throw an error`, async () => await assertCatch(() => wallet.send(TEST_AMOUNT, HD_CHAIN_1_HASH_TEST)))
+    it(`#send() SHOULD throw an error`, async () => await assertCatch(() => wallet.send(TEST_AMOUNT, HD_CHECKING_1_EXTERNAL_HASH_TEST)))
     it(`#unlock() SHOULD throw an error`, async () => await assertCatch(() => wallet.unlock(HD_PASSPHRASE_TEST)))
   })
 
@@ -176,28 +165,20 @@ describe('Wallet (hard)', function() {
 
   describe(`WHEN generating the same wallet WITH <mnemonic>, <mnemonicExtension>, <chainsCount>`, function() {
     it(`#generate() SHOULD NOT throw any error`, async () =>
-      await assertThen(() => wallet.generate(HD_MNEMONIC_TEST, HD_MNEMONIC_EXTENSION_TEST, 2)))
+      await assertThen(() => wallet.generate(HD_MNEMONIC_TEST, HD_MNEMONIC_EXTENSION_TEST, 2, 2, 2)))
   })
 
   describe(`AFTER generating the same wallet`, function() {
     it(`#state SHOULD be "READY"`, () => assert.strictEqual(wallet.state, 'READY'))
 
     it(`#addresses SHOULD be an array`, () => assert.strictEqual(Array.isArray(wallet.addresses), true))
-    it(`#addresses SHOULD contain 2 addresses`, () => assert.strictEqual(wallet.addresses.length, 2))
-    // it(`#addresses first address SHOULD be resolvable`, () =>
-    //   assert.strictEqual(wallet.addresses[0].hash, Electra.getAddressHashFromPrivateKey(wallet.addresses[0].privateKey)))
-    // it(`#addresses first address private key SHOULD be the expected one`, () =>
-    //   assert.strictEqual(wallet.addresses[0].privateKey, HD_CHAIN_1_PRIVATE_KEY_TEST))
+    it(`#addresses SHOULD contain 6 addresses`, () => assert.strictEqual(wallet.addresses.length, 6))
     it(`#addresses first address hash SHOULD be the expected one`, () =>
-      assert.strictEqual(wallet.addresses[0].hash, HD_CHAIN_1_HASH_TEST))
-    // it(`#addresses second address SHOULD be resolvable`, () =>
-    //   assert.strictEqual(wallet.addresses[1].hash, Electra.getAddressHashFromPrivateKey(wallet.addresses[1].privateKey)))
-    // it(`#addresses second address private key SHOULD be the expected one`, () =>
-    //   assert.strictEqual(wallet.addresses[1].privateKey, HD_CHAIN_2_PRIVATE_KEY_TEST))
+      assert.strictEqual(wallet.addresses[0].hash, HD_PURSE_1_EXTERNAL_HASH_TEST))
     it(`#addresses second address hash SHOULD be the expected one`, () =>
-      assert.strictEqual(wallet.addresses[1].hash, HD_CHAIN_2_HASH_TEST))
+      assert.strictEqual(wallet.addresses[1].hash, HD_PURSE_2_EXTERNAL_HASH_TEST))
     it(`#allAddresses SHOULD be an array`, () => assert.strictEqual(Array.isArray(wallet.allAddresses), true))
-    it(`#allAddresses SHOULD contain at least 2 addresses`, () => assert.strictEqual(wallet.allAddresses.length, 2))
+    it(`#allAddresses SHOULD contain 6 addresses`, () => assert.strictEqual(wallet.allAddresses.length, 6))
     it(`#lockState SHOULD be "UNLOCKED"`, () => assert.strictEqual(wallet.lockState, 'UNLOCKED'))
     it(`#mnemonic SHOULD throw an error`, () => assert.throws(() => wallet.mnemonic))
     it(`#randomAddresses SHOULD be an array`, () => assert.strictEqual(Array.isArray(wallet.randomAddresses), true))
@@ -206,17 +187,17 @@ describe('Wallet (hard)', function() {
     it(`#lockState SHOULD be "LOCKED"`, () => assert.strictEqual(wallet.lockState, 'LOCKED'))
     it(`#unlock() SHOULD not throw any error`, async () => await assertThen(() => wallet.unlock(HD_PASSPHRASE_TEST)))
     it(`#lockState SHOULD be "STAKING"`, () => assert.strictEqual(wallet.lockState, 'STAKING'))
-    it(`#send() SHOULD throw an error`, async () => await assertCatch(() => wallet.send(TEST_AMOUNT, HD_CHAIN_2_HASH_TEST)))
+    it(`#send() SHOULD throw an error`, async () => await assertCatch(() => wallet.send(TEST_AMOUNT, HD_CHECKING_2_EXTERNAL_HASH_TEST)))
     it(`#lock() SHOULD not throw any error`, async () => await assertThen(() => wallet.lock()))
     it(`#lockState SHOULD be "LOCKED"`, () => assert.strictEqual(wallet.lockState, 'LOCKED'))
-    it(`#send() SHOULD throw an error`, async () => await assertCatch(() => wallet.send(TEST_AMOUNT, HD_CHAIN_2_HASH_TEST)))
+    it(`#send() SHOULD throw an error`, async () => await assertCatch(() => wallet.send(TEST_AMOUNT, HD_CHECKING_1_EXTERNAL_HASH_TEST)))
     it(`#unlock(<forStakingOnly=FALSE>) SHOULD not throw any error`, async () =>
       await assertThen(() => wallet.unlock(HD_PASSPHRASE_TEST, false)))
     it(`#lockState SHOULD be "UNLOCKED"`, () => assert.strictEqual(wallet.lockState, 'UNLOCKED'))
 
     it.skip(`#send() SHOULD NOT throw any error`, async () => {
-      await assertThen(() => wallet.send(TEST_AMOUNT, HD_CHAIN_2_HASH_TEST))
-      await assertThen(() => wallet.send(TEST_AMOUNT, HD_CHAIN_1_HASH_TEST))
+      await assertThen(() => wallet.send(TEST_AMOUNT, HD_CHECKING_2_EXTERNAL_HASH_TEST))
+      await assertThen(() => wallet.send(TEST_AMOUNT, HD_CHECKING_1_EXTERNAL_HASH_TEST))
     })
 
     it(`#generate() SHOULD throw an error`, async () => await assertCatch(() => wallet.generate()))
@@ -256,7 +237,7 @@ describe('Wallet (hard)', function() {
     })
   })
 
-  describe(`AFTER downloading the blockchain`, function() {
+  describe.skip(`AFTER downloading the blockchain`, function() {
     it(`#getTransactions() SHOULD return an array with a length greater than 0`, async () =>
       assert.strictEqual((await wallet.getTransactions()).length > 0, true))
     it(`#getBalance() SHOULD return a confirmed balanced greater than 0`, async () =>
@@ -264,18 +245,19 @@ describe('Wallet (hard)', function() {
   })
 
   describe(`WHEN creating a new address`, function() {
-    it(`#createAddress() SHOULD NOT throw any error`, async () => await assertThen(() => wallet.createAddress()))
+    it(`#createAddress() SHOULD NOT throw any error`, async () => await assertThen(() => wallet.createAddress(WalletAddressCategory.PURSE)))
   })
 
   describe(`AFTER creating a new address`, function() {
-    it(`#addresses SHOULD contain 3 addresses`, () => assert.strictEqual(wallet.addresses.length, 3))
-    it(`#allAddresses SHOULD contain 3 addresses`, () => assert.strictEqual(wallet.allAddresses.length, 3))
+    it(`#addresses SHOULD contain 7 addresses`, () => assert.strictEqual(wallet.addresses.length, 7))
+    it(`#allAddresses SHOULD contain 7 addresses`, () => assert.strictEqual(wallet.allAddresses.length, 7))
   })
 
   describe(`WHEN starting the same wallet`, function () {
     it(`#start() SHOULD throw an error`, () => assert.throws(() => wallet.start({
       addresses: [],
       masterNodeAddress: {
+        category: null,
         hash: HD_MASTER_NODE_HASH_TEST,
         isCiphered: false,
         isHD: true,
@@ -298,6 +280,7 @@ describe('Wallet (hard)', function() {
     it(`#start() SHOULD NOT throw any error`, () => assert.doesNotThrow(() => wallet.start({
       addresses: [],
       masterNodeAddress: {
+        category: null,
         hash: HD_MASTER_NODE_HASH_TEST,
         isCiphered: false,
         isHD: true,

@@ -9,7 +9,6 @@ import * as fs from 'fs'
 import * as path from 'path'
 import * as ProgressBar from 'progress'
 import * as rimraf from 'rimraf'
-import * as unzip from 'unzip'
 
 import WalletLight from '.'
 import { DAEMON_USER_DIR_PATH } from '../../constants'
@@ -17,8 +16,6 @@ import assertCatch from '../../helpers/assertCatch'
 import closeElectraDaemons from '../../helpers/closeElectraDaemons'
 import wait from '../../helpers/wait'
 import Electra from '../../libs/electra/index'
-
-import { HD_WALLET_WITHOUT_MNEMONIC_EXTENSION_TEST } from '../hard/index.spec'
 
 // Loads ".env" variables into process.env properties
 dotenv.config()
@@ -42,26 +39,6 @@ const {
 } = process.env
 
 const TEST_AMOUNT = 0.00001
-
-if (([
-  HD_CHAIN_1_HASH_TEST,
-  HD_CHAIN_1_PRIVATE_KEY_TEST,
-  HD_CHAIN_2_HASH_TEST,
-  HD_CHAIN_2_PRIVATE_KEY_TEST,
-  HD_MASTER_NODE_HASH_TEST,
-  HD_MASTER_NODE_PRIVATE_KEY_TEST,
-  HD_MNEMONIC_EXTENSION_TEST,
-  HD_MNEMONIC_TEST,
-  HD_PASSPHRASE_TEST,
-  RANDOM_ADDRESS_HASH_TEST,
-  RANDOM_ADDRESS_PRIVATE_KEY_TEST,
-  RPC_SERVER_PASSWORD_TEST,
-  RPC_SERVER_URI_TEST,
-  RPC_SERVER_USERNAME_TEST,
-] as any).includes(undefined)) {
-  console.error('Error: You forgot to fill value(s) in your ".env" test wallet data. Please check ".env.sample".')
-  process.exit(1)
-}
 
 describe.skip('Wallet (light)', function() {
   let wallet: WalletLight
@@ -208,12 +185,12 @@ describe.skip('Wallet (light)', function() {
     it(`#addresses first address SHOULD be resolvable`, () => {
       assert.strictEqual(wallet.addresses[0].hash, Electra.getAddressHashFromPrivateKey(wallet.addresses[0].privateKey))
     })
-    it(`#addresses first address private key SHOULD be the expected one`, () => {
-      assert.strictEqual(wallet.addresses[0].privateKey, HD_WALLET_WITHOUT_MNEMONIC_EXTENSION_TEST.chains[0].privateKey)
-    })
-    it(`#addresses first address hash SHOULD be the expected one`, () => {
-      assert.strictEqual(wallet.addresses[0].hash, HD_WALLET_WITHOUT_MNEMONIC_EXTENSION_TEST.chains[0].hash)
-    })
+    // it(`#addresses first address private key SHOULD be the expected one`, () => {
+    //   assert.strictEqual(wallet.addresses[0].privateKey, HD_WALLET_WITHOUT_MNEMONIC_EXTENSION_TEST.chains[0].privateKey)
+    // })
+    // it(`#addresses first address hash SHOULD be the expected one`, () => {
+    //   assert.strictEqual(wallet.addresses[0].hash, HD_WALLET_WITHOUT_MNEMONIC_EXTENSION_TEST.chains[0].hash)
+    // })
 
     it(`#allAddresses SHOULD be an array`, () => { assert.strictEqual(Array.isArray(wallet.allAddresses), true) })
     it(`#allAddresses SHOULD contain 1 address`, () => { assert.strictEqual(wallet.allAddresses.length, 1) })

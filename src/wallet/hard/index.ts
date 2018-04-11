@@ -20,6 +20,7 @@ import { Address, Omit } from '../../types'
 import {
   PlatformBinary,
   WalletAddress,
+  WalletAddressCategory,
   WalletAddressWithoutPK,
   WalletBalance,
   WalletDaemonState,
@@ -40,7 +41,6 @@ const PLATFORM_BINARY: PlatformBinary = {
   linux: 'electrad-linux',
   win32: 'electrad-windows.exe'
 }
-const WALLET_INDEX: number = 0
 
 /**
  * Wallet management.
@@ -315,7 +315,13 @@ export default class WalletHard {
    *
    * TODO Figure out a way to validate provided mnemonics using different specs (words list & entropy strength).
    */
-  public async generate(mnemonic?: string, mnemonicExtension?: string, chainsCount: number = 1): Promise<void> {
+  public async generate(
+    mnemonic?: string,
+    mnemonicExtension?: string,
+    purseAddressesCount: number = 1,
+    checkingAddressesCount: number = 1,
+    savingsAddressesCount: number = 1,
+  ): Promise<void> {
     if (this.STATE !== WalletState.EMPTY) {
       throw new Error(`ElectraJs.Wallet:
         The #generate() method can only be called on an empty wallet (#state = "EMPTY").
@@ -338,7 +344,7 @@ export default class WalletHard {
     }
 
     /*
-      ----------------------------------
+      --------------------------------------------------
       STEP 1: MNEMONIC
     */
 
@@ -356,45 +362,90 @@ export default class WalletHard {
     }
 
     /*
-      ----------------------------------
-      STEP 2: MASTER NODE
+      --------------------------------------------------
+      STEP 2: HIERARCHICAL DETERMINISTIC MASTER NODE
     */
 
     try {
       const address: Address = Electra.getMasterNodeAddressFromMnemonic(mnemonic, mnemonicExtension)
       this.MASTER_NODE_ADDRESS = {
         ...address,
-        label: null
+        category: null,
+        label: null,
       }
     }
     catch (err) { throw err }
 
     /*
-      ----------------------------------
-      STEP 3: CHAINS
+      --------------------------------------------------
+      STEP 3: COMPREHENSIVE ACCOUNTS ADDRESSES
     */
 
-    let chainIndex: number = -1
+    let addressIndex: number = -1
     try {
-      while (++chainIndex < chainsCount) {
+      while (++addressIndex < purseAddressesCount) {
         const address: Address = Electra.getDerivedChainFromMasterNodePrivateKey(
           this.MASTER_NODE_ADDRESS.privateKey,
-          WALLET_INDEX,
-          chainIndex
+          WalletAddressCategory.PURSE,
+          addressIndex,
+          false,
         )
 
         await this.injectAddressInDaemon(address.privateKey)
 
         this.ADDRESSES.push({
           ...R.omit<Omit<Address, 'isCiphered' | 'privateKey'>>(['isCiphered', 'privateKey'], address),
-          label: null
+          category: WalletAddressCategory.PURSE,
+          label: null,
+        })
+      }
+    }
+    catch (err) { throw err }
+
+    addressIndex = -1
+    try {
+      while (++addressIndex < checkingAddressesCount) {
+        const address: Address = Electra.getDerivedChainFromMasterNodePrivateKey(
+          this.MASTER_NODE_ADDRESS.privateKey,
+          WalletAddressCategory.CHECKING,
+          addressIndex,
+          false,
+        )
+
+        await this.injectAddressInDaemon(address.privateKey)
+
+        this.ADDRESSES.push({
+          ...R.omit<Omit<Address, 'isCiphered' | 'privateKey'>>(['isCiphered', 'privateKey'], address),
+          category: WalletAddressCategory.CHECKING,
+          label: null,
+        })
+      }
+    }
+    catch (err) { throw err }
+
+    addressIndex = -1
+    try {
+      while (++addressIndex < savingsAddressesCount) {
+        const address: Address = Electra.getDerivedChainFromMasterNodePrivateKey(
+          this.MASTER_NODE_ADDRESS.privateKey,
+          WalletAddressCategory.SAVINGS,
+          addressIndex,
+          false,
+        )
+
+        await this.injectAddressInDaemon(address.privateKey)
+
+        this.ADDRESSES.push({
+          ...R.omit<Omit<Address, 'isCiphered' | 'privateKey'>>(['isCiphered', 'privateKey'], address),
+          category: WalletAddressCategory.SAVINGS,
+          label: null,
         })
       }
     }
     catch (err) { throw err }
 
     /*
-      ----------------------------------
+      --------------------------------------------------
       STEP 4: RANDOM ADDRESSES
     */
 
@@ -412,6 +463,7 @@ export default class WalletHard {
 
     // We save the random addresses
     this.RANDOM_ADDRESSES = randomAddresses.map((hash: string) => ({
+      category: null,
       hash,
       isHD: false,
       label: null,
@@ -421,11 +473,12 @@ export default class WalletHard {
   }
 
   /**
-   * Create a new HD chain address.
+   * Create a new Comprehensive Accounts address.
    */
-  public async createAddress(): Promise<void> {
+  public async createAddress(category: WalletAddressCategory): Promise<void> {
     if (this.STATE !== WalletState.READY) {
-      throw new Error(`ElectraJs.Wallet: The #export() method can only be called on a ready wallet (#state = "READY").`)
+      throw new Error(`ElectraJs.Wallet:
+        The #createAddress() method can only be called on a ready wallet (#state = "READY").`)
     }
 
     if (this.LOCK_STATE !== WalletLockState.UNLOCKED) {
@@ -436,14 +489,17 @@ export default class WalletHard {
 
     const address: Address = Electra.getDerivedChainFromMasterNodePrivateKey(
       (this.MASTER_NODE_ADDRESS as WalletAddress).privateKey,
-      WALLET_INDEX,
-      this.ADDRESSES.length
+      category,
+      // tslint:disable-next-line:variable-name
+      this.ADDRESSES.filter(({ category: _category }: WalletAddress) => _category === category).length,
+      false
     )
 
     await this.injectAddressInDaemon(address.privateKey)
 
     this.ADDRESSES.push({
       ...R.omit<Omit<Address, 'isCiphered' | 'privateKey'>>(['isCiphered', 'privateKey'], address),
+      category,
       label: null
     })
   }
@@ -552,7 +608,14 @@ export default class WalletHard {
       `)
     }
 
-    const [version, chainsCount, hdPrivateKeyX, randomPrivateKeysX] = wefData
+    const [
+      version,
+      purseAddressesCount,
+      checkingAddressesCount,
+      savingsAddressesCount,
+      hdPrivateKeyX,
+      randomPrivateKeysX
+    ] = wefData
 
     // tslint:disable-next-line:no-magic-numbers
     if (version !== 2) {
@@ -560,14 +623,15 @@ export default class WalletHard {
     }
 
     /*
-      ----------------------------------
-      STEP 1: MASTER NODE
+      --------------------------------------------------
+      STEP 1: HIERARCHICAL DETERMINISTIC MASTER NODE
     */
 
     try {
       const privateKey: string = Crypto.decipherPrivateKey(hdPrivateKeyX, passphrase)
       const hash: string = Electra.getAddressHashFromPrivateKey(privateKey)
       this.MASTER_NODE_ADDRESS = {
+        category: null,
         hash,
         isCiphered: false,
         isHD: true,
@@ -578,29 +642,69 @@ export default class WalletHard {
     catch (err) { throw err }
 
     /*
-      ----------------------------------
-      STEP 2: CHAINS
+      --------------------------------------------------
+      STEP 2: COMPREHENSIVE ACCOUNTS ADDRESSES
     */
 
-    let chainIndex: number = -1
+    let addressIndex: number = -1
     try {
-      while (++chainIndex < chainsCount) {
+      while (++addressIndex < purseAddressesCount) {
         const address: Address = Electra.getDerivedChainFromMasterNodePrivateKey(
           this.MASTER_NODE_ADDRESS.privateKey,
-          WALLET_INDEX,
-          chainIndex
+          WalletAddressCategory.PURSE,
+          addressIndex,
+          false
         )
 
         this.ADDRESSES.push({
           ...R.omit<Omit<Address, 'isCiphered' | 'privateKey'>>(['isCiphered', 'privateKey'], address),
-          label: null
+          category: WalletAddressCategory.PURSE,
+          label: null,
+        })
+      }
+    }
+    catch (err) { throw err }
+
+    addressIndex = -1
+    try {
+      while (++addressIndex < checkingAddressesCount) {
+        const address: Address = Electra.getDerivedChainFromMasterNodePrivateKey(
+          this.MASTER_NODE_ADDRESS.privateKey,
+          WalletAddressCategory.CHECKING,
+          addressIndex,
+          false
+        )
+
+        this.ADDRESSES.push({
+          ...R.omit<Omit<Address, 'isCiphered' | 'privateKey'>>(['isCiphered', 'privateKey'], address),
+          category: WalletAddressCategory.CHECKING,
+          label: null,
+        })
+      }
+    }
+    catch (err) { throw err }
+
+    addressIndex = -1
+    try {
+      while (++addressIndex < savingsAddressesCount) {
+        const address: Address = Electra.getDerivedChainFromMasterNodePrivateKey(
+          this.MASTER_NODE_ADDRESS.privateKey,
+          WalletAddressCategory.SAVINGS,
+          addressIndex,
+          false
+        )
+
+        this.ADDRESSES.push({
+          ...R.omit<Omit<Address, 'isCiphered' | 'privateKey'>>(['isCiphered', 'privateKey'], address),
+          category: WalletAddressCategory.SAVINGS,
+          label: null,
         })
       }
     }
     catch (err) { throw err }
 
     /*
-      ----------------------------------
+      --------------------------------------------------
       STEP 3: RANDOM ADDRESSES
     */
 
@@ -611,6 +715,7 @@ export default class WalletHard {
         const hash: string = Electra.getAddressHashFromPrivateKey(privateKey)
         await this.injectAddressInDaemon(privateKey)
         this.RANDOM_ADDRESSES.push({
+          category: null,
           hash,
           isHD: true,
           label: null,
@@ -644,7 +749,9 @@ export default class WalletHard {
     const wefData: WalletExchangeFormat = [
       // tslint:disable-next-line:no-magic-numbers
       2,
-      this.ADDRESSES.length,
+      this.ADDRESSES.filter(({ category }: WalletAddress) => category === WalletAddressCategory.PURSE).length,
+      this.ADDRESSES.filter(({ category }: WalletAddress) => category === WalletAddressCategory.CHECKING).length,
+      this.ADDRESSES.filter(({ category }: WalletAddress) => category === WalletAddressCategory.SAVINGS).length,
       (this.MASTER_NODE_ADDRESS as WalletAddress).privateKey,
       this.RANDOM_ADDRESSES.map((address: WalletAddress) => address.privateKey)
     ]
@@ -892,7 +999,7 @@ export default class WalletHard {
   /**
    * Does the daemon user directory exist ?
    */
-  private isDaemonUserDirectory(): boolean {
+  public isDaemonUserDirectory(): boolean {
     // tslint:disable-next-line:no-require-imports
     return (require('fs').existsSync(DAEMON_USER_DIR_PATH) as boolean)
   }

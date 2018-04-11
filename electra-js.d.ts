@@ -61,7 +61,14 @@ export type CoinMarketCapCurrency =
   "TWD" | "USD" | "ZAR";
 
 export interface WalletAddress extends Address {
+  category: OrNull<WalletAddressCategory>;
   label: OrNull<string>;
+}
+
+export enum WalletAddressCategory {
+  CHECKING = 1,
+  PURSE = 0,
+  SAVINGS = 2,
 }
 
 export type WalletAddressWithoutPK = Omit<WalletAddress, 'isCiphered' | 'privateKey'>
@@ -80,6 +87,8 @@ export enum WalletDaemonState {
 
 export type WalletExchangeFormat = [
   2,
+  number,
+  number,
   number,
   string,
   string[]
@@ -151,13 +160,19 @@ export interface WalletHard {
   startDaemon(): Promise<void>;
   stopDaemon(): Promise<void>;
 
-  generate(mnemonic?: string, mnemonicExtension?: string, chainsCount?: number): Promise<void>;
+  generate(
+    mnemonic?: string,
+    mnemonicExtension?: string,
+    purseAddressesCount?: number,
+    checkingAddressesCount?: number,
+    savingsAddressesCount?: number
+  ): Promise<void>;
   import(wefData: WalletExchangeFormat, passphrase: string): Promise<void>;
   export(): string;
   reset(): void;
   start(data: WalletStartDataHard): void;
 
-  createAddress(): Promise<void>
+  createAddress(category: WalletAddressCategory): Promise<void>
   importRandomAddress(privateKey: string, passphrase?: string): Promise<void>;
   lock(passphrase: string): Promise<void>;
   send(amount: number, toAddressHash: string, fromAddressHash?: string): Promise<void>;
