@@ -40,12 +40,22 @@ export const DAEMON_URI: string = `http://127.0.0.1:${DAEMON_CONFIG.rpcport}`
 
 export const DAEMON_USER_DIR_PATH: string | undefined = daemonUserDirPath
 
+// @see https://github.com/Electra-project/Electra/blob/master/src/base58.h#L274
+// @see https://github.com/Electra-project/Electra/blob/master/src/main.cpp#L71
 export const ECA_NETWORK: bitcoinJs.Network = {
   bip32: { public: 0, private: 0 },
-  messagePrefix: '\u0018Electra very Signed Message:\n', // TODO Not sure about that yet !
-  pubKeyHash: 33,
-  scriptHash: 0, // TODO Find this parameter
-  wif: 161 // WIF version
+  messagePrefix: '\x18Electra very Signed Message:\n',
+  pubKeyHash: 0x21,
+  scriptHash: 0x28,
+  wif: 0xA1 // WIF version
+}
+export const ECA_NETWORK_TEST: bitcoinJs.Network = {
+  bip32: { public: 0, private: 0 },
+  messagePrefix: '\x18Electra very Signed Message:\n',
+  pubKeyHash: 0x5C,
+  scriptHash: 0x29,
+  wif: 0xA1 // WIF version
 }
 
-export const ECA_TRANSACTION_FEE: number = 0.00001
+// Value in satochis
+export const ECA_TRANSACTION_FEE: number = 1e3
