@@ -54,6 +54,13 @@ export default class Electra {
   }
 
   /**
+   * Calculate the key pair from a WIF private key.
+   */
+  public static getKeyPairFromPrivateKey(privateKey: string): bitcoinJs.ECPair {
+    return bitcoinJs.ECPair.fromWIF(privateKey, ECA_NETWORK)
+  }
+
+  /**
    * Resolve the Highly Deterministic Wallet Master Node address hash and WIF private key
    * from its associated mnemonic, extended by the mnemonic extension if given.
    *
