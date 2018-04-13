@@ -48,7 +48,7 @@ const BINARY = {
     name: 'Electra-win32.zip',
     githubPath: '/Electra-project/Electra-JS/releases/download/v0.11.8/Electra-win32.zip',
     sha256sum: '1d8de45c8abbcfc9235a00f372292d8625467a780bea08a93a04282005d7bc8f',
-    size: 71_662_526,
+    size: 71662526,
   },
 }
 
