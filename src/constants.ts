@@ -11,10 +11,7 @@ if ((process as NodeJS.Process | undefined) !== undefined) {
   const path = require('path')
   // tslint:enable:no-require-imports no-var-requires typedef
 
-  binariesPath = process.platform === 'win32'
-    // TODO Temporary hack for dev while the Windows binary is being fixed
-    ? '"C:\\Program Files (x86)\\Electracoin\\Electracoin wallet\\Electra-qt.exe"'
-    : path.resolve(__dirname, `../bin`)
+  binariesPath = path.resolve(__dirname, `../bin`)
 
   switch (process.platform) {
     case 'darwin':
