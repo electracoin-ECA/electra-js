@@ -1,16 +1,16 @@
-import { ERRORS } from './constants'
-import { ElectraJsErrorReference } from './types'
+import { EJErrorCode } from './constants'
+
+export { EJErrorCode }
 
 /**
  * Custom ElectraJs error class.
  */
-export default class ElectraJsError<T extends keyof ElectraJsErrorReference> extends Error {
+export default class EJError extends Error {
   /** Error code. */
-  public code: ElectraJsErrorReference[T]
+  public code: EJErrorCode
 
-  public constructor(key: T) {
-    super(key)
-
-    this.code = ERRORS[key]
+  public constructor(code: EJErrorCode) {
+    super(code)
+    this.code = code
   }
 }
