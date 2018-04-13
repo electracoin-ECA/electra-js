@@ -283,28 +283,28 @@ describe('Wallet (hard)', function() {
     })
   })
 
-  describe(`WHEN creating a new PURSE address`, function() {
+  describe.skip(`WHEN creating a new PURSE address`, function() {
     it(`#createAddress() SHOULD NOT throw any error`, async () => await assertThen(() => wallet.createAddress(HD_PASSPHRASE_TEST, WalletAddressCategory.PURSE)))
   })
-  describe(`AFTER creating a new PURSE address`, function() {
+  describe.skip(`AFTER creating a new PURSE address`, function() {
     it(`#purseAddresses SHOULD contain 3 addresses`, () => assert.strictEqual(wallet.purseAddresses.length, 3))
     it(`#addresses SHOULD contain 7 addresses`, () => assert.strictEqual(wallet.addresses.length, 7))
     it(`#allAddresses SHOULD contain 9 addresses`, () => assert.strictEqual(wallet.allAddresses.length, 9))
   })
 
-  describe(`WHEN creating a new CHECKING address`, function() {
+  describe.skip(`WHEN creating a new CHECKING address`, function() {
     it(`#createAddress() SHOULD NOT throw any error`, async () => await assertThen(() => wallet.createAddress(HD_PASSPHRASE_TEST, WalletAddressCategory.CHECKING)))
   })
-  describe(`AFTER creating a new CHECKING address`, function() {
+  describe.skip(`AFTER creating a new CHECKING address`, function() {
     it(`#checkingAddresses SHOULD contain 3 addresses`, () => assert.strictEqual(wallet.checkingAddresses.length, 3))
     it(`#addresses SHOULD contain 8 addresses`, () => assert.strictEqual(wallet.addresses.length, 8))
     it(`#allAddresses SHOULD contain 10 addresses`, () => assert.strictEqual(wallet.allAddresses.length, 10))
   })
 
-  describe(`WHEN creating a new SAVINGS address`, function() {
+  describe.skip(`WHEN creating a new SAVINGS address`, function() {
     it(`#createAddress() SHOULD NOT throw any error`, async () => await assertThen(() => wallet.createAddress(HD_PASSPHRASE_TEST, WalletAddressCategory.SAVINGS)))
   })
-  describe(`AFTER creating a new SAVINGS address`, function() {
+  describe.skip(`AFTER creating a new SAVINGS address`, function() {
     it(`#savingsAddresses SHOULD contain 3 addresses`, () => assert.strictEqual(wallet.savingsAddresses.length, 3))
     it(`#addresses SHOULD contain 9 addresses`, () => assert.strictEqual(wallet.addresses.length, 9))
     it(`#allAddresses SHOULD contain 11 addresses`, () => assert.strictEqual(wallet.allAddresses.length, 11))
