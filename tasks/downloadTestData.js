@@ -34,21 +34,21 @@ function download(githubPath, name, size) {
 const BINARY = {
   'darwin': {
     name: 'Electra-darwin.zip',
-    githubPath: '/Electra-project/Electra-JS/releases/download/v0.11.1/Electra-darwin.zip',
+    githubPath: '/Electra-project/Electra-JS/releases/download/v0.11.8/Electra-darwin.zip',
     sha256sum: '4e2773f51eea83138c1d159d49be5269fba45deeae648da7f0250a1010b2a736',
     size: 72837450,
   },
   'linux': {
     name: 'Electra-linux.zip',
-    githubPath: '/Electra-project/Electra-JS/releases/download/v0.11.1/Electra-linux.zip',
+    githubPath: '/Electra-project/Electra-JS/releases/download/v0.11.8/Electra-linux.zip',
     sha256sum: 'd3166fb24e91c16e3b0027d0e1bd0c36fa267a4d33da6ad2686d0f7e045aef57',
     size: 68851795,
   },
   'win32': {
     name: 'Electra-win32.zip',
-    githubPath: '/Electra-project/Electra-JS/releases/download/v0.11.1/Electra-win32.zip',
-    sha256sum: '10eda43ad2ba224e1c24f5f22b58cece603f6d7eaeef447939893068eeae1404',
-    size: 70492076,
+    githubPath: '/Electra-project/Electra-JS/releases/download/v0.11.8/Electra-win32.zip',
+    sha256sum: '1d8de45c8abbcfc9235a00f372292d8625467a780bea08a93a04282005d7bc8f',
+    size: 71_662_526,
   },
 }
 
