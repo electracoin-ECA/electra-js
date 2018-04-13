@@ -174,7 +174,7 @@ export interface WalletHard {
   getTransactions(count?: number): Promise<WalletTransaction[]>;
   import(wefData: WalletExchangeFormat, passphrase: string): Promise<void>;
   importRandomAddress(privateKey: string, passphrase?: string): Promise<void>;
-  lock(passphrase: string): Promise<void>;
+  lock(passphrase?: string): Promise<void>;
   reset(): void;
   send(amount: number, category: WalletAddressCategory, toAddressHash: string): Promise<void>;
   start(data: WalletStartDataHard): void;
