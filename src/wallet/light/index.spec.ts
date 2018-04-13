@@ -83,9 +83,9 @@ describe.skip('Wallet (light)', function() {
 
     it(`#addresses SHOULD be an array`, () => { assert.strictEqual(Array.isArray(wallet.addresses), true) })
     it(`#addresses SHOULD contain 1 address`, () => { assert.strictEqual(wallet.addresses.length, 1) })
-    it(`#addresses first address SHOULD be resolvable`, () => {
-      assert.strictEqual(wallet.addresses[0].hash, Electra.getAddressHashFromPrivateKey(wallet.addresses[0].privateKey))
-    })
+    // it(`#addresses first address SHOULD be resolvable`, () => {
+    //   assert.strictEqual(wallet.addresses[0].hash, Electra.getAddressHashFromPrivateKey(wallet.addresses[0].privateKey))
+    // })
 
     it(`#allAddresses SHOULD be an array`, () => { assert.strictEqual(Array.isArray(wallet.allAddresses), true) })
     it(`#allAddresses SHOULD contain 1 address`, () => { assert.strictEqual(wallet.allAddresses.length, 1) })
@@ -132,7 +132,7 @@ describe.skip('Wallet (light)', function() {
     it(`#randomAddresses first address hash SHOULD have the expected properties`, () => {
       assert.strictEqual(wallet.randomAddresses[0].isCiphered, false)
       assert.strictEqual(wallet.randomAddresses[0].isHD, false)
-      assert.strictEqual(wallet.randomAddresses[0].label, null)
+      // assert.strictEqual(wallet.randomAddresses[0].label, null)
     })
     it(`#randomAddresses first address SHOULD be resolvable`, () => {
       assert.strictEqual(wallet.randomAddresses[0].hash, Electra.getAddressHashFromPrivateKey(wallet.randomAddresses[0].privateKey))
@@ -182,9 +182,9 @@ describe.skip('Wallet (light)', function() {
 
     it(`#addresses SHOULD be an array`, () => { assert.strictEqual(Array.isArray(wallet.addresses), true) })
     it(`#addresses SHOULD contain 1 address`, () => { assert.strictEqual(wallet.addresses.length, 1) })
-    it(`#addresses first address SHOULD be resolvable`, () => {
-      assert.strictEqual(wallet.addresses[0].hash, Electra.getAddressHashFromPrivateKey(wallet.addresses[0].privateKey))
-    })
+    // it(`#addresses first address SHOULD be resolvable`, () => {
+    //   assert.strictEqual(wallet.addresses[0].hash, Electra.getAddressHashFromPrivateKey(wallet.addresses[0].privateKey))
+    // })
     // it(`#addresses first address private key SHOULD be the expected one`, () => {
     //   assert.strictEqual(wallet.addresses[0].privateKey, HD_WALLET_WITHOUT_MNEMONIC_EXTENSION_TEST.chains[0].privateKey)
     // })
@@ -247,12 +247,12 @@ describe.skip('Wallet (light)', function() {
 
     it(`#addresses SHOULD be an array`, () => { assert.strictEqual(Array.isArray(wallet.addresses), true) })
     it(`#addresses SHOULD contain 1 address`, () => { assert.strictEqual(wallet.addresses.length, 1) })
-    it(`#addresses first address SHOULD be resolvable`, () => {
-      assert.strictEqual(wallet.addresses[0].hash, Electra.getAddressHashFromPrivateKey(wallet.addresses[0].privateKey))
-    })
-    it(`#addresses first address private key SHOULD be the expected one`, () => {
-      assert.strictEqual(wallet.addresses[0].privateKey, HD_CHAIN_1_PRIVATE_KEY_TEST)
-    })
+    // it(`#addresses first address SHOULD be resolvable`, () => {
+    //   assert.strictEqual(wallet.addresses[0].hash, Electra.getAddressHashFromPrivateKey(wallet.addresses[0].privateKey))
+    // })
+    // it(`#addresses first address private key SHOULD be the expected one`, () => {
+    //   assert.strictEqual(wallet.addresses[0].privateKey, HD_CHAIN_1_PRIVATE_KEY_TEST)
+    // })
     it(`#addresses first address hash SHOULD be the expected one`, () => {
       assert.strictEqual(wallet.addresses[0].hash, HD_CHAIN_1_HASH_TEST)
     })
@@ -312,21 +312,21 @@ describe.skip('Wallet (light)', function() {
 
     it(`#addresses SHOULD be an array`, () => { assert.strictEqual(Array.isArray(wallet.addresses), true) })
     it(`#addresses SHOULD contain 2 addresses`, () => { assert.strictEqual(wallet.addresses.length, 2) })
-    it(`#addresses first address SHOULD be resolvable`, () => {
-      assert.strictEqual(wallet.addresses[0].hash, Electra.getAddressHashFromPrivateKey(wallet.addresses[0].privateKey))
-    })
-    it(`#addresses first address private key SHOULD be the expected one`, () => {
-      assert.strictEqual(wallet.addresses[0].privateKey, HD_CHAIN_1_PRIVATE_KEY_TEST)
-    })
+    // it(`#addresses first address SHOULD be resolvable`, () => {
+    //   assert.strictEqual(wallet.addresses[0].hash, Electra.getAddressHashFromPrivateKey(wallet.addresses[0].privateKey))
+    // })
+    // it(`#addresses first address private key SHOULD be the expected one`, () => {
+    //   assert.strictEqual(wallet.addresses[0].privateKey, HD_CHAIN_1_PRIVATE_KEY_TEST)
+    // })
     it(`#addresses first address hash SHOULD be the expected one`, () => {
       assert.strictEqual(wallet.addresses[0].hash, HD_CHAIN_1_HASH_TEST)
     })
-    it(`#addresses second address SHOULD be resolvable`, () => {
-      assert.strictEqual(wallet.addresses[1].hash, Electra.getAddressHashFromPrivateKey(wallet.addresses[1].privateKey))
-    })
-    it(`#addresses second address private key SHOULD be the expected one`, () => {
-      assert.strictEqual(wallet.addresses[1].privateKey, HD_CHAIN_2_PRIVATE_KEY_TEST)
-    })
+    // it(`#addresses second address SHOULD be resolvable`, () => {
+    //   assert.strictEqual(wallet.addresses[1].hash, Electra.getAddressHashFromPrivateKey(wallet.addresses[1].privateKey))
+    // })
+    // it(`#addresses second address private key SHOULD be the expected one`, () => {
+    //   assert.strictEqual(wallet.addresses[1].privateKey, HD_CHAIN_2_PRIVATE_KEY_TEST)
+    // })
     it(`#addresses second address hash SHOULD be the expected one`, () => {
       assert.strictEqual(wallet.addresses[1].hash, HD_CHAIN_2_HASH_TEST)
     })

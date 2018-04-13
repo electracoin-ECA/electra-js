@@ -1,21 +1,23 @@
 import { Address, Omit, OrNull } from '../types'
 
+export type AddressWithoutPK = Omit<Address, 'isCiphered' | 'privateKey'>
+
 export type PlatformBinary = {
   [P in NodeJS.Platform]?: string
 }
 
-export interface WalletAddress extends Address {
+export interface WalletAddress extends Omit<Address, 'isCiphered' | 'privateKey'> {
   category: OrNull<WalletAddressCategory>
+  change: string
   label: OrNull<string>
 }
 
 export enum WalletAddressCategory {
   CHECKING = 1,
   PURSE = 0,
+  RANDOM = 3,
   SAVINGS = 2,
 }
-
-export type WalletAddressWithoutPK = Omit<WalletAddress, 'isCiphered' | 'privateKey'>
 
 export interface WalletBalance {
   confirmed: number
@@ -60,15 +62,15 @@ export enum WalletLockState {
 }
 
 export interface WalletStartDataHard {
-  addresses: WalletAddressWithoutPK[]
-  masterNodeAddress: WalletAddress
-  randomAddresses: WalletAddressWithoutPK[]
+  addresses: WalletAddress[]
+  masterNodeAddress: Address
+  randomAddresses: WalletAddress[]
 }
 
 export interface WalletStartDataLight {
   addresses: WalletAddress[]
-  masterNodeAddress: WalletAddress
-  randomAddresses: WalletAddress[]
+  masterNodeAddress: Address
+  randomAddresses: Address[]
 }
 
 export enum WalletState {
@@ -90,4 +92,14 @@ export enum WalletTransactionType {
   GENERATED = 'GENERATED',
   RECEIVED = 'RECEIVED',
   SENT = 'SENT',
+}
+
+export interface WalletUnspentTransaction {
+  address: string // Addresses hash
+  amount: number
+  category: WalletAddressCategory
+  index: number
+  isChange: boolean
+  txid: string
+  vout: number
 }

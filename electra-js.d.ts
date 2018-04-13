@@ -3,12 +3,14 @@ type Omit<T, K extends keyof T> = Pick<T, Diff<keyof T, K>>
 type OrNull<T> = T | null
 type PartialOrNull<T> = OrNull<Partial<T>>
 
-interface Address {
+export interface Address {
   hash: string;
   isCiphered: boolean;
   isHD: boolean;
   privateKey: string;
 }
+
+export type AddressWithoutPK = Omit<Address, 'isCiphered' | 'privateKey'>
 
 interface DaemonConfig {
   port: string;
@@ -29,6 +31,7 @@ declare class ElectraJs<T extends WalletHard | WalletLight> {
     DAEMON_URI: string;
     DAEMON_USER_DIR_PATH: string | undefined;
     ECA_NETWORK: any;
+    ECA_NETWORK_TEST: any;
     ECA_TRANSACTION_FEE: number;
   }
 
@@ -60,18 +63,18 @@ export type CoinMarketCapCurrency =
   "NOK" | "NZD" | "PHP" | "PKR" | "PLN" | "RUB" | "SEK" | "SGD" | "THB" | "TRY" |
   "TWD" | "USD" | "ZAR";
 
-export interface WalletAddress extends Address {
-  category: OrNull<WalletAddressCategory>;
-  label: OrNull<string>;
+export interface WalletAddress extends Omit<Address, 'isCiphered' | 'privateKey'> {
+  category: OrNull<WalletAddressCategory>
+  change: string
+  label: OrNull<string>
 }
 
 export enum WalletAddressCategory {
   CHECKING = 1,
   PURSE = 0,
+  RANDOM = 3,
   SAVINGS = 2,
 }
-
-export type WalletAddressWithoutPK = Omit<WalletAddress, 'isCiphered' | 'privateKey'>
 
 export interface WalletBalance {
   confirmed: number
@@ -114,14 +117,14 @@ export enum WalletLockState {
 }
 
 export interface WalletStartDataHard {
-  addresses: WalletAddressWithoutPK[];
-  masterNodeAddress: WalletAddress;
-  randomAddresses: WalletAddressWithoutPK[];
+  addresses: WalletAddress[]
+  masterNodeAddress: Address
+  randomAddresses: Address[]
 }
 
 export interface WalletStartDataLight {
   addresses: WalletAddress[];
-  masterNodeAddress: WalletAddress;
+  masterNodeAddress: Address;
   randomAddresses: WalletAddress[];
 }
 
@@ -147,41 +150,34 @@ export enum WalletTransactionType {
 }
 
 export interface WalletHard {
-  addresses: WalletAddressWithoutPK[];
-  allAddresses: WalletAddressWithoutPK[];
+  addresses: WalletAddress[];
+  allAddresses: WalletAddress[];
   daemonState: WalletDaemonState;
   isNew: boolean;
   lockState: WalletLockState;
-  masterNodeAddress: WalletAddress;
+  masterNodeAddress: Address;
   mnemonic: string;
   randomAddresses: WalletAddress[];
   state: WalletState;
 
-  startDaemon(): Promise<void>;
-  stopDaemon(): Promise<void>;
-
-  generate(
-    mnemonic?: string,
-    mnemonicExtension?: string,
-    purseAddressesCount?: number,
-    checkingAddressesCount?: number,
-    savingsAddressesCount?: number
-  ): Promise<void>;
+  createAddress(passphrase: string, category: WalletAddressCategory): Promise<void>
+  export(passphrase: string): Promise<string>;
+  generate(passphrase: string, mnemonic?: string, mnemonicExtension?: string, purseAddressesCount?: number, checkingAddressesCount?: number, savingsAddressesCount?: number): Promise<void>;
+  getAddressBalance(addressHash: string): Promise<WalletBalance>;
+  getBalance(): Promise<WalletBalance>;
+  getCategoryBalance(category: WalletAddressCategory): Promise<WalletBalance>;
+  getInfo(): Promise<WalletInfo>;
+  getTransaction(transactionHash: string): Promise<WalletTransaction | undefined>;
+  getTransactions(count?: number): Promise<WalletTransaction[]>;
   import(wefData: WalletExchangeFormat, passphrase: string): Promise<void>;
-  export(): string;
-  reset(): void;
-  start(data: WalletStartDataHard): void;
-
-  createAddress(category: WalletAddressCategory): Promise<void>
   importRandomAddress(privateKey: string, passphrase?: string): Promise<void>;
   lock(passphrase: string): Promise<void>;
-  send(amount: number, toAddressHash: string, fromAddressHash?: string): Promise<void>;
-  unlock(passphrase: string, forStakingOnly?: boolean): Promise<void>;
-
-  getBalance(addressHash?: string): Promise<WalletBalance>;
-  getInfo(): Promise<WalletInfo>;
-  getTransactions(count?: number): Promise<WalletTransaction[]>;
-  getTransaction(transactionHash: string): Promise<WalletTransaction | undefined>;
+  reset(): void;
+  send(amount: number, category: WalletAddressCategory, toAddressHash: string): Promise<void>;
+  start(data: WalletStartDataHard): void;
+  startDaemon(): Promise<void>;
+  stopDaemon(): Promise<void>;
+  unlock(passphrase: string, forStakingOnly: boolean): Promise<void>;
 }
 
 export interface WalletLight {

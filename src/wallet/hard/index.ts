@@ -4,7 +4,13 @@ import to from 'await-to-js'
 import { ChildProcess } from 'child_process'
 import * as R from 'ramda'
 
-import { BINARIES_PATH, DAEMON_CONFIG, DAEMON_URI, DAEMON_USER_DIR_PATH, ECA_TRANSACTION_FEE } from '../../constants'
+import {
+  BINARIES_PATH,
+  DAEMON_CONFIG,
+  DAEMON_URI,
+  DAEMON_USER_DIR_PATH,
+  ECA_TRANSACTION_FEE,
+} from '../../constants'
 import closeElectraDaemons from '../../helpers/closeElectraDaemons'
 import getMaxItemFromList from '../../helpers/getMaxItemFromList'
 import injectElectraConfig from '../../helpers/injectElectraConfig'
@@ -13,6 +19,7 @@ import tryCatch from '../../helpers/tryCatch'
 import wait from '../../helpers/wait'
 import Crypto from '../../libs/crypto'
 import Electra from '../../libs/electra'
+import EJError, { EJErrorCode } from '../../libs/error'
 import Rpc from '../../libs/rpc'
 
 import { RpcMethodResult } from '../../libs/rpc/types'
@@ -21,7 +28,6 @@ import {
   PlatformBinary,
   WalletAddress,
   WalletAddressCategory,
-  WalletAddressWithoutPK,
   WalletBalance,
   WalletDaemonState,
   WalletExchangeFormat,
@@ -30,7 +36,8 @@ import {
   WalletStartDataHard,
   WalletState,
   WalletTransaction,
-  WalletTransactionType
+  WalletTransactionType,
+  WalletUnspentTransaction,
 } from '../types'
 
 const LIST_TRANSACTIONS_LENGTH: number = 1_000_000
@@ -41,33 +48,37 @@ const PLATFORM_BINARY: PlatformBinary = {
   linux: 'electrad-linux',
   win32: 'electrad-windows.exe'
 }
+const SATOSHI: number = 100_000_000
 
 /**
  * Wallet management.
  */
 export default class WalletHard {
   /** List of the wallet HD addresses. */
-  private ADDRESSES: WalletAddressWithoutPK[] = []
+  private ADDRESSES: WalletAddress[] = []
   /** List of the wallet HD addresses. */
-  public get addresses(): WalletAddressWithoutPK[] {
-    if (this.STATE !== WalletState.READY) {
-      throw new Error(`ElectraJs.Wallet: The #addresses are only available when the #state is "READY".`)
-    }
+  public get addresses(): WalletAddress[] {
+    if (this.STATE !== WalletState.READY) throw new EJError(EJErrorCode.WALLET_STATE_NOT_READY)
 
     return this.ADDRESSES
   }
 
   /** List of the wallet non-HD (random) and HD addresses. */
-  public get allAddresses(): WalletAddressWithoutPK[] {
-    if (this.STATE !== WalletState.READY) {
-      throw new Error(`ElectraJs.Wallet: #allAddresses are only available when the #state is "READY".`)
-    }
+  public get allAddresses(): WalletAddress[] {
+    if (this.STATE !== WalletState.READY) throw new EJError(EJErrorCode.WALLET_STATE_NOT_READY)
 
     return [...this.ADDRESSES, ...this.RANDOM_ADDRESSES]
   }
 
   /** Daemon binaries directory path. */
   private readonly binariesPath: string
+
+  /** List of the wallet CA Checking addresses. */
+  public get checkingAddresses(): WalletAddress[] {
+    if (this.STATE !== WalletState.READY) throw new EJError(EJErrorCode.WALLET_STATE_NOT_READY)
+
+    return this.ADDRESSES.filter(({ category }: WalletAddress) => category === WalletAddressCategory.CHECKING)
+  }
 
   /** Hard wallet daemon Node child process. */
   private daemon: ChildProcess | undefined
@@ -109,7 +120,7 @@ export default class WalletHard {
    *
    * @see https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki#security
    */
-  private MASTER_NODE_ADDRESS: WalletAddress | undefined
+  private MASTER_NODE_ADDRESS: Address | undefined
   /**
    * Wallet HD Master Node address.
    *
@@ -117,12 +128,8 @@ export default class WalletHard {
    * ONLY available when generating a brand new Wallet, which happens after calling #generate()
    * with an undefined <mnemonic> parameter on a Wallet instance with an "EMPTY" #state.
    */
-  public get masterNodeAddress(): WalletAddress {
-    if (this.STATE !== WalletState.READY) {
-      throw new Error(`ElectraJs.Wallet:
-        #masterNodeAddress is only available after a brand new Wallet has been generated the #state is "READY".
-      `)
-    }
+  public get masterNodeAddress(): Address {
+    if (this.STATE !== WalletState.READY) throw new EJError(EJErrorCode.WALLET_STATE_NOT_READY)
 
     if (this.LOCK_STATE === WalletLockState.UNLOCKED) {
       throw new Error(`ElectraJs.Wallet:
@@ -130,7 +137,7 @@ export default class WalletHard {
       `)
     }
 
-    return this.MASTER_NODE_ADDRESS as WalletAddress
+    return this.MASTER_NODE_ADDRESS as Address
   }
 
   /** Mnenonic. */
@@ -143,11 +150,7 @@ export default class WalletHard {
    * with an undefined <mnemonic> parameter on a Wallet instance with an "EMPTY" #state.
    */
   public get mnemonic(): string {
-    if (this.STATE !== WalletState.READY) {
-      throw new Error(`ElectraJs.Wallet:
-        #mnemonic is only available after a brand new Wallet has been generated the #state is "READY".
-      `)
-    }
+    if (this.STATE !== WalletState.READY) throw new EJError(EJErrorCode.WALLET_STATE_NOT_READY)
 
     if (this.MNEMONIC === undefined) {
       throw new Error(`ElectraJs.Wallet: #mnemonic is only available after a brand new Wallet has been generated.`)
@@ -156,15 +159,27 @@ export default class WalletHard {
     return this.MNEMONIC
   }
 
+  /** List of the wallet CA Purse addresses. */
+  public get purseAddresses(): WalletAddress[] {
+    if (this.STATE !== WalletState.READY) throw new EJError(EJErrorCode.WALLET_STATE_NOT_READY)
+
+    return this.ADDRESSES.filter(({ category }: WalletAddress) => category === WalletAddressCategory.PURSE)
+  }
+
   /** List of the wallet random (non-HD) addresses. */
-  private RANDOM_ADDRESSES: WalletAddressWithoutPK[] = []
+  private RANDOM_ADDRESSES: WalletAddress[] = []
   /** List of the wallet random (non-HD) addresses. */
-  public get randomAddresses(): WalletAddressWithoutPK[] {
-    if (this.STATE !== WalletState.READY) {
-      throw new Error(`ElectraJs.Wallet: The #randomAddresses are only available when the #state is "READY".`)
-    }
+  public get randomAddresses(): WalletAddress[] {
+    if (this.STATE !== WalletState.READY) throw new EJError(EJErrorCode.WALLET_STATE_NOT_READY)
 
     return this.RANDOM_ADDRESSES
+  }
+
+  /** List of the wallet CA Savings addresses. */
+  public get savingsAddresses(): WalletAddress[] {
+    if (this.STATE !== WalletState.READY) throw new EJError(EJErrorCode.WALLET_STATE_NOT_READY)
+
+    return this.ADDRESSES.filter(({ category }: WalletAddress) => category === WalletAddressCategory.SAVINGS)
   }
 
   /** RPC Server instance.  */
@@ -214,36 +229,23 @@ export default class WalletHard {
     const [err1] = tryCatch(injectElectraConfig)
     if (err1 !== undefined) throw err1
 
-    if (process.platform === 'win32') {
-      // TODO Temporary hack for dev while the Windows binary is being fixed
-      const binaryPath: string = BINARIES_PATH as string
+    const binaryPath: string = `${this.binariesPath}/${PLATFORM_BINARY[process.platform]}`
 
-      try {
-        // tslint:disable-next-line:no-require-imports
-        this.daemon = require('child_process').exec(binaryPath) as ChildProcess
-      }
-      catch (err) {
-        throw err
-      }
-    } else {
-      const binaryPath: string = `${this.binariesPath}/${PLATFORM_BINARY[process.platform]}`
-
-      try {
-        // tslint:disable-next-line:no-require-imports
-        this.daemon = require('child_process').spawn(
-          binaryPath,
-          [
-            `--deamon=1`,
-            `--port=${DAEMON_CONFIG.port}`,
-            `--rpcuser=${DAEMON_CONFIG.rpcuser}`,
-            `--rpcpassword=${DAEMON_CONFIG.rpcpassword}`,
-            `--rpcport=${DAEMON_CONFIG.rpcport}`
-          ]
-        ) as ChildProcess
-      }
-      catch (err) {
-        throw err
-      }
+    try {
+      // tslint:disable-next-line:no-require-imports
+      this.daemon = require('child_process').spawn(
+        binaryPath,
+        [
+          `--deamon=1`,
+          `--port=${DAEMON_CONFIG.port}`,
+          `--rpcuser=${DAEMON_CONFIG.rpcuser}`,
+          `--rpcpassword=${DAEMON_CONFIG.rpcpassword}`,
+          `--rpcport=${DAEMON_CONFIG.rpcport}`
+        ]
+      ) as ChildProcess
+    }
+    catch (err) {
+      throw err
     }
 
     // TODO Add a debug mode in ElectraJs settings
@@ -316,32 +318,16 @@ export default class WalletHard {
    * TODO Figure out a way to validate provided mnemonics using different specs (words list & entropy strength).
    */
   public async generate(
+    passphrase: string,
     mnemonic?: string,
     mnemonicExtension?: string,
     purseAddressesCount: number = 1,
     checkingAddressesCount: number = 1,
     savingsAddressesCount: number = 1,
   ): Promise<void> {
-    if (this.STATE !== WalletState.EMPTY) {
-      throw new Error(`ElectraJs.Wallet:
-        The #generate() method can only be called on an empty wallet (#state = "EMPTY").
-        You need to #reset() it first, then #initialize() it again in order to #generate() a new one.
-      `)
-    }
-
-    if (this.DAEMON_STATE !== WalletDaemonState.STARTED) {
-      throw new Error(`ElectraJs.Wallet:
-        The #generate() method can only be called on a started hard wallet (#daemon = "STARTED").
-        You need to #startDaemon() first.
-      `)
-    }
-
-    if (this.LOCK_STATE !== WalletLockState.UNLOCKED) {
-      throw new Error(`ElectraJs.Wallet:
-        The #generate() method can only be called once the hard wallet has been unlocked (#lockState = "UNLOCKED").
-        You need to #unlock() it first.
-      `)
-    }
+    if (this.STATE !== WalletState.EMPTY) throw new EJError(EJErrorCode.WALLET_STATE_NOT_EMPTY)
+    if (this.LOCK_STATE !== WalletLockState.UNLOCKED) throw new EJError(EJErrorCode.WALLET_LOCK_STATE_NOT_UNLOCKED)
+    if (this.DAEMON_STATE !== WalletDaemonState.STARTED) throw new EJError(EJErrorCode.WALLET_DAEMON_STATE_NOT_STARTED)
 
     /*
       --------------------------------------------------
@@ -366,12 +352,14 @@ export default class WalletHard {
       STEP 2: HIERARCHICAL DETERMINISTIC MASTER NODE
     */
 
+    let masterNodePrivateKey: string
     try {
-      const address: Address = Electra.getMasterNodeAddressFromMnemonic(mnemonic, mnemonicExtension)
+      const masterNodeAddress: Address = Electra.getMasterNodeAddressFromMnemonic(mnemonic, mnemonicExtension)
+      masterNodePrivateKey = masterNodeAddress.privateKey
       this.MASTER_NODE_ADDRESS = {
-        ...address,
-        category: null,
-        label: null,
+        ...masterNodeAddress,
+        isCiphered: true,
+        privateKey: Crypto.cipherPrivateKey(masterNodePrivateKey, passphrase),
       }
     }
     catch (err) { throw err }
@@ -385,13 +373,13 @@ export default class WalletHard {
     try {
       while (++addressIndex < purseAddressesCount) {
         const address: Address = Electra.getDerivedChainFromMasterNodePrivateKey(
-          this.MASTER_NODE_ADDRESS.privateKey,
+          masterNodePrivateKey,
           WalletAddressCategory.PURSE,
           addressIndex,
           false,
         )
         const addressChange: Address = Electra.getDerivedChainFromMasterNodePrivateKey(
-          this.MASTER_NODE_ADDRESS.privateKey,
+          masterNodePrivateKey,
           WalletAddressCategory.PURSE,
           addressIndex,
           true,
@@ -403,6 +391,7 @@ export default class WalletHard {
         this.ADDRESSES.push({
           ...R.omit<Omit<Address, 'isCiphered' | 'privateKey'>>(['isCiphered', 'privateKey'], address),
           category: WalletAddressCategory.PURSE,
+          change: addressChange.hash,
           label: null,
         })
       }
@@ -413,17 +402,25 @@ export default class WalletHard {
     try {
       while (++addressIndex < checkingAddressesCount) {
         const address: Address = Electra.getDerivedChainFromMasterNodePrivateKey(
-          this.MASTER_NODE_ADDRESS.privateKey,
+          masterNodePrivateKey,
           WalletAddressCategory.CHECKING,
           addressIndex,
           false,
         )
+        const addressChange: Address = Electra.getDerivedChainFromMasterNodePrivateKey(
+          masterNodePrivateKey,
+          WalletAddressCategory.CHECKING,
+          addressIndex,
+          true,
+        )
 
         await this.injectAddressInDaemon(address.privateKey)
+        await this.injectAddressInDaemon(addressChange.privateKey)
 
         this.ADDRESSES.push({
           ...R.omit<Omit<Address, 'isCiphered' | 'privateKey'>>(['isCiphered', 'privateKey'], address),
           category: WalletAddressCategory.CHECKING,
+          change: addressChange.hash,
           label: null,
         })
       }
@@ -434,17 +431,25 @@ export default class WalletHard {
     try {
       while (++addressIndex < savingsAddressesCount) {
         const address: Address = Electra.getDerivedChainFromMasterNodePrivateKey(
-          this.MASTER_NODE_ADDRESS.privateKey,
+          masterNodePrivateKey,
           WalletAddressCategory.SAVINGS,
           addressIndex,
           false,
         )
+        const addressChange: Address = Electra.getDerivedChainFromMasterNodePrivateKey(
+          masterNodePrivateKey,
+          WalletAddressCategory.SAVINGS,
+          addressIndex,
+          true,
+        )
 
         await this.injectAddressInDaemon(address.privateKey)
+        await this.injectAddressInDaemon(addressChange.privateKey)
 
         this.ADDRESSES.push({
           ...R.omit<Omit<Address, 'isCiphered' | 'privateKey'>>(['isCiphered', 'privateKey'], address),
           category: WalletAddressCategory.SAVINGS,
+          change: addressChange.hash,
           label: null,
         })
       }
@@ -456,6 +461,14 @@ export default class WalletHard {
       STEP 4: RANDOM ADDRESSES
     */
 
+    // We generate the common HD change address for the random addresses
+    const randomAddressChange: Address = Electra.getDerivedChainFromMasterNodePrivateKey(
+      masterNodePrivateKey,
+      WalletAddressCategory.RANDOM,
+      0,
+      true,
+    )
+
     // We export all the used addresses from the RPC daemon
     const daemonAddresses: string[] = []
     const [err, entries] = await to(this.rpc.listAddressGroupings())
@@ -466,11 +479,16 @@ export default class WalletHard {
     // We filter out all the HD addresses
     const randomAddresses: string[] = daemonAddresses
       .filter((daemonAddressHash: string) =>
-        this.ADDRESSES.filter(({ hash }: WalletAddress) => daemonAddressHash === hash).length === 0)
+        R.find<WalletAddress>(R.propEq<string>('hash', daemonAddressHash))(this.ADDRESSES) === undefined &&
+        daemonAddressHash !== randomAddressChange.hash
+      )
+
+    await this.injectAddressInDaemon(randomAddressChange.privateKey)
 
     // We save the random addresses
     this.RANDOM_ADDRESSES = randomAddresses.map((hash: string) => ({
-      category: null,
+      category: WalletAddressCategory.RANDOM,
+      change: randomAddressChange.hash,
       hash,
       isHD: false,
       label: null,
@@ -482,31 +500,36 @@ export default class WalletHard {
   /**
    * Create a new Comprehensive Accounts address.
    */
-  public async createAddress(category: WalletAddressCategory): Promise<void> {
-    if (this.STATE !== WalletState.READY) {
-      throw new Error(`ElectraJs.Wallet:
-        The #createAddress() method can only be called on a ready wallet (#state = "READY").`)
-    }
+  public async createAddress(passphrase: string, category: WalletAddressCategory): Promise<void> {
+    if (this.STATE !== WalletState.READY) throw new EJError(EJErrorCode.WALLET_STATE_NOT_READY)
+    if (this.LOCK_STATE !== WalletLockState.UNLOCKED) throw new EJError(EJErrorCode.WALLET_LOCK_STATE_NOT_UNLOCKED)
+    if (this.DAEMON_STATE !== WalletDaemonState.STARTED) throw new EJError(EJErrorCode.WALLET_DAEMON_STATE_NOT_STARTED)
 
-    if (this.LOCK_STATE !== WalletLockState.UNLOCKED) {
-      throw new Error(`ElectraJs.Wallet:
-        The wallet is currently locked. You need to #unlock() it first with <forStakingOnly> param to FALSE.
-      `)
-    }
+    const masterNodePrivateKey: string =
+      Crypto.decipherPrivateKey((this.MASTER_NODE_ADDRESS as Address).privateKey, passphrase)
 
     const address: Address = Electra.getDerivedChainFromMasterNodePrivateKey(
-      (this.MASTER_NODE_ADDRESS as WalletAddress).privateKey,
+      masterNodePrivateKey,
       category,
       // tslint:disable-next-line:variable-name
       this.ADDRESSES.filter(({ category: _category }: WalletAddress) => _category === category).length,
       false
     )
+    const addressChange: Address = Electra.getDerivedChainFromMasterNodePrivateKey(
+      masterNodePrivateKey,
+      category,
+      // tslint:disable-next-line:variable-name
+      this.ADDRESSES.filter(({ category: _category }: WalletAddress) => _category === category).length,
+      true
+    )
 
     await this.injectAddressInDaemon(address.privateKey)
+    await this.injectAddressInDaemon(addressChange.privateKey)
 
     this.ADDRESSES.push({
       ...R.omit<Omit<Address, 'isCiphered' | 'privateKey'>>(['isCiphered', 'privateKey'], address),
       category,
+      change: addressChange.hash,
       label: null
     })
   }
@@ -515,10 +538,7 @@ export default class WalletHard {
    * Lock the wallet, that is cipher all its private keys.
    */
   public async lock(passphrase?: string): Promise<void> {
-    if (this.DAEMON_STATE !== WalletDaemonState.STARTED) {
-      throw new Error(`ElectraJs.Wallet:
-        The #lock() method can only be called on a started wallet (#daemonState = "STARTED").`)
-    }
+    if (this.DAEMON_STATE !== WalletDaemonState.STARTED) throw new EJError(EJErrorCode.WALLET_DAEMON_STATE_NOT_STARTED)
 
     if (this.isNew && passphrase === undefined) {
       throw new Error(`ElectraJs.Wallet:
@@ -528,18 +548,9 @@ export default class WalletHard {
     if (this.LOCK_STATE === WalletLockState.LOCKED) return
 
     if (passphrase !== undefined) {
-      try {
-        if (this.MASTER_NODE_ADDRESS !== undefined && !this.MASTER_NODE_ADDRESS.isCiphered) {
-          this.MASTER_NODE_ADDRESS.privateKey = Crypto.cipherPrivateKey(this.MASTER_NODE_ADDRESS.privateKey, passphrase)
-          this.MASTER_NODE_ADDRESS.isCiphered = true
-        }
-      }
-      catch (err) {
-        throw err
-      }
-
-      const [err2] = await to(this.rpc.encryptWallet(passphrase))
-      if (err2 !== null) { throw err2 }
+      // tslint:disable-next-line:no-shadowed-variable
+      const [err] = await to(this.rpc.encryptWallet(passphrase))
+      if (err !== null) { throw err }
 
       // Dirty hack since we have no idea how long the deamon process will take to exit
       while ((this.DAEMON_STATE as WalletDaemonState) !== WalletDaemonState.STOPPED) {
@@ -557,8 +568,8 @@ export default class WalletHard {
     }
 
     // TODO Find a better DRY way to optimize that check
-    const [err3] = await to(this.rpc.lock())
-    if (err3 !== null) throw err3
+    const [err] = await to(this.rpc.lock())
+    if (err !== null) throw err
 
     this.LOCK_STATE = WalletLockState.LOCKED
   }
@@ -566,19 +577,8 @@ export default class WalletHard {
   /**
    * Unlock the wallet, that is decipher all its private keys.
    */
-  public async unlock(passphrase: string, forStakingOnly: boolean = true): Promise<void> {
-    if (this.DAEMON_STATE !== WalletDaemonState.STARTED) {
-      throw new Error(`ElectraJs.Wallet:
-        The #unlock() method can only be called on a started wallet (#daemonState = "STARTED").`)
-    }
-
-    try {
-      if (this.MASTER_NODE_ADDRESS !== undefined && this.MASTER_NODE_ADDRESS.isCiphered) {
-        this.MASTER_NODE_ADDRESS.privateKey = Crypto.decipherPrivateKey(this.MASTER_NODE_ADDRESS.privateKey, passphrase)
-        this.MASTER_NODE_ADDRESS.isCiphered = false
-      }
-    }
-    catch (err) { throw err }
+  public async unlock(passphrase: string, forStakingOnly: boolean): Promise<void> {
+    if (this.DAEMON_STATE !== WalletDaemonState.STARTED) throw new EJError(EJErrorCode.WALLET_DAEMON_STATE_NOT_STARTED)
 
     if (
       !forStakingOnly && this.LOCK_STATE === WalletLockState.STAKING
@@ -601,19 +601,9 @@ export default class WalletHard {
    * https://github.com/Electra-project/Electra-Improvement-Proposals/blob/master/EIP-0002.md
    */
   public async import(wefData: WalletExchangeFormat, passphrase: string): Promise<void> {
-    if (this.STATE !== WalletState.EMPTY) {
-      throw new Error(`ElectraJs.Wallet:
-        The #import() method can only be called on an empty wallet (#state = "EMPTY").
-        Maybe you want to #reset() it first ?
-      `)
-    }
-
-    if (this.DAEMON_STATE !== WalletDaemonState.STARTED) {
-      throw new Error(`ElectraJs.Wallet:
-        The #import() method can only be called on a started hard wallet (#daemon = "STARTED").
-        You need to #startDaemon() first.
-      `)
-    }
+    if (this.STATE !== WalletState.EMPTY) throw new EJError(EJErrorCode.WALLET_STATE_NOT_EMPTY)
+    if (this.LOCK_STATE !== WalletLockState.UNLOCKED) throw new EJError(EJErrorCode.WALLET_LOCK_STATE_NOT_UNLOCKED)
+    if (this.DAEMON_STATE !== WalletDaemonState.STARTED) throw new EJError(EJErrorCode.WALLET_DAEMON_STATE_NOT_STARTED)
 
     const [
       version,
@@ -634,16 +624,15 @@ export default class WalletHard {
       STEP 1: HIERARCHICAL DETERMINISTIC MASTER NODE
     */
 
+    let masterNodePrivateKey: string
     try {
-      const privateKey: string = Crypto.decipherPrivateKey(hdPrivateKeyX, passphrase)
-      const hash: string = Electra.getAddressHashFromPrivateKey(privateKey)
+      masterNodePrivateKey = Crypto.decipherPrivateKey(hdPrivateKeyX, passphrase)
+      const hash: string = Electra.getAddressHashFromPrivateKey(masterNodePrivateKey)
       this.MASTER_NODE_ADDRESS = {
-        category: null,
         hash,
-        isCiphered: false,
+        isCiphered: true,
         isHD: true,
-        label: null,
-        privateKey,
+        privateKey: hdPrivateKeyX,
       }
     }
     catch (err) { throw err }
@@ -657,13 +646,13 @@ export default class WalletHard {
     try {
       while (++addressIndex < purseAddressesCount) {
         const address: Address = Electra.getDerivedChainFromMasterNodePrivateKey(
-          this.MASTER_NODE_ADDRESS.privateKey,
+          masterNodePrivateKey,
           WalletAddressCategory.PURSE,
           addressIndex,
           false
         )
         const addressChange: Address = Electra.getDerivedChainFromMasterNodePrivateKey(
-          this.MASTER_NODE_ADDRESS.privateKey,
+          masterNodePrivateKey,
           WalletAddressCategory.PURSE,
           addressIndex,
           false
@@ -675,6 +664,7 @@ export default class WalletHard {
         this.ADDRESSES.push({
           ...R.omit<Omit<Address, 'isCiphered' | 'privateKey'>>(['isCiphered', 'privateKey'], address),
           category: WalletAddressCategory.PURSE,
+          change: addressChange.hash,
           label: null,
         })
       }
@@ -685,15 +675,25 @@ export default class WalletHard {
     try {
       while (++addressIndex < checkingAddressesCount) {
         const address: Address = Electra.getDerivedChainFromMasterNodePrivateKey(
-          this.MASTER_NODE_ADDRESS.privateKey,
+          masterNodePrivateKey,
+          WalletAddressCategory.CHECKING,
+          addressIndex,
+          false
+        )
+        const addressChange: Address = Electra.getDerivedChainFromMasterNodePrivateKey(
+          masterNodePrivateKey,
           WalletAddressCategory.CHECKING,
           addressIndex,
           false
         )
 
+        await this.injectAddressInDaemon(address.privateKey)
+        await this.injectAddressInDaemon(addressChange.privateKey)
+
         this.ADDRESSES.push({
           ...R.omit<Omit<Address, 'isCiphered' | 'privateKey'>>(['isCiphered', 'privateKey'], address),
           category: WalletAddressCategory.CHECKING,
+          change: addressChange.hash,
           label: null,
         })
       }
@@ -704,15 +704,25 @@ export default class WalletHard {
     try {
       while (++addressIndex < savingsAddressesCount) {
         const address: Address = Electra.getDerivedChainFromMasterNodePrivateKey(
-          this.MASTER_NODE_ADDRESS.privateKey,
+          masterNodePrivateKey,
+          WalletAddressCategory.SAVINGS,
+          addressIndex,
+          false
+        )
+        const addressChange: Address = Electra.getDerivedChainFromMasterNodePrivateKey(
+          masterNodePrivateKey,
           WalletAddressCategory.SAVINGS,
           addressIndex,
           false
         )
 
+        await this.injectAddressInDaemon(address.privateKey)
+        await this.injectAddressInDaemon(addressChange.privateKey)
+
         this.ADDRESSES.push({
           ...R.omit<Omit<Address, 'isCiphered' | 'privateKey'>>(['isCiphered', 'privateKey'], address),
           category: WalletAddressCategory.SAVINGS,
+          change: addressChange.hash,
           label: null,
         })
       }
@@ -724,16 +734,27 @@ export default class WalletHard {
       STEP 3: RANDOM ADDRESSES
     */
 
+    const randomAddressChange: Address = Electra.getDerivedChainFromMasterNodePrivateKey(
+      masterNodePrivateKey,
+      WalletAddressCategory.RANDOM,
+      0,
+      false
+    )
+
     let randomAddressIndex: number = randomPrivateKeysX.length
     try {
       while (--randomAddressIndex >= 0) {
         const privateKey: string = Crypto.decipherPrivateKey(randomPrivateKeysX[randomAddressIndex], passphrase)
         const hash: string = Electra.getAddressHashFromPrivateKey(privateKey)
+
         await this.injectAddressInDaemon(privateKey)
+        await this.injectAddressInDaemon(randomAddressChange.privateKey)
+
         this.RANDOM_ADDRESSES.push({
-          category: null,
+          category: WalletAddressCategory.RANDOM,
+          change: randomAddressChange.hash,
           hash,
-          isHD: true,
+          isHD: false,
           label: null,
         })
       }
@@ -744,32 +765,34 @@ export default class WalletHard {
   }
 
   /**
-   * Export wallet data with ciphered private keys, or unciphered if <unsafe> is set to TRUE.
+   * Export wallet data with ciphered private keys.
    *
    * @note
    * The returned string will be a stringified JSON WEF following the EIP-0002 specifications.
    * https://github.com/Electra-project/Electra-Improvement-Proposals/blob/master/EIP-0002.md
    */
-  public export(): string {
-    if (this.STATE !== WalletState.READY) {
-      throw new Error(`ElectraJs.Wallet: The #export() method can only be called on a ready wallet (#state = "READY").`)
-    }
+  public async export(passphrase: string): Promise<string> {
+    if (this.STATE !== WalletState.READY) throw new EJError(EJErrorCode.WALLET_STATE_NOT_READY)
+    if (this.LOCK_STATE !== WalletLockState.UNLOCKED) throw new EJError(EJErrorCode.WALLET_LOCK_STATE_NOT_UNLOCKED)
+    if (this.DAEMON_STATE !== WalletDaemonState.STARTED) throw new EJError(EJErrorCode.WALLET_DAEMON_STATE_NOT_STARTED)
 
-    if (this.LOCK_STATE === WalletLockState.UNLOCKED) {
-      throw new Error(`ElectraJs.Wallet:
-        The wallet is currently unlocked. Exporting it would thus export the private keys in clear.
-        You need to #lock() it first.
-      `)
+    // We export the random addresses private keys from the daemon
+    const randomAddressesPrivateKeysCiphered: string[] = []
+    let index: number = -1
+    while (++index < this.randomAddresses.length) {
+      const [err, privateKey] = await to(this.rpc.getPrivateKey(this.randomAddresses[index].hash))
+      if (err !== null || privateKey === undefined) throw err
+      randomAddressesPrivateKeysCiphered.push(Crypto.cipherPrivateKey(privateKey, passphrase))
     }
 
     const wefData: WalletExchangeFormat = [
       // tslint:disable-next-line:no-magic-numbers
       2,
-      this.ADDRESSES.filter(({ category }: WalletAddress) => category === WalletAddressCategory.PURSE).length,
-      this.ADDRESSES.filter(({ category }: WalletAddress) => category === WalletAddressCategory.CHECKING).length,
-      this.ADDRESSES.filter(({ category }: WalletAddress) => category === WalletAddressCategory.SAVINGS).length,
-      (this.MASTER_NODE_ADDRESS as WalletAddress).privateKey,
-      this.RANDOM_ADDRESSES.map((address: WalletAddress) => address.privateKey)
+      this.purseAddresses.length,
+      this.checkingAddresses.length,
+      this.savingsAddresses.length,
+      (this.MASTER_NODE_ADDRESS as Address).privateKey,
+      randomAddressesPrivateKeysCiphered
     ]
 
     return JSON.stringify(wefData)
@@ -780,40 +803,33 @@ export default class WalletHard {
    * If the [passphrase] is not defined, the <privateKey> MUST be given deciphered.
    * If the [passphrase] is defined, the <privateKey> MUST be given ciphered.
    */
-  public importRandomAddress(privateKey: string, passphrase?: string): void {
-    if (this.STATE !== WalletState.READY) {
-      throw new Error(`ElectraJs.Wallet:
-        The #importRandomAddress() method can only be called on a ready wallet (#state = "READY").
-      `)
-    }
+  public async importRandomAddress(privateKey: string, passphrase: string): Promise<void> {
+    if (this.STATE !== WalletState.READY) throw new EJError(EJErrorCode.WALLET_STATE_NOT_READY)
+    if (this.LOCK_STATE !== WalletLockState.UNLOCKED) throw new EJError(EJErrorCode.WALLET_LOCK_STATE_NOT_UNLOCKED)
+    if (this.DAEMON_STATE !== WalletDaemonState.STARTED) throw new EJError(EJErrorCode.WALLET_DAEMON_STATE_NOT_STARTED)
 
-    const address: Partial<WalletAddress> = {
-      isHD: false,
-      label: null,
-      privateKey
-    }
-
-    // Decipher the private key is necessary
-    if (passphrase !== undefined) {
-      try {
-        address.privateKey = Crypto.decipherPrivateKey(privateKey, passphrase)
-      }
-      catch (err) {
-        throw err
-      }
-    }
-
-    address.isCiphered = false
-
-    // Get the address hash
     try {
-      address.hash = Electra.getAddressHashFromPrivateKey(address.privateKey as string)
+      const addressChange: Address = Electra.getDerivedChainFromMasterNodePrivateKey(
+        (this.MASTER_NODE_ADDRESS as Address).privateKey,
+        WalletAddressCategory.RANDOM,
+        0,
+        true,
+      )
+
+      await this.injectAddressInDaemon(privateKey)
+      await this.injectAddressInDaemon(addressChange.privateKey)
+
+      this.RANDOM_ADDRESSES.push({
+        category: WalletAddressCategory.RANDOM,
+        change: addressChange.hash,
+        hash: Electra.getAddressHashFromPrivateKey(privateKey),
+        isHD: false,
+        label: null,
+      })
     }
     catch (err) {
       throw err
     }
-
-    this.RANDOM_ADDRESSES.push(address as WalletAddress)
   }
 
   /**
@@ -833,12 +849,11 @@ export default class WalletHard {
   }
 
   /**
-   * Get the global wallet balance, or the <address> balance if specified.
+   * Get the global wallet balance, confirmed and unconfirmed.
    */
-  public async getBalance(addressHash?: string): Promise<WalletBalance> {
-    if (this.STATE !== WalletState.READY) {
-      throw new Error(`ElectraJs.Wallet: You can only #getBalance() from a ready wallet (#state = "READY").`)
-    }
+  public async getBalance(): Promise<WalletBalance> {
+    if (this.STATE !== WalletState.READY) throw new EJError(EJErrorCode.WALLET_STATE_NOT_READY)
+    if (this.DAEMON_STATE !== WalletDaemonState.STARTED) throw new EJError(EJErrorCode.WALLET_DAEMON_STATE_NOT_STARTED)
 
     try {
       const [confirmedBalance, fullBalance]: [
@@ -863,12 +878,68 @@ export default class WalletHard {
   }
 
   /**
+   * Get the CA category balance, confirmed and unconfirmed.
+   */
+  public async getCategoryBalance(category: WalletAddressCategory): Promise<WalletBalance> {
+    if (this.STATE !== WalletState.READY) throw new EJError(EJErrorCode.WALLET_STATE_NOT_READY)
+    if (this.DAEMON_STATE !== WalletDaemonState.STARTED) throw new EJError(EJErrorCode.WALLET_DAEMON_STATE_NOT_STARTED)
+
+    const addressesHashes: string[] = this.addresses
+      // tslint:disable-next-line:variable-name
+      .filter(({ category: _category }: WalletAddress) => _category === category)
+      .reduce((hashes: string[], { change, hash }: WalletAddress) => [...hashes, hash, change], [])
+
+    const [err1, confirmedTransactions] = await to(this.rpc.listUnspent(1, LIST_TRANSACTIONS_LENGTH, addressesHashes))
+    if (err1 !== null || confirmedTransactions === undefined) throw err1
+
+    const [err2, allTransactions] = await to(this.rpc.listUnspent(0, LIST_TRANSACTIONS_LENGTH, addressesHashes))
+    if (err2 !== null || allTransactions === undefined) throw err2
+
+    const confirmed: number = confirmedTransactions
+      // tslint:disable-next-line:no-parameter-reassignment variable-name
+      .reduce((total: number, { amount: _amount }: RpcMethodResult<'listunspent'>[0]) => total += _amount, 0)
+    const confirmedAndUnconfirmed: number = allTransactions
+      // tslint:disable-next-line:no-parameter-reassignment variable-name
+      .reduce((total: number, { amount: _amount }: RpcMethodResult<'listunspent'>[0]) => total += _amount, 0)
+
+    return {
+      confirmed,
+      unconfirmed: confirmedAndUnconfirmed - confirmed,
+    }
+  }
+
+  /**
+   * Get the <address> balance, confirmed and unconfirmed.
+   */
+  public async getAddressBalance(addressHash: string): Promise<WalletBalance> {
+    if (this.STATE !== WalletState.READY) throw new EJError(EJErrorCode.WALLET_STATE_NOT_READY)
+    if (this.DAEMON_STATE !== WalletDaemonState.STARTED) throw new EJError(EJErrorCode.WALLET_DAEMON_STATE_NOT_STARTED)
+
+    const [err1, confirmedTransactions] = await to(this.rpc.listUnspent(1, LIST_TRANSACTIONS_LENGTH, [addressHash]))
+    if (err1 !== null || confirmedTransactions === undefined) throw err1
+
+    const [err2, allTransactions] = await to(this.rpc.listUnspent(0, LIST_TRANSACTIONS_LENGTH, [addressHash]))
+    if (err2 !== null || allTransactions === undefined) throw err2
+
+    const confirmed: number = confirmedTransactions
+      // tslint:disable-next-line:no-parameter-reassignment variable-name
+      .reduce((total: number, { amount: _amount }: RpcMethodResult<'listunspent'>[0]) => total += _amount, 0)
+    const confirmedAndUnconfirmed: number = allTransactions
+      // tslint:disable-next-line:no-parameter-reassignment variable-name
+      .reduce((total: number, { amount: _amount }: RpcMethodResult<'listunspent'>[0]) => total += _amount, 0)
+
+    return {
+      confirmed,
+      unconfirmed: confirmedAndUnconfirmed - confirmed,
+    }
+  }
+
+  /**
    * Get the wallet info.
    */
   public async getInfo(): Promise<WalletInfo> {
-    if (this.STATE !== WalletState.READY) {
-      return Promise.reject(new Error(`ElectraJs.Wallet: #getInfo() is only available when the #state is "READY".`))
-    }
+    if (this.STATE !== WalletState.READY) throw new EJError(EJErrorCode.WALLET_STATE_NOT_READY)
+    if (this.DAEMON_STATE !== WalletDaemonState.STARTED) throw new EJError(EJErrorCode.WALLET_DAEMON_STATE_NOT_STARTED)
 
     try {
       const [bestBlockHash, localBlockchainHeight, peersInfo, stakingInfo]: [
@@ -913,42 +984,11 @@ export default class WalletHard {
   }
 
   /**
-   * Create and broadcast a new transaction of <amount> <toAddressHash> from the first unspent ones.
-   */
-  public async send(amount: number, toAddressHash: string, fromAddressHash?: string): Promise<void> {
-    if (this.STATE !== WalletState.READY) {
-      throw new Error(`ElectraJs.Wallet: You can only #send() from a ready wallet (#state = "READY").`)
-    }
-
-    if (this.LOCK_STATE !== WalletLockState.UNLOCKED) {
-      throw new Error(`ElectraJs.Wallet:
-        You can only #send() from an unlocked wallet (#lockState = 'UNLOCKED').
-        Please #unlock() it first with <forStakingOnly> to TRUE.`)
-    }
-
-    if (amount <= 0) {
-      throw new Error(`ElectraJs.Wallet: You can only send #send() a strictly positive <amount>.`)
-    }
-
-    if (fromAddressHash !== undefined && !R.contains({ hash: fromAddressHash }, this.allAddresses)) {
-      throw new Error(`ElectraJs.Wallet: You can't #send() from an address that is not part of the current wallet.`)
-    }
-
-    if (amount > ((await this.getBalance()).confirmed - ECA_TRANSACTION_FEE)) {
-      throw new Error(`ElectraJs.Wallet: You can't #send() more than the current wallet addresses hold.`)
-    }
-
-    const [err] = await to(this.rpc.sendBasicTransaction(toAddressHash, amount))
-    if (err !== null) throw err
-  }
-
-  /**
    * List the wallet transactions (from the newer to the older one).
    */
   public async getTransactions(count: number = LIST_TRANSACTIONS_LENGTH): Promise<WalletTransaction[]> {
-    if (this.STATE !== WalletState.READY) {
-      throw new Error(`ElectraJs.Wallet: #getTransactions() is only available when the #state is "READY".`)
-    }
+    if (this.STATE !== WalletState.READY) throw new EJError(EJErrorCode.WALLET_STATE_NOT_READY)
+    if (this.DAEMON_STATE !== WalletDaemonState.STARTED) throw new EJError(EJErrorCode.WALLET_DAEMON_STATE_NOT_STARTED)
 
     const [err1, transactionsRaw] = await to(this.rpc.listTransactions('*', LIST_TRANSACTIONS_LENGTH))
     if (err1 !== null || transactionsRaw === undefined) throw err1
@@ -1000,9 +1040,8 @@ export default class WalletHard {
    * Get the transaction info of <transactionHash>.
    */
   public async getTransaction(transactionHash: string): Promise<WalletTransaction | undefined> {
-    if (this.STATE !== WalletState.READY) {
-      throw new Error(`ElectraJs.Wallet: #getTransaction() is only available when the #state is "READY".`)
-    }
+    if (this.STATE !== WalletState.READY) throw new EJError(EJErrorCode.WALLET_STATE_NOT_READY)
+    if (this.DAEMON_STATE !== WalletDaemonState.STARTED) throw new EJError(EJErrorCode.WALLET_DAEMON_STATE_NOT_STARTED)
 
     const [err, transactions] = await to(this.getTransactions())
     if (err !== null || transactions === undefined) throw err
@@ -1024,13 +1063,8 @@ export default class WalletHard {
    * Try to guess the daemon lock state by checking if the 'lock' method is available.
    */
   private async getDaemonLockState(): Promise<WalletLockState> {
-    if (this.DAEMON_STATE !== WalletDaemonState.STARTING) {
-      throw new Error(`ElectraJs.Wallet:
-        #getLockState() is only available when the hard wallet is starting (#DAEMON_STATE = 'STARTING').`)
-    }
-
     const [err] = await to(this.rpc.lock())
-    if (err !== null && err.message === 'DAEMON_RPC_LOCK_ATTEMPT_ON_UNENCRYPTED_WALLET') {
+    if (err !== null && err.message === EJErrorCode.DAEMON_RPC_LOCK_ATTEMPT_ON_UNENCRYPTED_WALLET) {
       return WalletLockState.UNLOCKED
     }
 
@@ -1045,27 +1079,165 @@ export default class WalletHard {
     await to(this.rpc.importPrivateKey(addressPrivateKey))
   }
 
-  /** List the wallet unspent transactions, ordered by descending amount. */
-  /*private async getUnspentTransactions(includeUnconfirmed: boolean = false): Promise<WalletTransaction[]> {
-    if (this.STATE !== WalletState.READY) {
-      throw new Error(`ElectraJs.Wallet: The #transactions are only available when the #state is "READY".`)
+  /**
+   * Create and broadcast a new transaction of <amount> (inluding the transaction fees) <toAddressHash>
+   * from the lower possible unspent confirmed (confirmations >= 1) ones.
+   */
+  // tslint:disable-next-line:cyclomatic-complexity
+  public async send(amount: number, category: WalletAddressCategory, toAddressHash: string): Promise<void> {
+    if (this.STATE !== WalletState.READY) throw new EJError(EJErrorCode.WALLET_STATE_NOT_READY)
+    if (this.LOCK_STATE !== WalletLockState.UNLOCKED) throw new EJError(EJErrorCode.WALLET_LOCK_STATE_NOT_UNLOCKED)
+    if (this.DAEMON_STATE !== WalletDaemonState.STARTED) throw new EJError(EJErrorCode.WALLET_DAEMON_STATE_NOT_STARTED)
+
+    if (amount <= 0) throw new Error(`ElectraJs.Wallet: You can only send #send() a strictly positive <amount>.`)
+    if (Math.round(amount * SATOSHI) <= ECA_TRANSACTION_FEE) {
+      throw new Error(`ElectraJs.Wallet: You can't send an <amount> lower or equal to the transaction fee.`)
     }
 
-    if (this.isHard) {
-      const [err, res] = await to(this.rpc.listUnspent(includeUnconfirmed ? 0 : 1))
-      if (err !== null || res === undefined) throw err
+    const [err1, inputTransactionsRaw] = await to(this.getUnspentTransactionSumming(amount, category))
+    if (err1 !== null || inputTransactionsRaw === undefined) throw err1
 
-      return R.sort(
-        R.descend(R.prop('amount')),
-        res.map((unspentTransaction: RpcMethodResult<'listunspent'>[0]) => ({
-          amount: unspentTransaction.amount,
-          confimationsCount: unspentTransaction.confirmations,
-          hash: unspentTransaction.txid,
-          toAddressHash: unspentTransaction.address
-        }))
-      )
+    const transactionsAmountTotal: number = inputTransactionsRaw
+      // tslint:disable-next-line:no-parameter-reassignment variable-name
+      .reduce((total: number, { amount: _amount }: WalletUnspentTransaction) => total += _amount, 0)
+
+    const inputTransactions: Array<{ txid: string, vout: number }> = inputTransactionsRaw
+      .map(({ txid, vout }: WalletUnspentTransaction) => ({ txid, vout }))
+
+    const outputTransactions: { [addressHash: string]: number } = {}
+    outputTransactions[toAddressHash] = amount - ECA_TRANSACTION_FEE
+
+    // Change address output
+    if (transactionsAmountTotal > amount) {
+      const lastInputTransaction: WalletUnspentTransaction = inputTransactionsRaw[inputTransactions.length - 1]
+      let changeAddress: string
+
+      switch (category) {
+        case WalletAddressCategory.CHECKING:
+          changeAddress = lastInputTransaction.isChange
+            ? this.checkingAddresses[lastInputTransaction.index].hash
+            : this.checkingAddresses[lastInputTransaction.index].change
+          outputTransactions[changeAddress] = transactionsAmountTotal - amount
+          break
+
+        case WalletAddressCategory.PURSE:
+          changeAddress = lastInputTransaction.isChange
+            ? this.purseAddresses[lastInputTransaction.index].hash
+            : this.purseAddresses[lastInputTransaction.index].change
+          outputTransactions[changeAddress] = transactionsAmountTotal - amount
+          break
+
+        case WalletAddressCategory.RANDOM:
+          outputTransactions[this.checkingAddresses[0].hash] = transactionsAmountTotal - amount
+          break
+
+        case WalletAddressCategory.SAVINGS:
+          changeAddress = lastInputTransaction.isChange
+            ? this.savingsAddresses[lastInputTransaction.index].hash
+            : this.savingsAddresses[lastInputTransaction.index].change
+          outputTransactions[changeAddress] = transactionsAmountTotal - amount
+          break
+
+        default:
+          throw new Error('ElectraJs.Wallet: This #send() case should never happen.')
+      }
     }
 
-    return []
-  }*/
+    const [err2, unsignedTransaction] = await to(this.rpc.createRawTransaction(inputTransactions, outputTransactions))
+    if (err2 !== null || unsignedTransaction === undefined) throw err2
+
+    const [err3, signedTransaction] = await to(this.rpc.signRawTransaction(unsignedTransaction))
+    if (err3 !== null || signedTransaction === undefined) throw err3
+
+    const [err4, test] = await to(this.rpc.sendRawTransaction(signedTransaction.hex))
+    if (err4 !== null || test === undefined) throw err4
+  }
+
+  /**
+   * List the wallet CA unspent transactions, ordered by ascending amount.
+   */
+  private async getUnspentTransactionSumming(
+    amount: number,
+    category: WalletAddressCategory,
+  ): Promise<WalletUnspentTransaction[]> {
+    const addressesHashes: string[] = this.addresses
+      // tslint:disable-next-line:variable-name
+      .filter(({ category: _category }: WalletAddress) => _category === category)
+      .reduce((hashes: string[], { change, hash }: WalletAddress) => [...hashes, hash, change], [])
+
+    const [err, unspentTransactionsRaw] = await to(this.rpc.listUnspent(1, LIST_TRANSACTIONS_LENGTH, addressesHashes))
+    if (err !== null || unspentTransactionsRaw === undefined) throw err
+
+    const unspentTransactionsSorted: RpcMethodResult<'listunspent'> =
+      R.sort(R.ascend(R.prop('amount')), unspentTransactionsRaw)
+
+    const unspentTransactions: RpcMethodResult<'listunspent'> = category !== WalletAddressCategory.RANDOM
+      ? unspentTransactionsSorted
+      : unspentTransactionsSorted
+        .filter(({ address }: RpcMethodResult<'listunspent'>[0]) =>
+          R.find<WalletAddress>(R.propEq<string>('hash', address))(this.RANDOM_ADDRESSES) !== undefined
+        )
+
+    let balance: number = 0
+    let index: number = unspentTransactions.length
+    const transactions: RpcMethodResult<'listunspent'> = []
+    while (--index >= 0) {
+      balance += unspentTransactions[index].amount
+      transactions.push(unspentTransactions[index])
+      if (balance >= amount) break
+    }
+
+    if (balance < amount) throw new EJError(EJErrorCode.WALLET_TRANSACTION_AMOUNT_HIGHER_THAN_AVAILABLE)
+
+    return this.normalizeUnspentTransactions(category, transactions)
+  }
+
+  /**
+   * Normalize daemon raw unspent transactions collection.
+   */
+  private normalizeUnspentTransactions(
+    category: WalletAddressCategory,
+    transactionsRaw: RpcMethodResult<'listunspent'>
+  ): WalletUnspentTransaction[] {
+    return transactionsRaw.map((transactionRaw: RpcMethodResult<'listunspent'>[0]) => {
+      const transaction: Pick<WalletUnspentTransaction, 'address' | 'amount' | 'txid' | 'vout'> = {
+        address: transactionRaw.address,
+        amount: transactionRaw.amount,
+        txid: transactionRaw.txid,
+        vout: transactionRaw.vout,
+      }
+
+      let index: number
+      switch (category) {
+        case WalletAddressCategory.CHECKING:
+          index = R.findIndex<WalletAddress>(R.propEq('hash', transaction.address))(this.checkingAddresses)
+          if (index !== -1) return { ...transaction, category: WalletAddressCategory.CHECKING, index, isChange: false }
+          index = R.findIndex<WalletAddress>(R.propEq('change', transaction.address))(this.checkingAddresses)
+          if (index !== -1) return { ...transaction, category: WalletAddressCategory.CHECKING, index, isChange: true }
+          throw new Error('ElectraJs.Wallet: This #normalizeUnspentTransactions() case should never happen.')
+
+        case WalletAddressCategory.PURSE:
+          index = R.findIndex<WalletAddress>(R.propEq('hash', transaction.address))(this.purseAddresses)
+          if (index !== -1) return { ...transaction, category: WalletAddressCategory.PURSE, index, isChange: false }
+          index = R.findIndex<WalletAddress>(R.propEq('change', transaction.address))(this.purseAddresses)
+          if (index !== -1) return { ...transaction, category: WalletAddressCategory.PURSE, index, isChange: true }
+          throw new Error('ElectraJs.Wallet: This #normalizeUnspentTransactions() case should never happen.')
+
+        case WalletAddressCategory.RANDOM:
+          index = R.findIndex<WalletAddress>(R.propEq('hash', transaction.address))(this.randomAddresses)
+          if (index !== -1) return { ...transaction, category: WalletAddressCategory.PURSE, index, isChange: false }
+          throw new Error('ElectraJs.Wallet: This #normalizeUnspentTransactions() case should never happen.')
+
+        case WalletAddressCategory.SAVINGS:
+          index = R.findIndex<WalletAddress>(R.propEq('hash', transaction.address))(this.savingsAddresses)
+          if (index !== -1) return { ...transaction, category: WalletAddressCategory.SAVINGS, index, isChange: false }
+          index = R.findIndex<WalletAddress>(R.propEq('change', transaction.address))(this.savingsAddresses)
+          if (index !== -1) return { ...transaction, category: WalletAddressCategory.SAVINGS, index, isChange: true }
+          throw new Error('ElectraJs.Wallet: This #normalizeUnspentTransactions() case should never happen.')
+
+        default:
+          throw new Error('ElectraJs.Wallet: This #normalizeUnspentTransactions() case should never happen.')
+      }
+    })
+  }
 }

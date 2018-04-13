@@ -57,5 +57,4 @@ export const ECA_NETWORK_TEST: bitcoinJs.Network = {
   wif: 0xA1 // WIF version
 }
 
-// Value in satochis
-export const ECA_TRANSACTION_FEE: number = 1e3
+export const ECA_TRANSACTION_FEE: number = 0.00001

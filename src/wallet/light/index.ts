@@ -13,6 +13,7 @@ import webServices from '../../web-services'
 import { RpcMethodResult } from '../../libs/rpc/types'
 import { Address } from '../../types'
 import {
+  AddressWithoutPK,
   WalletAddress,
   WalletAddressCategory,
   WalletBalance,
@@ -42,7 +43,7 @@ export default class WalletLight {
   }
 
   /** List of the wallet non-HD (random) and HD addresses. */
-  public get allAddresses(): WalletAddress[] {
+  public get allAddresses(): Array<Address | WalletAddress> {
     if (this.STATE !== WalletState.READY) {
       throw new Error(`ElectraJs.Wallet: #allAddresses are only available when the #state is "READY".`)
     }
@@ -73,7 +74,7 @@ export default class WalletLight {
    *
    * @see https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki#security
    */
-  private MASTER_NODE_ADDRESS: WalletAddress | undefined
+  private MASTER_NODE_ADDRESS: Address | undefined
   /**
    * Wallet HD Master Node address.
    *
@@ -81,7 +82,7 @@ export default class WalletLight {
    * ONLY available when generating a brand new Wallet, which happens after calling #generate()
    * with an undefined <mnemonic> parameter on a Wallet instance with an "EMPTY" #state.
    */
-  public get masterNodeAddress(): WalletAddress {
+  public get masterNodeAddress(): Address {
     if (this.STATE !== WalletState.READY) {
       throw new Error(`ElectraJs.Wallet:
         #masterNodeAddress is only available after a brand new Wallet has been generated the #state is "READY".
@@ -94,7 +95,7 @@ export default class WalletLight {
       `)
     }
 
-    return this.MASTER_NODE_ADDRESS as WalletAddress
+    return this.MASTER_NODE_ADDRESS as Address
   }
 
   /** Mnenonic. */
@@ -121,9 +122,9 @@ export default class WalletLight {
   }
 
   /** List of the wallet random (non-HD) addresses. */
-  private RANDOM_ADDRESSES: WalletAddress[] = []
+  private RANDOM_ADDRESSES: Address[] = []
   /** List of the wallet random (non-HD) addresses. */
-  public get randomAddresses(): WalletAddress[] {
+  public get randomAddresses(): Address[] {
     if (this.STATE !== WalletState.READY) {
       throw new Error(`ElectraJs.Wallet: The #randomAddresses are only available when the #state is "READY".`)
     }
@@ -217,12 +218,7 @@ export default class WalletLight {
     */
 
     try {
-      const address: Address = Electra.getMasterNodeAddressFromMnemonic(mnemonic, mnemonicExtension)
-      this.MASTER_NODE_ADDRESS = {
-        category: null,
-        ...address,
-        label: null
-      }
+      this.MASTER_NODE_ADDRESS = Electra.getMasterNodeAddressFromMnemonic(mnemonic, mnemonicExtension)
     }
     catch (err) { throw err }
 
@@ -240,10 +236,17 @@ export default class WalletLight {
           addressIndex,
           false,
         )
+        const addressChange: Address = Electra.getDerivedChainFromMasterNodePrivateKey(
+          this.MASTER_NODE_ADDRESS.privateKey,
+          WalletAddressCategory.PURSE,
+          addressIndex,
+          false,
+        )
 
         this.ADDRESSES.push({
-          ...address,
+          ...R.omit<Address>(['isCiphered', 'privateKey'], address) as AddressWithoutPK,
           category: WalletAddressCategory.PURSE,
+          change: addressChange.hash,
           label: null,
         })
       }
@@ -259,10 +262,17 @@ export default class WalletLight {
           addressIndex,
           false,
         )
+        const addressChange: Address = Electra.getDerivedChainFromMasterNodePrivateKey(
+          this.MASTER_NODE_ADDRESS.privateKey,
+          WalletAddressCategory.CHECKING,
+          addressIndex,
+          false,
+        )
 
         this.ADDRESSES.push({
-          ...address,
+          ...R.omit<Address>(['isCiphered', 'privateKey'], address) as AddressWithoutPK,
           category: WalletAddressCategory.CHECKING,
+          change: addressChange.hash,
           label: null,
         })
       }
@@ -278,10 +288,17 @@ export default class WalletLight {
           addressIndex,
           false,
         )
+        const addressChange: Address = Electra.getDerivedChainFromMasterNodePrivateKey(
+          this.MASTER_NODE_ADDRESS.privateKey,
+          WalletAddressCategory.SAVINGS,
+          addressIndex,
+          false,
+        )
 
         this.ADDRESSES.push({
-          ...address,
+          ...R.omit<Address>(['isCiphered', 'privateKey'], address) as AddressWithoutPK,
           category: WalletAddressCategory.SAVINGS,
+          change: addressChange.hash,
           label: null,
         })
       }
@@ -308,15 +325,7 @@ export default class WalletLight {
         this.MASTER_NODE_ADDRESS.privateKey = Crypto.cipherPrivateKey(this.MASTER_NODE_ADDRESS.privateKey, passphrase)
       }
 
-      this.ADDRESSES = this.ADDRESSES.map((address: WalletAddress) => {
-        if (!address.isCiphered) {
-          address.privateKey = Crypto.cipherPrivateKey(address.privateKey, passphrase)
-        }
-
-        return address
-      })
-
-      this.RANDOM_ADDRESSES = this.RANDOM_ADDRESSES.map((randomAddress: WalletAddress) => {
+      this.RANDOM_ADDRESSES = this.RANDOM_ADDRESSES.map((randomAddress: Address) => {
         if (!randomAddress.isCiphered) {
           randomAddress.privateKey = Crypto.cipherPrivateKey(randomAddress.privateKey, passphrase)
         }
@@ -351,15 +360,7 @@ export default class WalletLight {
         this.MASTER_NODE_ADDRESS.privateKey = Crypto.decipherPrivateKey(this.MASTER_NODE_ADDRESS.privateKey, passphrase)
       }
 
-      this.ADDRESSES = this.ADDRESSES.map((address: WalletAddress) => {
-        if (address.isCiphered) {
-          address.privateKey = Crypto.decipherPrivateKey(address.privateKey, passphrase)
-        }
-
-        return address
-      })
-
-      this.RANDOM_ADDRESSES = this.RANDOM_ADDRESSES.map((randomAddress: WalletAddress) => {
+      this.RANDOM_ADDRESSES = this.RANDOM_ADDRESSES.map((randomAddress: Address) => {
         if (randomAddress.isCiphered) {
           randomAddress.privateKey = Crypto.decipherPrivateKey(randomAddress.privateKey, passphrase)
         }
@@ -410,11 +411,9 @@ export default class WalletLight {
       const privateKey: string = Crypto.decipherPrivateKey(hdPrivateKeyX, passphrase)
       const hash: string = Electra.getAddressHashFromPrivateKey(privateKey)
       this.MASTER_NODE_ADDRESS = {
-        category: null,
         hash,
         isCiphered: false,
         isHD: true,
-        label: null,
         privateKey,
       }
     }
@@ -434,10 +433,17 @@ export default class WalletLight {
           addressIndex,
           false
         )
+        const addressChange: Address = Electra.getDerivedChainFromMasterNodePrivateKey(
+          this.MASTER_NODE_ADDRESS.privateKey,
+          WalletAddressCategory.PURSE,
+          addressIndex,
+          false,
+        )
 
         this.ADDRESSES.push({
-          ...address,
+          ...R.omit<Address>(['isCiphered', 'privateKey'], address) as AddressWithoutPK,
           category: WalletAddressCategory.PURSE,
+          change: addressChange.hash,
           label: null,
         })
       }
@@ -453,10 +459,17 @@ export default class WalletLight {
           addressIndex,
           false
         )
+        const addressChange: Address = Electra.getDerivedChainFromMasterNodePrivateKey(
+          this.MASTER_NODE_ADDRESS.privateKey,
+          WalletAddressCategory.CHECKING,
+          addressIndex,
+          false,
+        )
 
         this.ADDRESSES.push({
-          ...address,
+          ...R.omit<Address>(['isCiphered', 'privateKey'], address) as AddressWithoutPK,
           category: WalletAddressCategory.CHECKING,
+          change: addressChange.hash,
           label: null,
         })
       }
@@ -472,10 +485,17 @@ export default class WalletLight {
           addressIndex,
           false
         )
+        const addressChange: Address = Electra.getDerivedChainFromMasterNodePrivateKey(
+          this.MASTER_NODE_ADDRESS.privateKey,
+          WalletAddressCategory.SAVINGS,
+          addressIndex,
+          false,
+        )
 
         this.ADDRESSES.push({
-          ...address,
+          ...R.omit<Address>(['isCiphered', 'privateKey'], address) as AddressWithoutPK,
           category: WalletAddressCategory.SAVINGS,
+          change: addressChange.hash,
           label: null,
         })
       }
@@ -493,11 +513,9 @@ export default class WalletLight {
         const privateKey: string = Crypto.decipherPrivateKey(randomPrivateKeysX[randomAddressIndex], passphrase)
         const hash: string = Electra.getAddressHashFromPrivateKey(privateKey)
         this.RANDOM_ADDRESSES.push({
-          category: null,
           hash,
           isCiphered: false,
-          isHD: true,
-          label: null,
+          isHD: false,
           privateKey,
         })
       }
@@ -532,8 +550,8 @@ export default class WalletLight {
       this.ADDRESSES.filter(({ category }: WalletAddress) => category === WalletAddressCategory.PURSE).length,
       this.ADDRESSES.filter(({ category }: WalletAddress) => category === WalletAddressCategory.CHECKING).length,
       this.ADDRESSES.filter(({ category }: WalletAddress) => category === WalletAddressCategory.SAVINGS).length,
-      (this.MASTER_NODE_ADDRESS as WalletAddress).privateKey,
-      this.RANDOM_ADDRESSES.map((address: WalletAddress) => address.privateKey)
+      (this.MASTER_NODE_ADDRESS as Address).privateKey,
+      this.RANDOM_ADDRESSES.map((address: Address) => address.privateKey)
     ]
 
     return JSON.stringify(wefData)
@@ -551,33 +569,21 @@ export default class WalletLight {
       `)
     }
 
-    const address: Partial<WalletAddress> = {
-      isHD: false,
-      label: null,
-      privateKey
-    }
-
-    // Decipher the private key is necessary
-    if (passphrase !== undefined) {
-      try {
-        address.privateKey = Crypto.decipherPrivateKey(privateKey, passphrase)
-      }
-      catch (err) {
-        throw err
-      }
-    }
-
-    address.isCiphered = false
-
-    // Get the address hash
     try {
-      address.hash = Electra.getAddressHashFromPrivateKey(address.privateKey as string)
+      const privateKeyDeciphered: string = (passphrase !== undefined)
+        ? Crypto.decipherPrivateKey(privateKey, passphrase)
+        : privateKey
+
+      this.RANDOM_ADDRESSES.push({
+        hash: Electra.getAddressHashFromPrivateKey(privateKeyDeciphered),
+        isCiphered: false,
+        isHD: false,
+        privateKey,
+      })
     }
     catch (err) {
       throw err
     }
-
-    this.RANDOM_ADDRESSES.push(address as WalletAddress)
   }
 
   /**
@@ -604,10 +610,10 @@ export default class WalletLight {
       throw new Error(`ElectraJs.Wallet: You can only #getBalance() from a ready wallet (#state = "READY").`)
     }
 
-    const addresses: WalletAddress[] = this.allAddresses
+    const addresses: Array<Address | WalletAddress> = this.allAddresses
 
     if (addressHash !== undefined) {
-      if (addresses.filter((address: WalletAddress) => address.hash === addressHash).length === 0) {
+      if (addresses.filter((address: Address | WalletAddress) => address.hash === addressHash).length === 0) {
         throw new Error(`ElectraJs.Wallet: You can't #getBalance() with an address not part of the current wallet.`)
       }
 
@@ -710,32 +716,6 @@ export default class WalletLight {
     if (amount > ((await this.getBalance()).confirmed - ECA_TRANSACTION_FEE)) {
       throw new Error(`ElectraJs.Wallet: You can't #send() more than the current wallet addresses hold.`)
     }
-
-    /*
-      STEP 1: UNSPENT TRANSACTIONS
-    */
-    /*const [err1, unspentTransactions] = await to(this.getUnspentTransactions(true))
-    if (err1 !== null || unspentTransactions === undefined) throw err1
-
-    let availableAmount: number = 0
-    const requiredUnspentTransactions: string[] = []
-    // tslint:disable-next-line:prefer-const
-    for (let unspentTransaction of unspentTransactions) {
-      availableAmount += unspentTransaction.amount
-      requiredUnspentTransactions.push(unspentTransaction.hash)
-
-      if (availableAmount >= amount) break
-    }*/
-
-    /*
-      STEP 2: BROADCAST
-    */
-
-    /*if (this.isHard) {
-      // TODO Replace this method with a detailed unspent transactions signed one.
-      const [err2] = await to(this.rpc.sendBasicTransaction(toAddressHash, amount))
-      if (err2 !== null) throw err2
-    }*/
   }
 
   /**
