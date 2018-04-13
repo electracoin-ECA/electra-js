@@ -119,7 +119,7 @@ export enum WalletLockState {
 export interface WalletStartDataHard {
   addresses: WalletAddress[]
   masterNodeAddress: Address
-  randomAddresses: Address[]
+  randomAddresses: WalletAddress[]
 }
 
 export interface WalletStartDataLight {
