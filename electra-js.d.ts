@@ -152,12 +152,15 @@ export enum WalletTransactionType {
 export interface WalletHard {
   addresses: WalletAddress[];
   allAddresses: WalletAddress[];
+  checkingAddresses: WalletAddress[];
   daemonState: WalletDaemonState;
   isNew: boolean;
   lockState: WalletLockState;
   masterNodeAddress: Address;
   mnemonic: string;
+  purseAddresses: WalletAddress[];
   randomAddresses: WalletAddress[];
+  savingsAddresses: WalletAddress[];
   state: WalletState;
 
   createAddress(passphrase: string, category: WalletAddressCategory): Promise<void>
