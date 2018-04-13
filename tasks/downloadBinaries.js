@@ -36,19 +36,19 @@ const BINARY = {
     name: 'electrad-macos',
     githubPath: '/Electra-project/Electra/releases/download/v1.2.0-beta.1/electrad-macos',
     sha256sum: 'f296920be5023d19b43b4737ea5dd4b580cbb789d1eb427e70974221c8f31f9c',
-    size: 18828580,
+    size: 18_828_580,
   },
   'linux': {
     name: 'electrad-linux',
     githubPath: '/Electra-project/Electra/releases/download/v1.2.0-beta.1/electrad-linux',
     sha256sum: '85bbc02372d295062c97d7ecfd31179e8540b049ec7777f6bacdc0e886ca4bce',
-    size: 73570640,
+    size: 73_570_640,
   },
   'win32': {
     name: 'electrad-windows.exe',
     githubPath: '/Electra-project/Electra/releases/download/v1.2.0-beta.1/electrad-windows.exe',
-    sha256sum: '12ae312c4cd17c3491d79cc271f62c32518627c15f36bc5e7978e19a57e554d1',
-    size: 121045033,
+    sha256sum: '71d5b31bdd465f9ed03c4c69a350e4b9786829a38019b766bef6ba33dfd6ec34',
+    size: 7_167_488,
   },
 }
 
