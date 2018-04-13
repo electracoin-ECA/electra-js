@@ -3,8 +3,7 @@
 import to from 'await-to-js'
 import Axios, { AxiosRequestConfig } from 'axios'
 
-import ElectraJsError from '../error'
-import { ElectraJsErrorReference } from '../error/types'
+import EJError, { EJErrorCode } from '../error'
 import { RPC_ERRORS_TRANSLATION } from './constants'
 import { JsonRpcRequest, JsonRpcResponse, RpcMethod, RpcMethodParams, RpcMethodResult } from './types'
 
@@ -52,19 +51,19 @@ export default class Rpc {
         && err.response.data.error !== null
       ) {
         const errorCode: string = String(err.response.data.error.code)
-        const errorKey: keyof ElectraJsErrorReference | undefined = RPC_ERRORS_TRANSLATION[errorCode]
+        const errorKey: EJErrorCode | undefined = RPC_ERRORS_TRANSLATION[errorCode]
         if (errorKey !== undefined) {
-          throw new ElectraJsError(errorKey)
+          throw new EJError(errorKey)
         }
 
-        throw new Error(err.data.error.message)
+        throw new Error(`libs/rpc: ${err.response.data.error.message}`)
       }
 
-      throw new Error(typeof err === 'string' ? err : err.message)
+      throw new Error(`libs/rpc: ${typeof err === 'string' ? err : err.message}`)
     }
 
     if (res === undefined || res.data === undefined) {
-      throw new Error(`We did't get the expected RPC response.`)
+      throw new Error(`libs/rpc: We did't get the expected RPC response.`)
     }
 
     return res.data.result
@@ -228,7 +227,7 @@ export default class Rpc {
   public async listUnspent(
     minConfirmations: number = 1,
     maxConfirmations: number = 9999999,
-    ...address: string[]
+    addresses?: string[]
   ): Promise<RpcMethodResult<'listunspent'>> {
     return this.query('listunspent', Array.prototype.slice.call(arguments))
   }
@@ -251,14 +250,10 @@ export default class Rpc {
   }
 
   /**
-   * Create a basic transaction and broadcast it.
-   *
-   * @note
-   * THIS METHOD SHOULD NOT BE USED ONCE THE FIRST FINAL VERSION IS RELEASED.
-   * This transaction is "basic" because the unspent transaction are automatically selected.
+   * Broadcast a raw transaction.
    */
-  public async sendBasicTransaction(toAddressHash: string, amount: number): Promise<RpcMethodResult<'sendtoaddress'>> {
-    return this.query('sendtoaddress', Array.prototype.slice.call(arguments))
+  public async sendRawTransaction(transactionHash: string): Promise<RpcMethodResult<'sendrawtransaction'>> {
+    return this.query('sendrawtransaction', Array.prototype.slice.call(arguments))
   }
 
   /**

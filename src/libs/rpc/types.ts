@@ -1,7 +1,7 @@
 // tslint:disable:no-any
 
 import { OrNull } from '../../types'
-import { ElectraJsErrorReference } from '../error/types'
+import { EJErrorCode } from '../error'
 
 export interface RpcResult<T> {
   id: OrNull<string>
@@ -288,5 +288,5 @@ export interface JsonRpcResponseError {
 }
 
 export interface RpcErrorTranslation {
-  [key: string]: keyof ElectraJsErrorReference | undefined
+  [key: string]: EJErrorCode | undefined
 }
