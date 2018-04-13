@@ -16,7 +16,7 @@ export interface RpcMethods {
   checkwallet: {
     'wallet check passed': boolean
   }
-  createrawtransaction: any
+  createrawtransaction: string
   decoderawtransaction: any
   decodescript: any
   dumpprivkey: string
@@ -237,12 +237,15 @@ export interface RpcMethods {
   sendalert: any
   sendfrom: any
   sendmany: any
-  sendrawtransaction: any
+  sendrawtransaction: string
   sendtoaddress: string
   setaccount: any
   settxfee: any
   signmessage: any
-  signrawtransaction: any
+  signrawtransaction: {
+    hex: string
+    complete: boolean
+  }
   stop: any
   submitblock: any
   validateaddress: {

@@ -87,6 +87,16 @@ export default class Rpc {
   }
 
   /**
+   * Create a raw transaction.
+   */
+  public async createRawTransaction(
+    inputs: Array<{ txid: string, vout: number }>,
+    outputs: { [addressHash: string]: number }
+  ): Promise<RpcMethodResult<'createrawtransaction'>> {
+    return this.query('createrawtransaction', Array.prototype.slice.call(arguments))
+  }
+
+  /**
    * Encrypt the wallet with <passphrase>.
    */
   public async encryptWallet(passphrase: string): Promise<RpcMethodResult<'encryptwallet'>> {
@@ -252,8 +262,15 @@ export default class Rpc {
   /**
    * Broadcast a raw transaction.
    */
-  public async sendRawTransaction(transactionHash: string): Promise<RpcMethodResult<'sendrawtransaction'>> {
+  public async sendRawTransaction(signedTransactionHash: string): Promise<RpcMethodResult<'sendrawtransaction'>> {
     return this.query('sendrawtransaction', Array.prototype.slice.call(arguments))
+  }
+
+  /**
+   * Sign a raw transaction.
+   */
+  public async signRawTransaction(unsignedTransactionHash: string): Promise<RpcMethodResult<'signrawtransaction'>> {
+    return this.query('signrawtransaction', Array.prototype.slice.call(arguments))
   }
 
   /**
