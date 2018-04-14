@@ -69,7 +69,7 @@ export interface WalletAddress extends Omit<Address, 'isCiphered' | 'privateKey'
   label: OrNull<string>
 }
 
-export enum WalletAddressCategory {
+declare enum WalletAddressCategory {
   CHECKING = 1,
   PURSE = 0,
   RANDOM = 3,
@@ -81,7 +81,7 @@ export interface WalletBalance {
   unconfirmed: number
 }
 
-export enum WalletDaemonState {
+declare enum WalletDaemonState {
   STARTED = 'STARTED',
   STARTING = 'STARTING',
   STOPPED = 'STOPPED',
@@ -110,7 +110,7 @@ export interface WalletInfo {
   nextStakingRewardIn: number;
 }
 
-export enum WalletLockState {
+declare enum WalletLockState {
   LOCKED = 'LOCKED',
   STAKING = 'STAKING',
   UNLOCKED = 'UNLOCKED',
@@ -128,7 +128,7 @@ export interface WalletStartDataLight {
   randomAddresses: WalletAddress[];
 }
 
-export enum WalletState {
+declare enum WalletState {
   EMPTY = 'EMPTY',
   READY = 'READY',
 }
@@ -143,7 +143,7 @@ export interface WalletTransaction {
   type: WalletTransactionType;
 }
 
-export enum WalletTransactionType {
+declare enum WalletTransactionType {
   GENERATED = 'GENERATED',
   RECEIVED = 'RECEIVED',
   SENT = 'SENT',

@@ -2,9 +2,24 @@ import * as constants from './constants'
 import { EJErrorCode } from './libs/error'
 import WalletHard from './wallet/hard'
 import WalletLight from './wallet/light'
+import {
+  WalletAddressCategory,
+  WalletDaemonState,
+  WalletLockState,
+  WalletState,
+  WalletTransactionType,
+} from './wallet/types'
 import webServices, { CoinMarketCapCurrency, WebServices } from './web-services'
 
-export { CoinMarketCapCurrency, EJErrorCode }
+export {
+  CoinMarketCapCurrency,
+  EJErrorCode,
+  WalletAddressCategory,
+  WalletDaemonState,
+  WalletLockState,
+  WalletState,
+  WalletTransactionType,
+}
 
 import { Settings } from './types'
 
