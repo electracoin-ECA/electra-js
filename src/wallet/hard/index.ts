@@ -1191,19 +1191,12 @@ export default class WalletHard {
     const unspentTransactionsSorted: RpcMethodResult<'listunspent'> =
       R.sort(R.ascend(R.prop('amount')), unspentTransactionsRaw)
 
-    const unspentTransactions: RpcMethodResult<'listunspent'> = category !== WalletAddressCategory.RANDOM
-      ? unspentTransactionsSorted
-      : unspentTransactionsSorted
-        .filter(({ address }: RpcMethodResult<'listunspent'>[0]) =>
-          R.find<WalletAddress>(R.propEq<string>('hash', address))(this.RANDOM_ADDRESSES) !== undefined
-        )
-
     let balance: number = 0
-    let index: number = unspentTransactions.length
+    let index: number = unspentTransactionsSorted.length
     const transactions: RpcMethodResult<'listunspent'> = []
     while (--index >= 0) {
-      balance += unspentTransactions[index].amount
-      transactions.push(unspentTransactions[index])
+      balance += unspentTransactionsSorted[index].amount
+      transactions.push(unspentTransactionsSorted[index])
       if (balance >= amount) break
     }
 
