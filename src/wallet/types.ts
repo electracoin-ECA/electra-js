@@ -7,7 +7,7 @@ export type PlatformBinary = {
 }
 
 export interface WalletAddress extends Omit<Address, 'isCiphered' | 'privateKey'> {
-  category: OrNull<WalletAddressCategory>
+  category: WalletAddressCategory
   change: string
   label: OrNull<string>
 }
