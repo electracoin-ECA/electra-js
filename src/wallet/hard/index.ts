@@ -986,12 +986,28 @@ export default class WalletHard {
   /**
    * List the wallet transactions (from the newer to the older one).
    */
-  public async getTransactions(count: number = LIST_TRANSACTIONS_LENGTH): Promise<WalletTransaction[]> {
+  public async getTransactions(
+    count: number = LIST_TRANSACTIONS_LENGTH,
+    category?: WalletAddressCategory
+  ): Promise<WalletTransaction[]> {
     if (this.STATE !== WalletState.READY) throw new EJError(EJErrorCode.WALLET_STATE_NOT_READY)
     if (this.DAEMON_STATE !== WalletDaemonState.STARTED) throw new EJError(EJErrorCode.WALLET_DAEMON_STATE_NOT_STARTED)
 
-    const [err1, transactionsRaw] = await to(this.rpc.listTransactions('*', LIST_TRANSACTIONS_LENGTH))
-    if (err1 !== null || transactionsRaw === undefined) throw err1
+    const [err1, res] = await to(this.rpc.listTransactions('*', LIST_TRANSACTIONS_LENGTH))
+    if (err1 !== null || res === undefined) throw err1
+
+    let transactionsRaw: RpcMethodResult<'listtransactions'>
+    if (category !== undefined) {
+      const categoryAddressesHashes: string[] = this.addresses
+        // tslint:disable-next-line:variable-name
+        .filter(({ category: _category }: WalletAddress) => _category === category)
+        .reduce((hashes: string[], { change, hash }: WalletAddress) => [...hashes, hash, change], [])
+
+      transactionsRaw = res
+        .filter(({ address }: RpcMethodResult<'listtransactions'>[0]) => categoryAddressesHashes.includes(address))
+    } else {
+      transactionsRaw = res
+    }
 
     let index: number = -1
     const transactions: WalletTransaction[] = []
@@ -1014,14 +1030,18 @@ export default class WalletHard {
         if (transactionRaw.category === 'send') {
           transaction.from = [transactionRaw.address]
           transaction.to = transactionInfo.details
-            .filter(({ category }: RpcMethodResult<'gettransaction'>['details'][0]) => category === 'receive')
+            // tslint:disable-next-line:variable-name
+            .filter(({ category: _category }: RpcMethodResult<'gettransaction'>['details'][0]) =>
+              _category === 'receive'
+            )
             .map(({ address }: RpcMethodResult<'gettransaction'>['details'][0]) => address)
           transaction.type = WalletTransactionType.SENT
         }
 
         if (transactionRaw.category === 'receive') {
           transaction.from = transactionInfo.details
-            .filter(({ category }: RpcMethodResult<'gettransaction'>['details'][0]) => category === 'send')
+            // tslint:disable-next-line:variable-name
+            .filter(({ category: _category }: RpcMethodResult<'gettransaction'>['details'][0]) => _category === 'send')
             .map(({ address }: RpcMethodResult<'gettransaction'>['details'][0]) => address)
           transaction.to = [transactionRaw.address]
           transaction.type = WalletTransactionType.RECEIVED
