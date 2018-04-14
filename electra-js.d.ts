@@ -171,7 +171,7 @@ export interface WalletHard {
   getCategoryBalance(category: WalletAddressCategory): Promise<WalletBalance>;
   getInfo(): Promise<WalletInfo>;
   getTransaction(transactionHash: string): Promise<WalletTransaction | undefined>;
-  getTransactions(count: number, category?: WalletAddressCategory): Promise<WalletTransaction[]>;
+  getTransactions(count?: number, category?: WalletAddressCategory): Promise<WalletTransaction[]>;
   import(wefData: WalletExchangeFormat, passphrase: string): Promise<void>;
   importRandomAddress(privateKey: string, passphrase: string): Promise<void>;
   lock(passphrase?: string): Promise<void>;
