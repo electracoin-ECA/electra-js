@@ -884,7 +884,7 @@ export default class WalletHard {
     if (this.STATE !== WalletState.READY) throw new EJError(EJErrorCode.WALLET_STATE_NOT_READY)
     if (this.DAEMON_STATE !== WalletDaemonState.STARTED) throw new EJError(EJErrorCode.WALLET_DAEMON_STATE_NOT_STARTED)
 
-    const addressesHashes: string[] = this.addresses
+    const addressesHashes: string[] = this.allAddresses
       // tslint:disable-next-line:variable-name
       .filter(({ category: _category }: WalletAddress) => _category === category)
       .reduce((hashes: string[], { change, hash }: WalletAddress) => [...hashes, hash, change], [])
@@ -998,7 +998,7 @@ export default class WalletHard {
 
     let transactionsRaw: RpcMethodResult<'listtransactions'>
     if (category !== undefined) {
-      const categoryAddressesHashes: string[] = this.addresses
+      const categoryAddressesHashes: string[] = this.allAddresses
         // tslint:disable-next-line:variable-name
         .filter(({ category: _category }: WalletAddress) => _category === category)
         .reduce((hashes: string[], { change, hash }: WalletAddress) => [...hashes, hash, change], [])
@@ -1180,7 +1180,7 @@ export default class WalletHard {
     amount: number,
     category: WalletAddressCategory,
   ): Promise<WalletUnspentTransaction[]> {
-    const addressesHashes: string[] = this.addresses
+    const addressesHashes: string[] = this.allAddresses
       // tslint:disable-next-line:variable-name
       .filter(({ category: _category }: WalletAddress) => _category === category)
       .reduce((hashes: string[], { change, hash }: WalletAddress) => [...hashes, hash, change], [])
