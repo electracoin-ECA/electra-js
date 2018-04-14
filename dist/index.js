@@ -2252,8 +2252,8 @@ module.exports = {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
-const constants_1 = __webpack_require__(191);
-exports.EJErrorCode = constants_1.EJErrorCode;
+const types_1 = __webpack_require__(191);
+exports.EJErrorCode = types_1.EJErrorCode;
 /**
  * Custom ElectraJs error class.
  */
@@ -11870,7 +11870,7 @@ const SETTINGS_DEFAULT = {
  * ElectraJs version.
  * DO NOT CHANGE THIS LINE SINCE THE VERSION IS AUTOMATICALLY INJECTED !
  */
-const VERSION = '0.12.3';
+const VERSION = '0.12.4';
 /**
  * Main ElectraJS class.
  */
