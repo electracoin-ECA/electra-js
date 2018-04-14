@@ -1022,6 +1022,7 @@ export default class WalletHard {
 
       if (transactionRaw.category === 'generate') {
         transaction.to = [transactionRaw.address]
+        transaction.toCategories = [this.getCategoryFromAddress(transactionRaw.address)]
         transaction.type = WalletTransactionType.GENERATED
       } else {
         const [err2, transactionInfo] = await to(this.rpc.getTransaction(transaction.hash as string))
@@ -1029,12 +1030,19 @@ export default class WalletHard {
 
         if (transactionRaw.category === 'send') {
           transaction.from = [transactionRaw.address]
+          transaction.fromCategories = [this.getCategoryFromAddress(transactionRaw.address)]
           transaction.to = transactionInfo.details
             // tslint:disable-next-line:variable-name
             .filter(({ category: _category }: RpcMethodResult<'gettransaction'>['details'][0]) =>
               _category === 'receive'
             )
             .map(({ address }: RpcMethodResult<'gettransaction'>['details'][0]) => address)
+          transaction.toCategories = transactionInfo.details
+            // tslint:disable-next-line:variable-name
+            .filter(({ category: _category }: RpcMethodResult<'gettransaction'>['details'][0]) =>
+              _category === 'receive'
+            )
+            .map(({ address }: RpcMethodResult<'gettransaction'>['details'][0]) => this.getCategoryFromAddress(address))
           transaction.type = WalletTransactionType.SENT
         }
 
@@ -1043,7 +1051,12 @@ export default class WalletHard {
             // tslint:disable-next-line:variable-name
             .filter(({ category: _category }: RpcMethodResult<'gettransaction'>['details'][0]) => _category === 'send')
             .map(({ address }: RpcMethodResult<'gettransaction'>['details'][0]) => address)
+          transaction.fromCategories = transactionInfo.details
+            // tslint:disable-next-line:variable-name
+            .filter(({ category: _category }: RpcMethodResult<'gettransaction'>['details'][0]) => _category === 'send')
+            .map(({ address }: RpcMethodResult<'gettransaction'>['details'][0]) => this.getCategoryFromAddress(address))
           transaction.to = [transactionRaw.address]
+          transaction.toCategories = [this.getCategoryFromAddress(transactionRaw.address)]
           transaction.type = WalletTransactionType.RECEIVED
         }
       }
@@ -1252,5 +1265,15 @@ export default class WalletHard {
           throw new Error('ElectraJs.Wallet: This #normalizeUnspentTransactions() case should never happen.')
       }
     })
+  }
+
+  /**
+   * Get the CA category from an address hash.
+   */
+  private getCategoryFromAddress(addressHash: string): WalletAddressCategory {
+    const found: WalletAddress[] = this.allAddresses
+      .filter(({ change, hash }: WalletAddress) => change === addressHash || hash === addressHash)
+
+    return found.length === 0 ? WalletAddressCategory.EXTERNAL : found[0].category
   }
 }

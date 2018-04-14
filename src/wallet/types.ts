@@ -14,6 +14,7 @@ export interface WalletAddress extends Omit<Address, 'isCiphered' | 'privateKey'
 
 export enum WalletAddressCategory {
   CHECKING = 1,
+  EXTERNAL = -1,
   PURSE = 0,
   RANDOM = 3,
   SAVINGS = 2,
@@ -83,8 +84,10 @@ export interface WalletTransaction {
   confimationsCount: number
   date: number // Unix timestamp in seconds
   from?: string[] // Addresses hash
+  fromCategories?: WalletAddressCategory[]
   hash: string
   to: string[] // Addresses hash
+  toCategories: WalletAddressCategory[]
   type: WalletTransactionType
 }
 
