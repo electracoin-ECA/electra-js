@@ -69,7 +69,7 @@ export interface WalletAddress extends Omit<Address, 'isCiphered' | 'privateKey'
   label: OrNull<string>
 }
 
-declare enum WalletAddressCategory {
+export enum WalletAddressCategory {
   CHECKING = 1,
   PURSE = 0,
   RANDOM = 3,
@@ -81,7 +81,7 @@ export interface WalletBalance {
   unconfirmed: number
 }
 
-declare enum WalletDaemonState {
+export enum WalletDaemonState {
   STARTED = 'STARTED',
   STARTING = 'STARTING',
   STOPPED = 'STOPPED',
@@ -110,7 +110,7 @@ export interface WalletInfo {
   nextStakingRewardIn: number;
 }
 
-declare enum WalletLockState {
+export enum WalletLockState {
   LOCKED = 'LOCKED',
   STAKING = 'STAKING',
   UNLOCKED = 'UNLOCKED',
@@ -128,7 +128,7 @@ export interface WalletStartDataLight {
   randomAddresses: WalletAddress[];
 }
 
-declare enum WalletState {
+export enum WalletState {
   EMPTY = 'EMPTY',
   READY = 'READY',
 }
@@ -143,7 +143,7 @@ export interface WalletTransaction {
   type: WalletTransactionType;
 }
 
-declare enum WalletTransactionType {
+export enum WalletTransactionType {
   GENERATED = 'GENERATED',
   RECEIVED = 'RECEIVED',
   SENT = 'SENT',
@@ -213,4 +213,16 @@ export interface WalletLight {
 export interface WebServices {
   getBalanceFor(address: string): Promise<number>;
   getCurrentPriceIn(currency?: CoinMarketCapCurrency): Promise<number>;
+}
+
+export enum EJErrorCode {
+  DAEMON_RPC_LOCK_ATTEMPT_ON_UNENCRYPTED_WALLET = 'DAEMON_RPC_LOCK_ATTEMPT_ON_UNENCRYPTED_WALLET',
+  DAEMON_RPC_METHOD_NOT_FOUND = 'DAEMON_RPC_METHOD_NOT_FOUND',
+  WALLET_DAEMON_STATE_NOT_STARTED = 'WALLET_DAEMON_STATE_NOT_STARTED',
+  WALLET_LOCK_STATE_NOT_LOCKED = 'WALLET_LOCK_STATE_NOT_LOCKED',
+  WALLET_LOCK_STATE_NOT_STAKING = 'WALLET_LOCK_STATE_NOT_STAKING',
+  WALLET_LOCK_STATE_NOT_UNLOCKED = 'WALLET_LOCK_STATE_NOT_UNLOCKED',
+  WALLET_STATE_NOT_EMPTY = 'WALLET_STATE_NOT_EMPTY',
+  WALLET_STATE_NOT_READY = 'WALLET_STATE_NOT_READY',
+  WALLET_TRANSACTION_AMOUNT_HIGHER_THAN_AVAILABLE = 'WALLET_TRANSACTION_AMOUNT_HIGHER_THAN_AVAILABLE',
 }

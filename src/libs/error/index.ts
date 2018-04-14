@@ -1,4 +1,4 @@
-import { EJErrorCode } from './constants'
+import { EJErrorCode } from './types'
 
 export { EJErrorCode }
 
