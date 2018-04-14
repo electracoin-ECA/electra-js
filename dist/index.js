@@ -5654,6 +5654,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var WalletAddressCategory;
 (function (WalletAddressCategory) {
     WalletAddressCategory[WalletAddressCategory["CHECKING"] = 1] = "CHECKING";
+    WalletAddressCategory[WalletAddressCategory["EXTERNAL"] = -1] = "EXTERNAL";
     WalletAddressCategory[WalletAddressCategory["PURSE"] = 0] = "PURSE";
     WalletAddressCategory[WalletAddressCategory["RANDOM"] = 3] = "RANDOM";
     WalletAddressCategory[WalletAddressCategory["SAVINGS"] = 2] = "SAVINGS";
@@ -11870,7 +11871,7 @@ const SETTINGS_DEFAULT = {
  * ElectraJs version.
  * DO NOT CHANGE THIS LINE SINCE THE VERSION IS AUTOMATICALLY INJECTED !
  */
-const VERSION = '0.12.4';
+const VERSION = '0.12.5';
 /**
  * Main ElectraJS class.
  */
@@ -12579,7 +12580,7 @@ class WalletHard {
                 throw new error_1.default(error_1.EJErrorCode.WALLET_STATE_NOT_READY);
             if (this.DAEMON_STATE !== types_1.WalletDaemonState.STARTED)
                 throw new error_1.default(error_1.EJErrorCode.WALLET_DAEMON_STATE_NOT_STARTED);
-            const addressesHashes = this.addresses
+            const addressesHashes = this.allAddresses
                 // tslint:disable-next-line:variable-name
                 .filter(({ category: _category }) => _category === category)
                 .reduce((hashes, { change, hash }) => [...hashes, hash, change], []);
@@ -12680,7 +12681,7 @@ class WalletHard {
                 throw err1;
             let transactionsRaw;
             if (category !== undefined) {
-                const categoryAddressesHashes = this.addresses
+                const categoryAddressesHashes = this.allAddresses
                     // tslint:disable-next-line:variable-name
                     .filter(({ category: _category }) => _category === category)
                     .reduce((hashes, { change, hash }) => [...hashes, hash, change], []);
@@ -12702,6 +12703,7 @@ class WalletHard {
                 };
                 if (transactionRaw.category === 'generate') {
                     transaction.to = [transactionRaw.address];
+                    transaction.toCategories = [this.getCategoryFromAddress(transactionRaw.address)];
                     transaction.type = types_1.WalletTransactionType.GENERATED;
                 }
                 else {
@@ -12710,10 +12712,15 @@ class WalletHard {
                         throw err2;
                     if (transactionRaw.category === 'send') {
                         transaction.from = [transactionRaw.address];
+                        transaction.fromCategories = [this.getCategoryFromAddress(transactionRaw.address)];
                         transaction.to = transactionInfo.details
                             // tslint:disable-next-line:variable-name
                             .filter(({ category: _category }) => _category === 'receive')
                             .map(({ address }) => address);
+                        transaction.toCategories = transactionInfo.details
+                            // tslint:disable-next-line:variable-name
+                            .filter(({ category: _category }) => _category === 'receive')
+                            .map(({ address }) => this.getCategoryFromAddress(address));
                         transaction.type = types_1.WalletTransactionType.SENT;
                     }
                     if (transactionRaw.category === 'receive') {
@@ -12721,7 +12728,12 @@ class WalletHard {
                             // tslint:disable-next-line:variable-name
                             .filter(({ category: _category }) => _category === 'send')
                             .map(({ address }) => address);
+                        transaction.fromCategories = transactionInfo.details
+                            // tslint:disable-next-line:variable-name
+                            .filter(({ category: _category }) => _category === 'send')
+                            .map(({ address }) => this.getCategoryFromAddress(address));
                         transaction.to = [transactionRaw.address];
+                        transaction.toCategories = [this.getCategoryFromAddress(transactionRaw.address)];
                         transaction.type = types_1.WalletTransactionType.RECEIVED;
                     }
                 }
@@ -12850,7 +12862,7 @@ class WalletHard {
      */
     getUnspentTransactionSumming(amount, category) {
         return __awaiter(this, void 0, void 0, function* () {
-            const addressesHashes = this.addresses
+            const addressesHashes = this.allAddresses
                 // tslint:disable-next-line:variable-name
                 .filter(({ category: _category }) => _category === category)
                 .reduce((hashes, { change, hash }) => [...hashes, hash, change], []);
@@ -12858,16 +12870,12 @@ class WalletHard {
             if (err !== null || unspentTransactionsRaw === undefined)
                 throw err;
             const unspentTransactionsSorted = R.sort(R.ascend(R.prop('amount')), unspentTransactionsRaw);
-            const unspentTransactions = category !== types_1.WalletAddressCategory.RANDOM
-                ? unspentTransactionsSorted
-                : unspentTransactionsSorted
-                    .filter(({ address }) => R.find(R.propEq('hash', address))(this.RANDOM_ADDRESSES) !== undefined);
             let balance = 0;
-            let index = unspentTransactions.length;
+            let index = unspentTransactionsSorted.length;
             const transactions = [];
             while (--index >= 0) {
-                balance += unspentTransactions[index].amount;
-                transactions.push(unspentTransactions[index]);
+                balance += unspentTransactionsSorted[index].amount;
+                transactions.push(unspentTransactionsSorted[index]);
                 if (balance >= amount)
                     break;
             }
@@ -12922,6 +12930,14 @@ class WalletHard {
                     throw new Error('ElectraJs.Wallet: This #normalizeUnspentTransactions() case should never happen.');
             }
         });
+    }
+    /**
+     * Get the CA category from an address hash.
+     */
+    getCategoryFromAddress(addressHash) {
+        const found = this.allAddresses
+            .filter(({ change, hash }) => change === addressHash || hash === addressHash);
+        return found.length === 0 ? types_1.WalletAddressCategory.EXTERNAL : found[0].category;
     }
 }
 exports.default = WalletHard;
