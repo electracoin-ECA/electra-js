@@ -274,7 +274,7 @@ describe('Wallet (hard)', function() {
     it.skip(`#export() SHOULD return the expected result`, async () =>
       assert.strictEqual(await wallet.export(HD_PASSPHRASE_TEST), TEST_WEF))
 
-    it(`#send() SHOULD NOT throw any error`, async () => {
+    it.skip(`#send() SHOULD NOT throw any error`, async () => {
       await assertThen(() =>wallet.send(TEST_AMOUNT, WalletAddressCategory.CHECKING, HD_SAVINGS_1_EXTERNAL_HASH_TEST))
       // await assertThen(() =>wallet.send(TEST_AMOUNT, WalletAddressCategory.PURSE, HD_CHECKING_1_EXTERNAL_HASH_TEST))
       // await assertThen(() =>wallet.send(TEST_AMOUNT, WalletAddressCategory.RANDOM, HD_SAVINGS_1_EXTERNAL_HASH_TEST))
