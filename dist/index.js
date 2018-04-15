@@ -11871,7 +11871,7 @@ const SETTINGS_DEFAULT = {
  * ElectraJs version.
  * DO NOT CHANGE THIS LINE SINCE THE VERSION IS AUTOMATICALLY INJECTED !
  */
-const VERSION = '0.12.5';
+const VERSION = '0.12.6';
 /**
  * Main ElectraJS class.
  */
@@ -12580,10 +12580,10 @@ class WalletHard {
                 throw new error_1.default(error_1.EJErrorCode.WALLET_STATE_NOT_READY);
             if (this.DAEMON_STATE !== types_1.WalletDaemonState.STARTED)
                 throw new error_1.default(error_1.EJErrorCode.WALLET_DAEMON_STATE_NOT_STARTED);
-            const addressesHashes = this.allAddresses
+            const addressesHashes = R.uniq(this.allAddresses
                 // tslint:disable-next-line:variable-name
                 .filter(({ category: _category }) => _category === category)
-                .reduce((hashes, { change, hash }) => [...hashes, hash, change], []);
+                .reduce((hashes, { change, hash }) => [...hashes, hash, change], []));
             const [err1, confirmedTransactions] = yield await_to_js_1.default(this.rpc.listUnspent(1, LIST_TRANSACTIONS_LENGTH, addressesHashes));
             if (err1 !== null || confirmedTransactions === undefined)
                 throw err1;
@@ -12862,10 +12862,10 @@ class WalletHard {
      */
     getUnspentTransactionSumming(amount, category) {
         return __awaiter(this, void 0, void 0, function* () {
-            const addressesHashes = this.allAddresses
+            const addressesHashes = R.uniq(this.allAddresses
                 // tslint:disable-next-line:variable-name
                 .filter(({ category: _category }) => _category === category)
-                .reduce((hashes, { change, hash }) => [...hashes, hash, change], []);
+                .reduce((hashes, { change, hash }) => [...hashes, hash, change], []));
             const [err, unspentTransactionsRaw] = yield await_to_js_1.default(this.rpc.listUnspent(1, LIST_TRANSACTIONS_LENGTH, addressesHashes));
             if (err !== null || unspentTransactionsRaw === undefined)
                 throw err;
@@ -12916,7 +12916,7 @@ class WalletHard {
                 case types_1.WalletAddressCategory.RANDOM:
                     index = R.findIndex(R.propEq('hash', transaction.address))(this.randomAddresses);
                     if (index !== -1)
-                        return Object.assign({}, transaction, { category: types_1.WalletAddressCategory.PURSE, index, isChange: false });
+                        return Object.assign({}, transaction, { category: types_1.WalletAddressCategory.RANDOM, index, isChange: false });
                     throw new Error('ElectraJs.Wallet: This #normalizeUnspentTransactions() case should never happen.');
                 case types_1.WalletAddressCategory.SAVINGS:
                     index = R.findIndex(R.propEq('hash', transaction.address))(this.savingsAddresses);
