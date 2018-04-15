@@ -1144,38 +1144,55 @@ export default class WalletHard {
 
     // Change address output
     if (transactionsAmountTotal > amount) {
+      const toAddressCategory: WalletAddressCategory = this.getCategoryFromAddress(toAddressHash)
       const lastInputTransaction: WalletUnspentTransaction = inputTransactionsRaw[inputTransactions.length - 1]
       let changeAddress: string
 
-      switch (category) {
-        case WalletAddressCategory.CHECKING:
-          changeAddress = lastInputTransaction.isChange
-            ? this.checkingAddresses[lastInputTransaction.index].hash
-            : this.checkingAddresses[lastInputTransaction.index].change
-          outputTransactions[changeAddress] = transactionsAmountTotal - amount
-          break
+      if (category !== WalletAddressCategory.RANDOM && toAddressCategory === WalletAddressCategory.CHECKING) {
+        const toAddressIsChange: boolean = R.findIndex<WalletAddress>(
+          R.propEq('hash', toAddressHash)
+        )(this.checkingAddresses) === -1
 
-        case WalletAddressCategory.PURSE:
-          changeAddress = lastInputTransaction.isChange
-            ? this.purseAddresses[lastInputTransaction.index].hash
-            : this.purseAddresses[lastInputTransaction.index].change
-          outputTransactions[changeAddress] = transactionsAmountTotal - amount
-          break
+        changeAddress = toAddressIsChange
+          ? this.checkingAddresses[lastInputTransaction.index].hash
+          : this.checkingAddresses[lastInputTransaction.index].change
 
-        case WalletAddressCategory.RANDOM:
-          outputTransactions[this.checkingAddresses[0].hash] = transactionsAmountTotal - amount
-          break
+      } else if (toAddressCategory === category) {
+        const toAddressChangeIndex: number = R.findIndex<WalletAddress>(
+          R.propEq('change', toAddressHash)
+        )(this.allAddresses)
+        const toAddressHashIndex: number = R.findIndex<WalletAddress>(
+          R.propEq('hash', toAddressHash)
+        )(this.allAddresses)
 
-        case WalletAddressCategory.SAVINGS:
-          changeAddress = lastInputTransaction.isChange
-            ? this.savingsAddresses[lastInputTransaction.index].hash
-            : this.savingsAddresses[lastInputTransaction.index].change
-          outputTransactions[changeAddress] = transactionsAmountTotal - amount
-          break
+        changeAddress = toAddressChangeIndex === -1
+          ? this.allAddresses[toAddressChangeIndex].change
+          : this.allAddresses[toAddressHashIndex].hash
 
-        default:
-          throw new Error('ElectraJs.Wallet: This #send() case should never happen.')
+      } else {
+        switch (category) {
+          case WalletAddressCategory.CHECKING:
+            changeAddress = this.checkingAddresses[lastInputTransaction.index].hash
+            break
+
+          case WalletAddressCategory.PURSE:
+            changeAddress = this.purseAddresses[lastInputTransaction.index].hash
+            break
+
+          case WalletAddressCategory.RANDOM:
+            changeAddress = this.checkingAddresses[0].hash
+            break
+
+          case WalletAddressCategory.SAVINGS:
+            changeAddress = this.savingsAddresses[lastInputTransaction.index].hash
+            break
+
+          default:
+            throw new Error('ElectraJs.Wallet: This #send() case should never happen.')
+        }
       }
+
+      outputTransactions[changeAddress] = transactionsAmountTotal - amount
     }
 
     const [err2, unsignedTransaction] = await to(this.rpc.createRawTransaction(inputTransactions, outputTransactions))
