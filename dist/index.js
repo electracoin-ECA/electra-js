@@ -11871,7 +11871,7 @@ const SETTINGS_DEFAULT = {
  * ElectraJs version.
  * DO NOT CHANGE THIS LINE SINCE THE VERSION IS AUTOMATICALLY INJECTED !
  */
-const VERSION = '0.12.8';
+const VERSION = '0.12.9';
 /**
  * Main ElectraJS class.
  */
@@ -12584,10 +12584,10 @@ class WalletHard {
                 // tslint:disable-next-line:variable-name
                 .filter(({ category: _category }) => _category === category)
                 .reduce((hashes, { change, hash }) => [...hashes, hash, change], []));
-            const [err1, confirmedTransactions] = yield await_to_js_1.default(this.rpc.listUnspent(1, LIST_TRANSACTIONS_LENGTH, addressesHashes));
+            const [err1, confirmedTransactions] = yield await_to_js_1.default(this.rpc.listUnspent(1, undefined, addressesHashes));
             if (err1 !== null || confirmedTransactions === undefined)
                 throw err1;
-            const [err2, allTransactions] = yield await_to_js_1.default(this.rpc.listUnspent(0, LIST_TRANSACTIONS_LENGTH, addressesHashes));
+            const [err2, allTransactions] = yield await_to_js_1.default(this.rpc.listUnspent(0, undefined, addressesHashes));
             if (err2 !== null || allTransactions === undefined)
                 throw err2;
             const confirmed = confirmedTransactions
@@ -12711,29 +12711,23 @@ class WalletHard {
                     if (err2 !== null || transactionInfo === undefined)
                         throw err2;
                     if (transactionRaw.category === 'send') {
-                        transaction.to = [transactionRaw.address];
-                        transaction.toCategories = [this.getAddressCategory(transactionRaw.address)];
-                        transaction.from = transactionInfo.details
+                        transaction.from = [transactionRaw.address];
+                        transaction.fromCategories = [this.getAddressCategory(transactionRaw.address)];
+                        transaction.to = transactionInfo.details
                             // tslint:disable-next-line:variable-name
                             .filter(({ category: _category }) => _category === 'receive')
                             .map(({ address }) => address);
-                        transaction.fromCategories = transactionInfo.details
-                            // tslint:disable-next-line:variable-name
-                            .filter(({ category: _category }) => _category === 'receive')
-                            .map(({ address }) => this.getAddressCategory(address));
+                        transaction.toCategories = transaction.to.map((address) => this.getAddressCategory(address));
                         transaction.type = types_1.WalletTransactionType.SENT;
                     }
                     if (transactionRaw.category === 'receive') {
-                        transaction.to = transactionInfo.details
+                        transaction.from = transactionInfo.details
                             // tslint:disable-next-line:variable-name
                             .filter(({ category: _category }) => _category === 'send')
                             .map(({ address }) => address);
-                        transaction.toCategories = transactionInfo.details
-                            // tslint:disable-next-line:variable-name
-                            .filter(({ category: _category }) => _category === 'send')
-                            .map(({ address }) => this.getAddressCategory(address));
-                        transaction.from = [transactionRaw.address];
-                        transaction.fromCategories = [this.getAddressCategory(transactionRaw.address)];
+                        transaction.fromCategories = transaction.from.map((address) => this.getAddressCategory(address));
+                        transaction.to = [transactionRaw.address];
+                        transaction.toCategories = [this.getAddressCategory(transactionRaw.address)];
                         transaction.type = types_1.WalletTransactionType.RECEIVED;
                     }
                 }
