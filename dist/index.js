@@ -11871,7 +11871,7 @@ const SETTINGS_DEFAULT = {
  * ElectraJs version.
  * DO NOT CHANGE THIS LINE SINCE THE VERSION IS AUTOMATICALLY INJECTED !
  */
-const VERSION = '0.12.9';
+const VERSION = '0.12.10';
 /**
  * Main ElectraJS class.
  */
@@ -12584,10 +12584,10 @@ class WalletHard {
                 // tslint:disable-next-line:variable-name
                 .filter(({ category: _category }) => _category === category)
                 .reduce((hashes, { change, hash }) => [...hashes, hash, change], []));
-            const [err1, confirmedTransactions] = yield await_to_js_1.default(this.rpc.listUnspent(1, undefined, addressesHashes));
+            const [err1, confirmedTransactions] = yield await_to_js_1.default(this.rpc.listUnspent(1, LIST_TRANSACTIONS_LENGTH, addressesHashes));
             if (err1 !== null || confirmedTransactions === undefined)
                 throw err1;
-            const [err2, allTransactions] = yield await_to_js_1.default(this.rpc.listUnspent(0, undefined, addressesHashes));
+            const [err2, allTransactions] = yield await_to_js_1.default(this.rpc.listUnspent(0, LIST_TRANSACTIONS_LENGTH, addressesHashes));
             if (err2 !== null || allTransactions === undefined)
                 throw err2;
             const confirmed = confirmedTransactions
