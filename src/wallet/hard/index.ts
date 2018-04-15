@@ -884,10 +884,12 @@ export default class WalletHard {
     if (this.STATE !== WalletState.READY) throw new EJError(EJErrorCode.WALLET_STATE_NOT_READY)
     if (this.DAEMON_STATE !== WalletDaemonState.STARTED) throw new EJError(EJErrorCode.WALLET_DAEMON_STATE_NOT_STARTED)
 
-    const addressesHashes: string[] = this.allAddresses
-      // tslint:disable-next-line:variable-name
-      .filter(({ category: _category }: WalletAddress) => _category === category)
-      .reduce((hashes: string[], { change, hash }: WalletAddress) => [...hashes, hash, change], [])
+    const addressesHashes: string[] = R.uniq(
+      this.allAddresses
+        // tslint:disable-next-line:variable-name
+        .filter(({ category: _category }: WalletAddress) => _category === category)
+        .reduce((hashes: string[], { change, hash }: WalletAddress) => [...hashes, hash, change], [])
+    )
 
     const [err1, confirmedTransactions] = await to(this.rpc.listUnspent(1, LIST_TRANSACTIONS_LENGTH, addressesHashes))
     if (err1 !== null || confirmedTransactions === undefined) throw err1
@@ -1193,10 +1195,12 @@ export default class WalletHard {
     amount: number,
     category: WalletAddressCategory,
   ): Promise<WalletUnspentTransaction[]> {
-    const addressesHashes: string[] = this.allAddresses
-      // tslint:disable-next-line:variable-name
-      .filter(({ category: _category }: WalletAddress) => _category === category)
-      .reduce((hashes: string[], { change, hash }: WalletAddress) => [...hashes, hash, change], [])
+    const addressesHashes: string[] = R.uniq(
+      this.allAddresses
+        // tslint:disable-next-line:variable-name
+        .filter(({ category: _category }: WalletAddress) => _category === category)
+        .reduce((hashes: string[], { change, hash }: WalletAddress) => [...hashes, hash, change], [])
+    )
 
     const [err, unspentTransactionsRaw] = await to(this.rpc.listUnspent(1, LIST_TRANSACTIONS_LENGTH, addressesHashes))
     if (err !== null || unspentTransactionsRaw === undefined) throw err
@@ -1251,7 +1255,7 @@ export default class WalletHard {
 
         case WalletAddressCategory.RANDOM:
           index = R.findIndex<WalletAddress>(R.propEq('hash', transaction.address))(this.randomAddresses)
-          if (index !== -1) return { ...transaction, category: WalletAddressCategory.PURSE, index, isChange: false }
+          if (index !== -1) return { ...transaction, category: WalletAddressCategory.RANDOM, index, isChange: false }
           throw new Error('ElectraJs.Wallet: This #normalizeUnspentTransactions() case should never happen.')
 
         case WalletAddressCategory.SAVINGS:
