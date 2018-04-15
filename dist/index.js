@@ -11871,7 +11871,7 @@ const SETTINGS_DEFAULT = {
  * ElectraJs version.
  * DO NOT CHANGE THIS LINE SINCE THE VERSION IS AUTOMATICALLY INJECTED !
  */
-const VERSION = '0.12.7';
+const VERSION = '0.12.8';
 /**
  * Main ElectraJS class.
  */
@@ -12711,29 +12711,29 @@ class WalletHard {
                     if (err2 !== null || transactionInfo === undefined)
                         throw err2;
                     if (transactionRaw.category === 'send') {
-                        transaction.from = [transactionRaw.address];
-                        transaction.fromCategories = [this.getAddressCategory(transactionRaw.address)];
-                        transaction.to = transactionInfo.details
+                        transaction.to = [transactionRaw.address];
+                        transaction.toCategories = [this.getAddressCategory(transactionRaw.address)];
+                        transaction.from = transactionInfo.details
                             // tslint:disable-next-line:variable-name
                             .filter(({ category: _category }) => _category === 'receive')
                             .map(({ address }) => address);
-                        transaction.toCategories = transactionInfo.details
+                        transaction.fromCategories = transactionInfo.details
                             // tslint:disable-next-line:variable-name
                             .filter(({ category: _category }) => _category === 'receive')
                             .map(({ address }) => this.getAddressCategory(address));
                         transaction.type = types_1.WalletTransactionType.SENT;
                     }
                     if (transactionRaw.category === 'receive') {
-                        transaction.from = transactionInfo.details
+                        transaction.to = transactionInfo.details
                             // tslint:disable-next-line:variable-name
                             .filter(({ category: _category }) => _category === 'send')
                             .map(({ address }) => address);
-                        transaction.fromCategories = transactionInfo.details
+                        transaction.toCategories = transactionInfo.details
                             // tslint:disable-next-line:variable-name
                             .filter(({ category: _category }) => _category === 'send')
                             .map(({ address }) => this.getAddressCategory(address));
-                        transaction.to = [transactionRaw.address];
-                        transaction.toCategories = [this.getAddressCategory(transactionRaw.address)];
+                        transaction.from = [transactionRaw.address];
+                        transaction.fromCategories = [this.getAddressCategory(transactionRaw.address)];
                         transaction.type = types_1.WalletTransactionType.RECEIVED;
                     }
                 }
