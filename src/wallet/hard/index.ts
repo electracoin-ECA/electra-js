@@ -891,10 +891,10 @@ export default class WalletHard {
         .reduce((hashes: string[], { change, hash }: WalletAddress) => [...hashes, hash, change], [])
     )
 
-    const [err1, confirmedTransactions] = await to(this.rpc.listUnspent(1, undefined, addressesHashes))
+    const [err1, confirmedTransactions] = await to(this.rpc.listUnspent(1, LIST_TRANSACTIONS_LENGTH, addressesHashes))
     if (err1 !== null || confirmedTransactions === undefined) throw err1
 
-    const [err2, allTransactions] = await to(this.rpc.listUnspent(0, undefined, addressesHashes))
+    const [err2, allTransactions] = await to(this.rpc.listUnspent(0, LIST_TRANSACTIONS_LENGTH, addressesHashes))
     if (err2 !== null || allTransactions === undefined) throw err2
 
     const confirmed: number = confirmedTransactions
