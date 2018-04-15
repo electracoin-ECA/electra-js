@@ -271,7 +271,7 @@ describe('Wallet (hard)', function() {
       assert.strictEqual((await wallet.getTransactions()).length > 0, true))
     it(`#getBalance() SHOULD return a confirmed balanced greater than 0`, async () =>
       assert.strictEqual((await wallet.getBalance()).confirmed > 0, true))
-    it(`#export() SHOULD return the expected result`, async () =>
+    it.skip(`#export() SHOULD return the expected result`, async () =>
       assert.strictEqual(await wallet.export(HD_PASSPHRASE_TEST), TEST_WEF))
 
     it(`#send() SHOULD NOT throw any error`, async () => {
