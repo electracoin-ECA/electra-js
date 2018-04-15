@@ -1031,34 +1031,26 @@ export default class WalletHard {
         if (err2 !== null || transactionInfo === undefined) throw err2
 
         if (transactionRaw.category === 'send') {
-          transaction.to = [transactionRaw.address]
-          transaction.toCategories = [this.getAddressCategory(transactionRaw.address)]
-          transaction.from = transactionInfo.details
+          transaction.from = [transactionRaw.address]
+          transaction.fromCategories = [this.getAddressCategory(transactionRaw.address)]
+          transaction.to = transactionInfo.details
             // tslint:disable-next-line:variable-name
             .filter(({ category: _category }: RpcMethodResult<'gettransaction'>['details'][0]) =>
               _category === 'receive'
             )
             .map(({ address }: RpcMethodResult<'gettransaction'>['details'][0]) => address)
-          transaction.fromCategories = transactionInfo.details
-            // tslint:disable-next-line:variable-name
-            .filter(({ category: _category }: RpcMethodResult<'gettransaction'>['details'][0]) =>
-              _category === 'receive'
-            )
-            .map(({ address }: RpcMethodResult<'gettransaction'>['details'][0]) => this.getAddressCategory(address))
+          transaction.toCategories = transaction.to.map((address: string) => this.getAddressCategory(address))
           transaction.type = WalletTransactionType.SENT
         }
 
         if (transactionRaw.category === 'receive') {
-          transaction.to = transactionInfo.details
+          transaction.from = transactionInfo.details
             // tslint:disable-next-line:variable-name
             .filter(({ category: _category }: RpcMethodResult<'gettransaction'>['details'][0]) => _category === 'send')
             .map(({ address }: RpcMethodResult<'gettransaction'>['details'][0]) => address)
-          transaction.toCategories = transactionInfo.details
-            // tslint:disable-next-line:variable-name
-            .filter(({ category: _category }: RpcMethodResult<'gettransaction'>['details'][0]) => _category === 'send')
-            .map(({ address }: RpcMethodResult<'gettransaction'>['details'][0]) => this.getAddressCategory(address))
-          transaction.from = [transactionRaw.address]
-          transaction.fromCategories = [this.getAddressCategory(transactionRaw.address)]
+          transaction.fromCategories = transaction.from.map((address: string) => this.getAddressCategory(address))
+          transaction.to = [transactionRaw.address]
+          transaction.toCategories = [this.getAddressCategory(transactionRaw.address)]
           transaction.type = WalletTransactionType.RECEIVED
         }
       }
