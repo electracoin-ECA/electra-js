@@ -1024,7 +1024,7 @@ export default class WalletHard {
 
       if (transactionRaw.category === 'generate') {
         transaction.to = [transactionRaw.address]
-        transaction.toCategories = [this.getCategoryFromAddress(transactionRaw.address)]
+        transaction.toCategories = [this.getAddressCategory(transactionRaw.address)]
         transaction.type = WalletTransactionType.GENERATED
       } else {
         const [err2, transactionInfo] = await to(this.rpc.getTransaction(transaction.hash as string))
@@ -1032,7 +1032,7 @@ export default class WalletHard {
 
         if (transactionRaw.category === 'send') {
           transaction.from = [transactionRaw.address]
-          transaction.fromCategories = [this.getCategoryFromAddress(transactionRaw.address)]
+          transaction.fromCategories = [this.getAddressCategory(transactionRaw.address)]
           transaction.to = transactionInfo.details
             // tslint:disable-next-line:variable-name
             .filter(({ category: _category }: RpcMethodResult<'gettransaction'>['details'][0]) =>
@@ -1044,7 +1044,7 @@ export default class WalletHard {
             .filter(({ category: _category }: RpcMethodResult<'gettransaction'>['details'][0]) =>
               _category === 'receive'
             )
-            .map(({ address }: RpcMethodResult<'gettransaction'>['details'][0]) => this.getCategoryFromAddress(address))
+            .map(({ address }: RpcMethodResult<'gettransaction'>['details'][0]) => this.getAddressCategory(address))
           transaction.type = WalletTransactionType.SENT
         }
 
@@ -1056,9 +1056,9 @@ export default class WalletHard {
           transaction.fromCategories = transactionInfo.details
             // tslint:disable-next-line:variable-name
             .filter(({ category: _category }: RpcMethodResult<'gettransaction'>['details'][0]) => _category === 'send')
-            .map(({ address }: RpcMethodResult<'gettransaction'>['details'][0]) => this.getCategoryFromAddress(address))
+            .map(({ address }: RpcMethodResult<'gettransaction'>['details'][0]) => this.getAddressCategory(address))
           transaction.to = [transactionRaw.address]
-          transaction.toCategories = [this.getCategoryFromAddress(transactionRaw.address)]
+          transaction.toCategories = [this.getAddressCategory(transactionRaw.address)]
           transaction.type = WalletTransactionType.RECEIVED
         }
       }
@@ -1144,7 +1144,7 @@ export default class WalletHard {
 
     // Change address output
     if (transactionsAmountTotal > amount) {
-      const toAddressCategory: WalletAddressCategory = this.getCategoryFromAddress(toAddressHash)
+      const toAddressCategory: WalletAddressCategory = this.getAddressCategory(toAddressHash)
       const lastInputTransaction: WalletUnspentTransaction = inputTransactionsRaw[inputTransactions.length - 1]
       let changeAddress: string
 
@@ -1291,7 +1291,7 @@ export default class WalletHard {
   /**
    * Get the CA category from an address hash.
    */
-  private getCategoryFromAddress(addressHash: string): WalletAddressCategory {
+  public getAddressCategory(addressHash: string): WalletAddressCategory {
     const found: WalletAddress[] = this.allAddresses
       .filter(({ change, hash }: WalletAddress) => change === addressHash || hash === addressHash)
 

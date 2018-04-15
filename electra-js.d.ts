@@ -170,6 +170,7 @@ export interface WalletHard {
   export(passphrase: string): Promise<string>;
   generate(passphrase: string, mnemonic?: string, mnemonicExtension?: string, purseAddressesCount?: number, checkingAddressesCount?: number, savingsAddressesCount?: number): Promise<void>;
   getAddressBalance(addressHash: string): Promise<WalletBalance>;
+  getAddressCategory(addressHash: string): WalletAddressCategory;
   getBalance(): Promise<WalletBalance>;
   getCategoryBalance(category: WalletAddressCategory): Promise<WalletBalance>;
   getInfo(): Promise<WalletInfo>;
