@@ -5680,7 +5680,7 @@ var WalletState;
 var WalletTransactionType;
 (function (WalletTransactionType) {
     WalletTransactionType["GENERATED"] = "GENERATED";
-    WalletTransactionType["TRANSFER"] = "TRANSFER";
+    WalletTransactionType["TRANSFERED"] = "TRANSFERED";
 })(WalletTransactionType = exports.WalletTransactionType || (exports.WalletTransactionType = {}));
 
 
@@ -11870,7 +11870,7 @@ const SETTINGS_DEFAULT = {
  * ElectraJs version.
  * DO NOT CHANGE THIS LINE SINCE THE VERSION IS AUTOMATICALLY INJECTED !
  */
-const VERSION = '0.12.12';
+const VERSION = '0.12.13';
 /**
  * Main ElectraJS class.
  */
@@ -12682,6 +12682,23 @@ class WalletHard {
             const transactionList = [];
             let index = transactionsIdList.length;
             while (--index >= 0) {
+                const transactionRawFound = transactionListRaw
+                    .find(({ txid }) => txid === transactionsIdList[index]);
+                if (transactionRawFound === undefined)
+                    continue;
+                if (transactionRawFound.category === 'generate') {
+                    transactionList.push({
+                        amount: transactionRawFound.amount,
+                        confimationsCount: transactionRawFound.confirmations,
+                        date: transactionRawFound.time,
+                        from: [],
+                        hash: transactionsIdList[index],
+                        to: transactionRawFound.address,
+                        toCategory: this.getAddressCategory(transactionRawFound.address),
+                        type: types_1.WalletTransactionType.GENERATED,
+                    });
+                    continue;
+                }
                 const [err2, transactionRaw] = yield await_to_js_1.default(this.rpc.getTransaction(transactionsIdList[index]));
                 if (err2 !== null || transactionRaw === undefined)
                     throw err2;
@@ -12719,13 +12736,14 @@ class WalletHard {
                         hash: transactionsIdList[index],
                         to: address,
                         toCategory: this.getAddressCategory(address),
-                        type: types_1.WalletTransactionType.TRANSFER,
+                        type: types_1.WalletTransactionType.TRANSFERED,
                     });
                 });
             }
             return inCategory === undefined
                 ? transactionList.slice(0, count)
-                : transactionList.filter(({ toCategory }) => toCategory === inCategory);
+                : transactionList.filter(({ from, toCategory }) => toCategory === inCategory ||
+                    R.findIndex(R.propEq('category', inCategory))(from) !== -1);
         });
     }
     /**
