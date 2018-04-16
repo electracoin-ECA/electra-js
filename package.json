@@ -17,6 +17,7 @@
     "test": "npm run validate && node ./tasks/downloadTestData && npm run test:unit && npm run test:browser && npm run build",
     "test:browser": "webpack --config webpack.test.js && mocha -r ts-node/register test/browser/index.ts",
     "test:unit": "cross-env mocha -r ts-node/register 'src/**/*.spec.ts'",
+    "test:unit:watch": "npm run test:unit -- --watch --watch-extensions ts",
     "validate": "npm run validate:lint && npm run validate:tsc",
     "validate:lint": "tslint -p tsconfig.json",
     "validate:tsc": "tsc -p tsconfig.json --noEmit --pretty",
