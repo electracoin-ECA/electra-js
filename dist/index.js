@@ -11870,7 +11870,7 @@ const SETTINGS_DEFAULT = {
  * ElectraJs version.
  * DO NOT CHANGE THIS LINE SINCE THE VERSION IS AUTOMATICALLY INJECTED !
  */
-const VERSION = '0.12.14';
+const VERSION = '0.12.15';
 /**
  * Main ElectraJS class.
  */
@@ -12834,13 +12834,7 @@ class WalletHard {
                 const toAddressCategory = this.getAddressCategory(toAddressHash);
                 const lastInputTransaction = inputTransactionsRaw[inputTransactions.length - 1];
                 let changeAddress;
-                if (category !== types_1.WalletAddressCategory.RANDOM && toAddressCategory === types_1.WalletAddressCategory.CHECKING) {
-                    const toAddressIsChange = R.findIndex(R.propEq('hash', toAddressHash))(this.checkingAddresses) === -1;
-                    changeAddress = toAddressIsChange
-                        ? this.checkingAddresses[lastInputTransaction.index].hash
-                        : this.checkingAddresses[lastInputTransaction.index].change;
-                }
-                else if (toAddressCategory === category) {
+                if (toAddressCategory === category) {
                     const toAddressChangeIndex = R.findIndex(R.propEq('change', toAddressHash))(this.allAddresses);
                     const toAddressHashIndex = R.findIndex(R.propEq('hash', toAddressHash))(this.allAddresses);
                     changeAddress = toAddressChangeIndex === -1
