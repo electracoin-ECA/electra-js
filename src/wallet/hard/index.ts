@@ -990,6 +990,50 @@ export default class WalletHard {
    */
   public async getTransactions(
     count: number = LIST_TRANSACTIONS_LENGTH,
+    inCategory?: WalletAddressCategory
+  ): Promise<WalletTransaction[]> {
+    if (this.STATE !== WalletState.READY) throw new EJError(EJErrorCode.WALLET_STATE_NOT_READY)
+    if (this.DAEMON_STATE !== WalletDaemonState.STARTED) throw new EJError(EJErrorCode.WALLET_DAEMON_STATE_NOT_STARTED)
+
+    const [err1, transactionListRaw] = await to(this.rpc.listTransactions('*', LIST_TRANSACTIONS_LENGTH))
+    if (err1 !== null || transactionListRaw === undefined) throw err1
+
+    const transactionsIdList: string[] = R.uniq(
+      transactionListRaw.map(({ txid }: RpcMethodResult<'listtransactions'>[0]) => txid)
+    )
+
+    const transactionList: WalletTransaction[] = []
+    let index: number = transactionsIdList.length
+    while (--index >= 0) {
+      const [err2, transactionRaw] = await to(this.rpc.getTransaction(transactionsIdList[index]))
+      if (err2 !== null || transactionRaw === undefined) throw err2
+
+      transactionRaw.details
+          .filter(({ category }: RpcMethodResult<'gettransaction'>['details'][0]) => category === 'receive')
+          .forEach(({ address, amount }: RpcMethodResult<'gettransaction'>['details'][0]) => {
+            transactionList.push({
+              amount,
+              confimationsCount: transactionRaw.confirmations,
+              date: transactionRaw.time,
+              hash: transactionsIdList[index],
+              to: address,
+              toCategory: this.getAddressCategory(address),
+              type: WalletTransactionType.TRANSFER,
+            })
+          })
+    }
+
+    return inCategory === undefined
+      ? transactionList.slice(0, count)
+      : transactionList
+        .filter(({ toCategory }: WalletTransaction) => toCategory === inCategory)
+  }
+
+  /**
+   * List the wallet transactions (from the newer to the older one).
+   */
+  /*public async getTransactions(
+    count: number = LIST_TRANSACTIONS_LENGTH,
     category?: WalletAddressCategory
   ): Promise<WalletTransaction[]> {
     if (this.STATE !== WalletState.READY) throw new EJError(EJErrorCode.WALLET_STATE_NOT_READY)
@@ -1061,7 +1105,7 @@ export default class WalletHard {
     return count < LIST_TRANSACTIONS_LENGTH
       ? transactions.reverse().slice(0, count)
       : transactions.reverse()
-  }
+  }*/
 
   /**
    * Get the transaction info of <transactionHash>.

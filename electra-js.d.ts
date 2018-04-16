@@ -141,15 +141,14 @@ export interface WalletTransaction {
   from?: string[];
   fromCategories?: WalletAddressCategory[]
   hash: string;
-  to: string[];
-  toCategories: WalletAddressCategory[]
+  to: string;
+  toCategory: WalletAddressCategory
   type: WalletTransactionType;
 }
 
 export enum WalletTransactionType {
   GENERATED = 'GENERATED',
-  RECEIVED = 'RECEIVED',
-  SENT = 'SENT',
+  TRANSFER = 'TRANSFER',
 }
 
 export interface WalletHard {
@@ -175,7 +174,7 @@ export interface WalletHard {
   getCategoryBalance(category: WalletAddressCategory): Promise<WalletBalance>;
   getInfo(): Promise<WalletInfo>;
   getTransaction(transactionHash: string): Promise<WalletTransaction | undefined>;
-  getTransactions(count?: number, category?: WalletAddressCategory): Promise<WalletTransaction[]>;
+  getTransactions(count?: number, inCategory?: WalletAddressCategory): Promise<WalletTransaction[]>;
   import(wefData: WalletExchangeFormat, passphrase: string): Promise<void>;
   importRandomAddress(privateKey: string, passphrase: string): Promise<void>;
   lock(passphrase?: string): Promise<void>;

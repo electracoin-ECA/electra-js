@@ -86,15 +86,14 @@ export interface WalletTransaction {
   from?: string[] // Addresses hash
   fromCategories?: WalletAddressCategory[]
   hash: string
-  to: string[] // Addresses hash
-  toCategories: WalletAddressCategory[]
+  to: string // Addresses hash
+  toCategory: WalletAddressCategory
   type: WalletTransactionType
 }
 
 export enum WalletTransactionType {
   GENERATED = 'GENERATED',
-  RECEIVED = 'RECEIVED',
-  SENT = 'SENT',
+  TRANSFER = 'TRANSFER',
 }
 
 export interface WalletUnspentTransaction {

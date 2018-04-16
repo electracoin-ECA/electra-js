@@ -110,6 +110,9 @@ describe('Wallet (hard)', function() {
   describe(`WHEN instantiating a new wallet WITH an RPC Server`, function() {
     it(`new Wallet() SHOULD NOT throw any error`, () => assert.doesNotThrow(() => wallet = new WalletHard()))
   })
+  // describe.only(`WHEN ...`, function() {
+  //   it(`...`, () => assert.doesNotThrow(() => wallet.getTransactions()))
+  // })
 
   describe(`AFTER instantiating this new wallet`, function() {
     it(`#addresses SHOULD throw an error`, () => assert.throws(() => wallet.addresses))
