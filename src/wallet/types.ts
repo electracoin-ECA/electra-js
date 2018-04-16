@@ -83,13 +83,12 @@ export interface WalletTransaction {
   amount: number
   confimationsCount: number
   date: number // Unix timestamp in seconds
-  from: WalletTransactionFrom[]
+  from: WalletTransactionEndpoint[]
   hash: string
-  to: string // Addresses hash
-  toCategory: WalletAddressCategory
+  to: WalletTransactionEndpoint[]
   type: WalletTransactionType
 }
-export interface WalletTransactionFrom {
+export interface WalletTransactionEndpoint {
   address: string
   amount: number
   category: WalletAddressCategory

@@ -36,7 +36,7 @@ import {
   WalletStartDataHard,
   WalletState,
   WalletTransaction,
-  WalletTransactionFrom,
+  WalletTransactionEndpoint,
   WalletTransactionType,
   WalletUnspentTransaction,
 } from '../types'
@@ -1018,8 +1018,11 @@ export default class WalletHard {
           date: transactionRawFound.time,
           from: [],
           hash: transactionsIdList[index],
-          to: transactionRawFound.address,
-          toCategory: this.getAddressCategory(transactionRawFound.address),
+          to: [{
+            address: transactionRawFound.address,
+            amount: transactionRawFound.amount,
+            category: this.getAddressCategory(transactionRawFound.address)
+          }],
           type: WalletTransactionType.GENERATED,
         })
 
@@ -1029,7 +1032,7 @@ export default class WalletHard {
       const [err2, transactionRaw] = await to(this.rpc.getTransaction(transactionsIdList[index]))
       if (err2 !== null || transactionRaw === undefined) throw err2
 
-      const from: WalletTransactionFrom[] = []
+      const fromEndpoints: WalletTransactionEndpoint[] = []
       let vinIndex: number = transactionRaw.vin.length
       while (--vinIndex >= 0) {
         const [err3, vinTransactionRaw] = await to(this.rpc.getTransaction(transactionRaw.vin[vinIndex].txid))
@@ -1042,40 +1045,52 @@ export default class WalletHard {
 
             const fromAddress: string = scriptPubKey.addresses[0]
 
-            if (R.findIndex<WalletTransactionFrom>(R.propEq('address', fromAddress))(from) === -1) {
-              from.push({
+            if (R.findIndex<WalletTransactionEndpoint>(R.propEq('address', fromAddress))(fromEndpoints) === -1) {
+              fromEndpoints.push({
                 address: fromAddress,
                 amount: 0,
                 category: this.getAddressCategory(fromAddress),
               })
             }
 
-            const fromIndex: number = R.findIndex<WalletTransactionFrom>(R.propEq('address', fromAddress))(from)
-            from[fromIndex].amount += value
+            const fromIndex: number = R.findIndex<WalletTransactionEndpoint>(
+              R.propEq('address', fromAddress)
+            )(fromEndpoints)
+            fromEndpoints[fromIndex].amount += value
           })
       }
 
+      const toEndpoints: WalletTransactionEndpoint[] = []
+      let amountTotal: number = 0
       transactionRaw.details
-          .filter(({ category }: RpcMethodResult<'gettransaction'>['details'][0]) => category === 'receive')
-          .forEach(({ address, amount }: RpcMethodResult<'gettransaction'>['details'][0]) => {
-            transactionList.push({
-              amount,
-              confimationsCount: transactionRaw.confirmations,
-              date: transactionRaw.time,
-              from,
-              hash: transactionsIdList[index],
-              to: address,
-              toCategory: this.getAddressCategory(address),
-              type: WalletTransactionType.TRANSFERED,
-            })
+        .filter(({ category }: RpcMethodResult<'gettransaction'>['details'][0]) => category === 'receive')
+        .forEach(({ address, amount }: RpcMethodResult<'gettransaction'>['details'][0]) => {
+          toEndpoints.push({
+            address,
+            amount,
+            category: this.getAddressCategory(address),
           })
+
+          amountTotal += amount
+        })
+
+      transactionList.push({
+        amount: amountTotal,
+        confimationsCount: transactionRaw.confirmations,
+        date: transactionRaw.time,
+        from: fromEndpoints,
+        hash: transactionsIdList[index],
+        to: toEndpoints,
+        type: WalletTransactionType.TRANSFERED,
+      })
     }
 
     return inCategory === undefined
       ? transactionList.slice(0, count)
-      : transactionList.filter(({ from, toCategory }: WalletTransaction) =>
-        toCategory === inCategory ||
-        R.findIndex<WalletTransactionFrom>(R.propEq('category', inCategory))(from) !== -1
+      // tslint:disable-next-line:variable-name
+      : transactionList.filter(({ from, to: _to }: WalletTransaction) =>
+        R.findIndex<WalletTransactionEndpoint>(R.propEq('category', inCategory))(from) !== -1 ||
+        R.findIndex<WalletTransactionEndpoint>(R.propEq('category', inCategory))(_to) !== -1
       )
   }
 

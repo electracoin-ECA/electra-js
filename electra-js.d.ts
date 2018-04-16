@@ -138,13 +138,12 @@ export interface WalletTransaction {
   amount: number;
   confimationsCount: number;
   date: number;
-  from: WalletTransactionFrom[];
+  from: WalletTransactionEndpoint[];
   hash: string;
-  to: string;
-  toCategory: WalletAddressCategory
+  to: WalletTransactionEndpoint[];
   type: WalletTransactionType;
 }
-export interface WalletTransactionFrom {
+export interface WalletTransactionEndpoint {
   address: string
   amount: number
   category: WalletAddressCategory
