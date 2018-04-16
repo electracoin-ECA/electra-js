@@ -1171,16 +1171,7 @@ export default class WalletHard {
       const lastInputTransaction: WalletUnspentTransaction = inputTransactionsRaw[inputTransactions.length - 1]
       let changeAddress: string
 
-      if (category !== WalletAddressCategory.RANDOM && toAddressCategory === WalletAddressCategory.CHECKING) {
-        const toAddressIsChange: boolean = R.findIndex<WalletAddress>(
-          R.propEq('hash', toAddressHash)
-        )(this.checkingAddresses) === -1
-
-        changeAddress = toAddressIsChange
-          ? this.checkingAddresses[lastInputTransaction.index].hash
-          : this.checkingAddresses[lastInputTransaction.index].change
-
-      } else if (toAddressCategory === category) {
+      if (toAddressCategory === category) {
         const toAddressChangeIndex: number = R.findIndex<WalletAddress>(
           R.propEq('change', toAddressHash)
         )(this.allAddresses)
