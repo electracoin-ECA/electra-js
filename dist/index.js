@@ -11870,7 +11870,7 @@ const SETTINGS_DEFAULT = {
  * ElectraJs version.
  * DO NOT CHANGE THIS LINE SINCE THE VERSION IS AUTOMATICALLY INJECTED !
  */
-const VERSION = '0.12.11';
+const VERSION = '0.12.12';
 /**
  * Main ElectraJS class.
  */
@@ -12685,6 +12685,29 @@ class WalletHard {
                 const [err2, transactionRaw] = yield await_to_js_1.default(this.rpc.getTransaction(transactionsIdList[index]));
                 if (err2 !== null || transactionRaw === undefined)
                     throw err2;
+                const from = [];
+                let vinIndex = transactionRaw.vin.length;
+                while (--vinIndex >= 0) {
+                    const [err3, vinTransactionRaw] = yield await_to_js_1.default(this.rpc.getTransaction(transactionRaw.vin[vinIndex].txid));
+                    if (err3 !== null || vinTransactionRaw === undefined)
+                        throw err3;
+                    vinTransactionRaw.vout
+                        .filter((vout) => vout.n === transactionRaw.vin[vinIndex].vout)
+                        .forEach(({ scriptPubKey, value }) => {
+                        if (scriptPubKey.addresses === undefined)
+                            return;
+                        const fromAddress = scriptPubKey.addresses[0];
+                        if (R.findIndex(R.propEq('address', fromAddress))(from) === -1) {
+                            from.push({
+                                address: fromAddress,
+                                amount: 0,
+                                category: this.getAddressCategory(fromAddress),
+                            });
+                        }
+                        const fromIndex = R.findIndex(R.propEq('address', fromAddress))(from);
+                        from[fromIndex].amount += value;
+                    });
+                }
                 transactionRaw.details
                     .filter(({ category }) => category === 'receive')
                     .forEach(({ address, amount }) => {
@@ -12692,6 +12715,7 @@ class WalletHard {
                         amount,
                         confimationsCount: transactionRaw.confirmations,
                         date: transactionRaw.time,
+                        from,
                         hash: transactionsIdList[index],
                         to: address,
                         toCategory: this.getAddressCategory(address),
@@ -12701,8 +12725,7 @@ class WalletHard {
             }
             return inCategory === undefined
                 ? transactionList.slice(0, count)
-                : transactionList
-                    .filter(({ toCategory }) => toCategory === inCategory);
+                : transactionList.filter(({ toCategory }) => toCategory === inCategory);
         });
     }
     /**
