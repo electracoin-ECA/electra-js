@@ -1073,7 +1073,10 @@ export default class WalletHard {
 
     return inCategory === undefined
       ? transactionList.slice(0, count)
-      : transactionList.filter(({ toCategory }: WalletTransaction) => toCategory === inCategory)
+      : transactionList.filter(({ from, toCategory }: WalletTransaction) =>
+        toCategory === inCategory ||
+        R.findIndex<WalletTransactionFrom>(R.propEq('category', inCategory))(from) !== -1
+      )
   }
 
   /**
