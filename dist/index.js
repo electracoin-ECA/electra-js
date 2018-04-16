@@ -11870,7 +11870,7 @@ const SETTINGS_DEFAULT = {
  * ElectraJs version.
  * DO NOT CHANGE THIS LINE SINCE THE VERSION IS AUTOMATICALLY INJECTED !
  */
-const VERSION = '0.12.13';
+const VERSION = '0.12.14';
 /**
  * Main ElectraJS class.
  */
@@ -12693,8 +12693,11 @@ class WalletHard {
                         date: transactionRawFound.time,
                         from: [],
                         hash: transactionsIdList[index],
-                        to: transactionRawFound.address,
-                        toCategory: this.getAddressCategory(transactionRawFound.address),
+                        to: [{
+                                address: transactionRawFound.address,
+                                amount: transactionRawFound.amount,
+                                category: this.getAddressCategory(transactionRawFound.address)
+                            }],
                         type: types_1.WalletTransactionType.GENERATED,
                     });
                     continue;
@@ -12702,7 +12705,7 @@ class WalletHard {
                 const [err2, transactionRaw] = yield await_to_js_1.default(this.rpc.getTransaction(transactionsIdList[index]));
                 if (err2 !== null || transactionRaw === undefined)
                     throw err2;
-                const from = [];
+                const fromEndpoints = [];
                 let vinIndex = transactionRaw.vin.length;
                 while (--vinIndex >= 0) {
                     const [err3, vinTransactionRaw] = yield await_to_js_1.default(this.rpc.getTransaction(transactionRaw.vin[vinIndex].txid));
@@ -12714,115 +12717,46 @@ class WalletHard {
                         if (scriptPubKey.addresses === undefined)
                             return;
                         const fromAddress = scriptPubKey.addresses[0];
-                        if (R.findIndex(R.propEq('address', fromAddress))(from) === -1) {
-                            from.push({
+                        if (R.findIndex(R.propEq('address', fromAddress))(fromEndpoints) === -1) {
+                            fromEndpoints.push({
                                 address: fromAddress,
                                 amount: 0,
                                 category: this.getAddressCategory(fromAddress),
                             });
                         }
-                        const fromIndex = R.findIndex(R.propEq('address', fromAddress))(from);
-                        from[fromIndex].amount += value;
+                        const fromIndex = R.findIndex(R.propEq('address', fromAddress))(fromEndpoints);
+                        fromEndpoints[fromIndex].amount += value;
                     });
                 }
+                const toEndpoints = [];
+                let amountTotal = 0;
                 transactionRaw.details
                     .filter(({ category }) => category === 'receive')
                     .forEach(({ address, amount }) => {
-                    transactionList.push({
+                    toEndpoints.push({
+                        address,
                         amount,
-                        confimationsCount: transactionRaw.confirmations,
-                        date: transactionRaw.time,
-                        from,
-                        hash: transactionsIdList[index],
-                        to: address,
-                        toCategory: this.getAddressCategory(address),
-                        type: types_1.WalletTransactionType.TRANSFERED,
+                        category: this.getAddressCategory(address),
                     });
+                    amountTotal += amount;
+                });
+                transactionList.push({
+                    amount: amountTotal,
+                    confimationsCount: transactionRaw.confirmations,
+                    date: transactionRaw.time,
+                    from: fromEndpoints,
+                    hash: transactionsIdList[index],
+                    to: toEndpoints,
+                    type: types_1.WalletTransactionType.TRANSFERED,
                 });
             }
             return inCategory === undefined
                 ? transactionList.slice(0, count)
-                : transactionList.filter(({ from, toCategory }) => toCategory === inCategory ||
-                    R.findIndex(R.propEq('category', inCategory))(from) !== -1);
+                // tslint:disable-next-line:variable-name
+                : transactionList.filter(({ from, to: _to }) => R.findIndex(R.propEq('category', inCategory))(from) !== -1 ||
+                    R.findIndex(R.propEq('category', inCategory))(_to) !== -1);
         });
     }
-    /**
-     * List the wallet transactions (from the newer to the older one).
-     */
-    /*public async getTransactions(
-      count: number = LIST_TRANSACTIONS_LENGTH,
-      category?: WalletAddressCategory
-    ): Promise<WalletTransaction[]> {
-      if (this.STATE !== WalletState.READY) throw new EJError(EJErrorCode.WALLET_STATE_NOT_READY)
-      if (this.DAEMON_STATE !== WalletDaemonState.STARTED) throw new EJError(EJErrorCode.WALLET_DAEMON_STATE_NOT_STARTED)
-  
-      const [err1, res] = await to(this.rpc.listTransactions('*', LIST_TRANSACTIONS_LENGTH))
-      if (err1 !== null || res === undefined) throw err1
-  
-      let transactionsRaw: RpcMethodResult<'listtransactions'>
-      if (category !== undefined) {
-        const categoryAddressesHashes: string[] = this.allAddresses
-          // tslint:disable-next-line:variable-name
-          .filter(({ category: _category }: WalletAddress) => _category === category)
-          .reduce((hashes: string[], { change, hash }: WalletAddress) => [...hashes, hash, change], [])
-  
-        transactionsRaw = res
-          .filter(({ address }: RpcMethodResult<'listtransactions'>[0]) => categoryAddressesHashes.includes(address))
-      } else {
-        transactionsRaw = res
-      }
-  
-      let index: number = -1
-      const transactions: WalletTransaction[] = []
-      while (++index < transactionsRaw.length) {
-        const transactionRaw: RpcMethodResult<'listtransactions'>[0] = transactionsRaw[index]
-        const transaction: Partial<WalletTransaction> = {
-          amount: transactionRaw.amount,
-          confimationsCount: transactionRaw.confirmations,
-          date: transactionRaw.time,
-          hash: transactionRaw.txid,
-        }
-  
-        if (transactionRaw.category === 'generate') {
-          transaction.to = [transactionRaw.address]
-          transaction.toCategories = [this.getAddressCategory(transactionRaw.address)]
-          transaction.type = WalletTransactionType.GENERATED
-        } else {
-          const [err2, transactionInfo] = await to(this.rpc.getTransaction(transaction.hash as string))
-          if (err2 !== null || transactionInfo === undefined) throw err2
-  
-          if (transactionRaw.category === 'send') {
-            transaction.from = [transactionRaw.address]
-            transaction.fromCategories = [this.getAddressCategory(transactionRaw.address)]
-            transaction.to = transactionInfo.details
-              // tslint:disable-next-line:variable-name
-              .filter(({ category: _category }: RpcMethodResult<'gettransaction'>['details'][0]) =>
-                _category === 'receive'
-              )
-              .map(({ address }: RpcMethodResult<'gettransaction'>['details'][0]) => address)
-            transaction.toCategories = transaction.to.map((address: string) => this.getAddressCategory(address))
-            transaction.type = WalletTransactionType.SENT
-          }
-  
-          if (transactionRaw.category === 'receive') {
-            transaction.from = transactionInfo.details
-              // tslint:disable-next-line:variable-name
-              .filter(({ category: _category }: RpcMethodResult<'gettransaction'>['details'][0]) => _category === 'send')
-              .map(({ address }: RpcMethodResult<'gettransaction'>['details'][0]) => address)
-            transaction.fromCategories = transaction.from.map((address: string) => this.getAddressCategory(address))
-            transaction.to = [transactionRaw.address]
-            transaction.toCategories = [this.getAddressCategory(transactionRaw.address)]
-            transaction.type = WalletTransactionType.RECEIVED
-          }
-        }
-  
-        transactions.push(transaction as WalletTransaction)
-      }
-  
-      return count < LIST_TRANSACTIONS_LENGTH
-        ? transactions.reverse().slice(0, count)
-        : transactions.reverse()
-    }*/
     /**
      * Get the transaction info of <transactionHash>.
      */
