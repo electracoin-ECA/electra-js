@@ -1006,6 +1006,26 @@ export default class WalletHard {
     const transactionList: WalletTransaction[] = []
     let index: number = transactionsIdList.length
     while (--index >= 0) {
+      const transactionRawFound: RpcMethodResult<'listtransactions'>[0] | undefined = transactionListRaw
+        .find(({ txid }: RpcMethodResult<'listtransactions'>[0]) => txid === transactionsIdList[index])
+
+      if (transactionRawFound === undefined) continue
+
+      if (transactionRawFound.category === 'generate') {
+        transactionList.push({
+          amount: transactionRawFound.amount,
+          confimationsCount: transactionRawFound.confirmations,
+          date: transactionRawFound.time,
+          from: [],
+          hash: transactionsIdList[index],
+          to: transactionRawFound.address,
+          toCategory: this.getAddressCategory(transactionRawFound.address),
+          type: WalletTransactionType.GENERATED,
+        })
+
+        continue
+      }
+
       const [err2, transactionRaw] = await to(this.rpc.getTransaction(transactionsIdList[index]))
       if (err2 !== null || transactionRaw === undefined) throw err2
 
@@ -1046,7 +1066,7 @@ export default class WalletHard {
               hash: transactionsIdList[index],
               to: address,
               toCategory: this.getAddressCategory(address),
-              type: WalletTransactionType.TRANSFER,
+              type: WalletTransactionType.TRANSFERED,
             })
           })
     }

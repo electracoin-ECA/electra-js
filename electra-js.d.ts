@@ -151,7 +151,7 @@ export interface WalletTransactionFrom {
 }
 export enum WalletTransactionType {
   GENERATED = 'GENERATED',
-  TRANSFER = 'TRANSFER',
+  TRANSFERED = 'TRANSFERED',
 }
 
 export interface WalletHard {
