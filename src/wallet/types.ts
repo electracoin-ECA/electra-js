@@ -83,14 +83,17 @@ export interface WalletTransaction {
   amount: number
   confimationsCount: number
   date: number // Unix timestamp in seconds
-  from?: string[] // Addresses hash
-  fromCategories?: WalletAddressCategory[]
+  from: WalletTransactionFrom[]
   hash: string
   to: string // Addresses hash
   toCategory: WalletAddressCategory
   type: WalletTransactionType
 }
-
+export interface WalletTransactionFrom {
+  address: string
+  amount: number
+  category: WalletAddressCategory
+}
 export enum WalletTransactionType {
   GENERATED = 'GENERATED',
   TRANSFER = 'TRANSFER',

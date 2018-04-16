@@ -36,6 +36,7 @@ import {
   WalletStartDataHard,
   WalletState,
   WalletTransaction,
+  WalletTransactionFrom,
   WalletTransactionType,
   WalletUnspentTransaction,
 } from '../types'
@@ -1008,6 +1009,32 @@ export default class WalletHard {
       const [err2, transactionRaw] = await to(this.rpc.getTransaction(transactionsIdList[index]))
       if (err2 !== null || transactionRaw === undefined) throw err2
 
+      const from: WalletTransactionFrom[] = []
+      let vinIndex: number = transactionRaw.vin.length
+      while (--vinIndex >= 0) {
+        const [err3, vinTransactionRaw] = await to(this.rpc.getTransaction(transactionRaw.vin[vinIndex].txid))
+        if (err3 !== null || vinTransactionRaw === undefined) throw err3
+
+        vinTransactionRaw.vout
+          .filter((vout: RpcMethodResult<'gettransaction'>['vout'][0]) => vout.n === transactionRaw.vin[vinIndex].vout)
+          .forEach(({ scriptPubKey, value }: RpcMethodResult<'gettransaction'>['vout'][0]) => {
+            if (scriptPubKey.addresses === undefined) return
+
+            const fromAddress: string = scriptPubKey.addresses[0]
+
+            if (R.findIndex<WalletTransactionFrom>(R.propEq('address', fromAddress))(from) === -1) {
+              from.push({
+                address: fromAddress,
+                amount: 0,
+                category: this.getAddressCategory(fromAddress),
+              })
+            }
+
+            const fromIndex: number = R.findIndex<WalletTransactionFrom>(R.propEq('address', fromAddress))(from)
+            from[fromIndex].amount += value
+          })
+      }
+
       transactionRaw.details
           .filter(({ category }: RpcMethodResult<'gettransaction'>['details'][0]) => category === 'receive')
           .forEach(({ address, amount }: RpcMethodResult<'gettransaction'>['details'][0]) => {
@@ -1015,6 +1042,7 @@ export default class WalletHard {
               amount,
               confimationsCount: transactionRaw.confirmations,
               date: transactionRaw.time,
+              from,
               hash: transactionsIdList[index],
               to: address,
               toCategory: this.getAddressCategory(address),
@@ -1025,8 +1053,7 @@ export default class WalletHard {
 
     return inCategory === undefined
       ? transactionList.slice(0, count)
-      : transactionList
-        .filter(({ toCategory }: WalletTransaction) => toCategory === inCategory)
+      : transactionList.filter(({ toCategory }: WalletTransaction) => toCategory === inCategory)
   }
 
   /**
