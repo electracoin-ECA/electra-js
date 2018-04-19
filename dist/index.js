@@ -11870,7 +11870,7 @@ const SETTINGS_DEFAULT = {
  * ElectraJs version.
  * DO NOT CHANGE THIS LINE SINCE THE VERSION IS AUTOMATICALLY INJECTED !
  */
-const VERSION = '0.12.15';
+const VERSION = '0.12.16';
 /**
  * Main ElectraJS class.
  */
@@ -11961,7 +11961,6 @@ const PLATFORM_BINARY = {
     linux: 'electrad-linux',
     win32: 'electrad-windows.exe'
 };
-const SATOSHI = 100000000;
 /**
  * Wallet management.
  */
@@ -12816,7 +12815,7 @@ class WalletHard {
                 throw new error_1.default(error_1.EJErrorCode.WALLET_DAEMON_STATE_NOT_STARTED);
             if (amount <= 0)
                 throw new Error(`ElectraJs.Wallet: You can only send #send() a strictly positive <amount>.`);
-            if (Math.round(amount * SATOSHI) <= constants_1.ECA_TRANSACTION_FEE) {
+            if (amount <= constants_1.ECA_TRANSACTION_FEE) {
                 throw new Error(`ElectraJs.Wallet: You can't send an <amount> lower or equal to the transaction fee.`);
             }
             const [err1, inputTransactionsRaw] = yield await_to_js_1.default(this.getUnspentTransactionSumming(amount, category));
@@ -12835,11 +12834,22 @@ class WalletHard {
                 const lastInputTransaction = inputTransactionsRaw[inputTransactions.length - 1];
                 let changeAddress;
                 if (toAddressCategory === category) {
-                    const toAddressChangeIndex = R.findIndex(R.propEq('change', toAddressHash))(this.allAddresses);
-                    const toAddressHashIndex = R.findIndex(R.propEq('hash', toAddressHash))(this.allAddresses);
-                    changeAddress = toAddressChangeIndex === -1
-                        ? this.allAddresses[toAddressChangeIndex].change
-                        : this.allAddresses[toAddressHashIndex].hash;
+                    switch (category) {
+                        case types_1.WalletAddressCategory.CHECKING:
+                            changeAddress = this.checkingAddresses[lastInputTransaction.index].change;
+                            break;
+                        case types_1.WalletAddressCategory.PURSE:
+                            changeAddress = this.purseAddresses[lastInputTransaction.index].change;
+                            break;
+                        case types_1.WalletAddressCategory.RANDOM:
+                            changeAddress = this.checkingAddresses[0].change;
+                            break;
+                        case types_1.WalletAddressCategory.SAVINGS:
+                            changeAddress = this.savingsAddresses[lastInputTransaction.index].change;
+                            break;
+                        default:
+                            throw new Error('ElectraJs.Wallet: This #send() case should never happen.');
+                    }
                 }
                 else {
                     switch (category) {
@@ -12850,7 +12860,7 @@ class WalletHard {
                             changeAddress = this.purseAddresses[lastInputTransaction.index].hash;
                             break;
                         case types_1.WalletAddressCategory.RANDOM:
-                            changeAddress = this.checkingAddresses[0].hash;
+                            changeAddress = this.checkingAddresses[0].change;
                             break;
                         case types_1.WalletAddressCategory.SAVINGS:
                             changeAddress = this.savingsAddresses[lastInputTransaction.index].hash;
