@@ -80,6 +80,92 @@ const TEST_WEF = JSON.stringify([
   ]
 ])
 
+const START_DATA_TEST = {
+  addresses: [
+    {
+      category: WalletAddressCategory.CHECKING,
+      change: HD_CHECKING_1_CHANGE_HASH_TEST,
+      hash: HD_CHECKING_1_EXTERNAL_HASH_TEST,
+      isHD: true,
+      label: null,
+    },
+    {
+      category: WalletAddressCategory.CHECKING,
+      change: HD_CHECKING_2_CHANGE_HASH_TEST,
+      hash: HD_CHECKING_2_EXTERNAL_HASH_TEST,
+      isHD: true,
+      label: null,
+    },
+    {
+      category: WalletAddressCategory.PURSE,
+      change: HD_PURSE_1_CHANGE_HASH_TEST,
+      hash: HD_PURSE_1_EXTERNAL_HASH_TEST,
+      isHD: true,
+      label: null,
+    },
+    {
+      category: WalletAddressCategory.PURSE,
+      change: HD_PURSE_2_CHANGE_HASH_TEST,
+      hash: HD_PURSE_2_EXTERNAL_HASH_TEST,
+      isHD: true,
+      label: null,
+    },
+    {
+      category: WalletAddressCategory.SAVINGS,
+      change: HD_SAVINGS_1_CHANGE_HASH_TEST,
+      hash: HD_SAVINGS_1_EXTERNAL_HASH_TEST,
+      isHD: true,
+      label: null,
+    },
+    {
+      category: WalletAddressCategory.SAVINGS,
+      change: HD_SAVINGS_2_CHANGE_HASH_TEST,
+      hash: HD_SAVINGS_2_EXTERNAL_HASH_TEST,
+      isHD: true,
+      label: null,
+    },
+  ],
+  masterNodeAddress: {
+    hash: HD_MASTER_NODE_HASH_TEST,
+    isCiphered: true,
+    isHD: true,
+    privateKey: HD_MASTER_NODE_PRIVATE_KEY_X_TEST,
+  },
+  randomAddresses: []
+}
+
+describe.skip('Wallet (hard)', function() {
+  let wallet: WalletHard
+
+  this.timeout(30000)
+
+  before(async function() {
+    // Close potential already running daemons
+    console.log(chalk.green('    ♦ Closing Electra daemons...'))
+    await closeElectraDaemons()
+  })
+
+  describe(`WHEN instantiating a new wallet WITH an RPC Server`, function() {
+    it(`new Wallet() SHOULD NOT throw any error`, () => assert.doesNotThrow(() => wallet = new WalletHard()))
+  })
+
+  describe(`WHEN starting the same wallet deamon`, function() {
+    it(`#startDeamon() SHOULD NOT throw any error`, async () => await assertThen(() => wallet.startDaemon()))
+  })
+
+  describe(`WHEN starting the same wallet`, function () {
+    it(`#start() SHOULD NOT throw any error`, async () => await assertThen(() => wallet.start(START_DATA_TEST, HD_PASSPHRASE_TEST)))
+  })
+
+  describe(`AFTER starting the same wallet`, function() {
+    it(`#getSavingsCumulatedRewards() SHOULD NOT throw any error`, async () => await assertThen(() => wallet.getSavingsCumulatedRewards()))
+  })
+
+  describe(`WHEN stopping the same wallet deamon`, function() {
+    it(`#stopDeamon() SHOULD NOT throw any error`, async () => await assertThen(() => wallet.stopDaemon()))
+  })
+})
+
 describe('Wallet (hard)', function() {
   let wallet: WalletHard
 
@@ -110,9 +196,6 @@ describe('Wallet (hard)', function() {
   describe(`WHEN instantiating a new wallet WITH an RPC Server`, function() {
     it(`new Wallet() SHOULD NOT throw any error`, () => assert.doesNotThrow(() => wallet = new WalletHard()))
   })
-  // describe.only(`WHEN ...`, function() {
-  //   it(`...`, () => assert.doesNotThrow(() => wallet.getTransactions()))
-  // })
 
   describe(`AFTER instantiating this new wallet`, function() {
     it(`#addresses SHOULD throw an error`, () => assert.throws(() => wallet.addresses))
@@ -313,19 +396,7 @@ describe('Wallet (hard)', function() {
   })
 
   describe(`WHEN starting the same wallet`, function () {
-    it(`#start() SHOULD throw an error`, async () => await assertCatch(() => wallet.start(
-      {
-        addresses: [],
-        masterNodeAddress: {
-          hash: HD_MASTER_NODE_HASH_TEST,
-          isCiphered: false,
-          isHD: true,
-          privateKey: HD_MASTER_NODE_PRIVATE_KEY_TEST,
-        },
-        randomAddresses: []
-      },
-      HD_PASSPHRASE_TEST
-    )))
+    it(`#start() SHOULD throw an error`, async () => await assertCatch(() => wallet.start(START_DATA_TEST, HD_PASSPHRASE_TEST)))
   })
 
   describe(`WHEN resetting the same wallet`, function () {
@@ -337,19 +408,7 @@ describe('Wallet (hard)', function() {
   })
 
   describe(`WHEN starting the same wallet`, function () {
-    it(`#start() SHOULD NOT throw any error`, async () => await assertThen(() => wallet.start(
-      {
-        addresses: [],
-        masterNodeAddress: {
-          hash: HD_MASTER_NODE_HASH_TEST,
-          isCiphered: false,
-          isHD: true,
-          privateKey: HD_MASTER_NODE_PRIVATE_KEY_TEST,
-        },
-        randomAddresses: []
-      },
-      HD_PASSPHRASE_TEST
-    )))
+    it(`#start() SHOULD NOT throw any error`, async () => await assertThen(() => wallet.start(START_DATA_TEST, HD_PASSPHRASE_TEST)))
   })
 
   describe(`WHEN starting (again) the same wallet deamon`, function () {
