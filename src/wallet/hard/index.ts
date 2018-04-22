@@ -1402,7 +1402,7 @@ export default class WalletHard {
       if ((transaction.time as number + ONE_DAY_IN_SECONDS) < nowDate) {
         total += unspentTransactions[index].amount
           * STAKING_REWARDS_RATE
-          * (nowDate - transaction.time as number - ONE_DAY_IN_SECONDS)
+          * (nowDate - transaction.time - ONE_DAY_IN_SECONDS)
           / ONE_YEAR_IN_SECONDS
       }
     }
