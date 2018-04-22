@@ -313,16 +313,19 @@ describe('Wallet (hard)', function() {
   })
 
   describe(`WHEN starting the same wallet`, function () {
-    it(`#start() SHOULD throw an error`, () => assert.throws(() => wallet.start({
-      addresses: [],
-      masterNodeAddress: {
-        hash: HD_MASTER_NODE_HASH_TEST,
-        isCiphered: false,
-        isHD: true,
-        privateKey: HD_MASTER_NODE_PRIVATE_KEY_TEST,
+    it(`#start() SHOULD throw an error`, async () => await assertCatch(() => wallet.start(
+      {
+        addresses: [],
+        masterNodeAddress: {
+          hash: HD_MASTER_NODE_HASH_TEST,
+          isCiphered: false,
+          isHD: true,
+          privateKey: HD_MASTER_NODE_PRIVATE_KEY_TEST,
+        },
+        randomAddresses: []
       },
-      randomAddresses: []
-    })))
+      HD_PASSPHRASE_TEST
+    )))
   })
 
   describe(`WHEN resetting the same wallet`, function () {
@@ -334,16 +337,19 @@ describe('Wallet (hard)', function() {
   })
 
   describe(`WHEN starting the same wallet`, function () {
-    it(`#start() SHOULD NOT throw any error`, () => assert.doesNotThrow(() => wallet.start({
-      addresses: [],
-      masterNodeAddress: {
-        hash: HD_MASTER_NODE_HASH_TEST,
-        isCiphered: false,
-        isHD: true,
-        privateKey: HD_MASTER_NODE_PRIVATE_KEY_TEST,
+    it(`#start() SHOULD NOT throw any error`, async () => await assertThen(() => wallet.start(
+      {
+        addresses: [],
+        masterNodeAddress: {
+          hash: HD_MASTER_NODE_HASH_TEST,
+          isCiphered: false,
+          isHD: true,
+          privateKey: HD_MASTER_NODE_PRIVATE_KEY_TEST,
+        },
+        randomAddresses: []
       },
-      randomAddresses: []
-    })))
+      HD_PASSPHRASE_TEST
+    )))
   })
 
   describe(`WHEN starting (again) the same wallet deamon`, function () {

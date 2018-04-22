@@ -285,7 +285,7 @@ export default class WalletHard {
   /**
    * Start a wallet with already generated addresses data.
    */
-  public start(data: WalletStartDataHard): void {
+  public async start(data: WalletStartDataHard, passphrase: string): Promise<void> {
     if (this.STATE !== WalletState.EMPTY) {
       throw new Error(`ElectraJs.Wallet:
         The #start() method can only be called on an empty wallet (#state = "EMPTY").
@@ -298,6 +298,51 @@ export default class WalletHard {
         The #start() method can only be called on a started hard wallet (#daemon = "STARTED").
         You need to #startDaemon() first.
       `)
+    }
+
+    // We export all the addresses from the RPC daemon
+    const daemonAddresses: string[] = await this.getDaemonAddresses()
+
+    let index: number = data.addresses.length
+    let masterNodePrivateKey: string | undefined
+    while (--index >= 0) {
+      if (!daemonAddresses.includes(data.addresses[index].hash)) {
+        if (masterNodePrivateKey === undefined) {
+          masterNodePrivateKey = Crypto.decipherPrivateKey(data.masterNodeAddress.privateKey, passphrase)
+        }
+
+        const addressIndex: number = data.addresses
+          .filter(({ category }: WalletAddress) => category === data.addresses[index].category)
+          .findIndex(({ hash }: WalletAddress) => hash === data.addresses[index].hash)
+
+        const address: Address = Electra.getDerivedChainFromMasterNodePrivateKey(
+          masterNodePrivateKey,
+          WalletAddressCategory.PURSE,
+          addressIndex,
+          false,
+        )
+
+        await this.injectAddressInDaemon(address.privateKey)
+      }
+
+      if (!daemonAddresses.includes(data.addresses[index].change)) {
+        if (masterNodePrivateKey === undefined) {
+          masterNodePrivateKey = Crypto.decipherPrivateKey(data.masterNodeAddress.privateKey, passphrase)
+        }
+
+        const addressIndex: number = data.addresses
+          .filter(({ category }: WalletAddress) => category === data.addresses[index].category)
+          .findIndex(({ change }: WalletAddress) => change === data.addresses[index].change)
+
+        const addressChange: Address = Electra.getDerivedChainFromMasterNodePrivateKey(
+          masterNodePrivateKey,
+          WalletAddressCategory.PURSE,
+          addressIndex,
+          true,
+        )
+
+        await this.injectAddressInDaemon(addressChange.privateKey)
+      }
     }
 
     this.MASTER_NODE_ADDRESS = data.masterNodeAddress
@@ -1318,5 +1363,18 @@ export default class WalletHard {
       .filter(({ change, hash }: WalletAddress) => change === addressHash || hash === addressHash)
 
     return found.length === 0 ? WalletAddressCategory.EXTERNAL : found[0].category
+  }
+
+  /**
+   * Get the daemon addresses.
+   */
+  private async getDaemonAddresses(): Promise<string[]> {
+    const daemonAddresses: string[] = []
+    const [err, entries] = await to(this.rpc.listAddressGroupings())
+    if (err !== null || entries === undefined) throw err
+    // tslint:disable-next-line:typedef
+    entries.forEach((group) => group.forEach(([addressHash]) => daemonAddresses.push(addressHash)))
+
+    return daemonAddresses
   }
 }

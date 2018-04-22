@@ -182,7 +182,7 @@ export interface WalletHard {
   lock(passphrase?: string): Promise<void>;
   reset(): void;
   send(amount: number, category: WalletAddressCategory, toAddressHash: string): Promise<void>;
-  start(data: WalletStartDataHard): void;
+  start(data: WalletStartDataHard, passphrase: string): Promise<void>;
   startDaemon(): Promise<void>;
   stopDaemon(): Promise<void>;
   unlock(passphrase: string, forStakingOnly: boolean): Promise<void>;
