@@ -1403,10 +1403,10 @@ export default class WalletHard {
       const [err2, transaction] = await to(this.rpc.getTransaction(unspentTransactions[index].txid))
       if (err2 !== null || transaction === undefined) throw err2
 
-      if ((transaction.time + ONE_DAY_IN_SECONDS) > nowDate) {
+      if ((transaction.time as number + ONE_DAY_IN_SECONDS) > nowDate) {
         total += unspentTransactions[index].amount
           * STAKING_REWARDS_RATE
-          * (nowDate - (transaction.time + ONE_DAY_IN_SECONDS))
+          * (nowDate - (transaction.time as number + ONE_DAY_IN_SECONDS))
           / ONE_YEAR_IN_SECONDS
       }
     }
