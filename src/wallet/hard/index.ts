@@ -43,12 +43,16 @@ import {
 
 const LIST_TRANSACTIONS_LENGTH: number = 1_000_000
 // tslint:disable-next-line:no-magic-numbers
+const ONE_DAY_IN_SECONDS: number = 60 * 60 * 24
+const ONE_THOUSAND: number = 1_000
+// tslint:disable-next-line:no-magic-numbers
 const ONE_YEAR_IN_SECONDS: number = 60 * 60 * 24 * 365
 const PLATFORM_BINARY: PlatformBinary = {
   darwin: 'electrad-macos',
   linux: 'electrad-linux',
   win32: 'electrad-windows.exe'
 }
+const STAKING_REWARDS_RATE: number = 0.5
 
 /**
  * Wallet management.
@@ -1376,5 +1380,37 @@ export default class WalletHard {
     entries.forEach((group) => group.forEach(([addressHash]) => daemonAddresses.push(addressHash)))
 
     return daemonAddresses
+  }
+
+  /**
+   * Get the cumulated staking rewards estimation.
+   */
+  public async getSavingsCumulatedRewards(): Promise<number> {
+    const savingsAddresses: string[] = R.uniq(
+      this.allAddresses
+        // tslint:disable-next-line:variable-name
+        .filter(({ category: _category }: WalletAddress) => _category === WalletAddressCategory.SAVINGS)
+        .reduce((hashes: string[], { change, hash }: WalletAddress) => [...hashes, hash, change], [])
+    )
+
+    const [err1, unspentTransactions] = await to(this.rpc.listUnspent(1, LIST_TRANSACTIONS_LENGTH, savingsAddresses))
+    if (err1 !== null || unspentTransactions === undefined) throw err1
+
+    const nowDate: number = Math.round(+Date.now() / ONE_THOUSAND)
+    let index: number = unspentTransactions.length
+    let total: number = 0
+    while (--index >= 0) {
+      const [err2, transaction] = await to(this.rpc.getTransaction(unspentTransactions[index].txid))
+      if (err2 !== null || transaction === undefined) throw err2
+
+      if ((transaction.time + ONE_DAY_IN_SECONDS) > nowDate) {
+        total += unspentTransactions[index].amount
+          * STAKING_REWARDS_RATE
+          * (nowDate - (transaction.time + ONE_DAY_IN_SECONDS))
+          / ONE_YEAR_IN_SECONDS
+      }
+    }
+
+    return total
   }
 }
