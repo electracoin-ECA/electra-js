@@ -11870,7 +11870,7 @@ const SETTINGS_DEFAULT = {
  * ElectraJs version.
  * DO NOT CHANGE THIS LINE SINCE THE VERSION IS AUTOMATICALLY INJECTED !
  */
-const VERSION = '0.12.16';
+const VERSION = '0.13.0';
 /**
  * Main ElectraJS class.
  */
@@ -11955,12 +11955,16 @@ const rpc_1 = __webpack_require__(154);
 const types_1 = __webpack_require__(97);
 const LIST_TRANSACTIONS_LENGTH = 1000000;
 // tslint:disable-next-line:no-magic-numbers
+const ONE_DAY_IN_SECONDS = 60 * 60 * 24;
+const ONE_THOUSAND = 1000;
+// tslint:disable-next-line:no-magic-numbers
 const ONE_YEAR_IN_SECONDS = 60 * 60 * 24 * 365;
 const PLATFORM_BINARY = {
     darwin: 'electrad-macos',
     linux: 'electrad-linux',
     win32: 'electrad-windows.exe'
 };
+const STAKING_REWARDS_RATE = 0.5;
 /**
  * Wallet management.
  */
@@ -12139,23 +12143,51 @@ class WalletHard {
     /**
      * Start a wallet with already generated addresses data.
      */
-    start(data) {
-        if (this.STATE !== types_1.WalletState.EMPTY) {
-            throw new Error(`ElectraJs.Wallet:
+    start(data, passphrase) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (this.STATE !== types_1.WalletState.EMPTY) {
+                throw new Error(`ElectraJs.Wallet:
         The #start() method can only be called on an empty wallet (#state = "EMPTY").
         Maybe you want to #reset() it first ?
       `);
-        }
-        if (this.DAEMON_STATE !== types_1.WalletDaemonState.STARTED) {
-            throw new Error(`ElectraJs.Wallet:
+            }
+            if (this.DAEMON_STATE !== types_1.WalletDaemonState.STARTED) {
+                throw new Error(`ElectraJs.Wallet:
         The #start() method can only be called on a started hard wallet (#daemon = "STARTED").
         You need to #startDaemon() first.
       `);
-        }
-        this.MASTER_NODE_ADDRESS = data.masterNodeAddress;
-        this.ADDRESSES = data.addresses;
-        this.RANDOM_ADDRESSES = data.randomAddresses;
-        this.STATE = types_1.WalletState.READY;
+            }
+            // We export all the addresses from the RPC daemon
+            const daemonAddresses = yield this.getDaemonAddresses();
+            let index = data.addresses.length;
+            let masterNodePrivateKey;
+            while (--index >= 0) {
+                if (!daemonAddresses.includes(data.addresses[index].hash)) {
+                    if (masterNodePrivateKey === undefined) {
+                        masterNodePrivateKey = crypto_1.default.decipherPrivateKey(data.masterNodeAddress.privateKey, passphrase);
+                    }
+                    const addressIndex = data.addresses
+                        .filter(({ category }) => category === data.addresses[index].category)
+                        .findIndex(({ hash }) => hash === data.addresses[index].hash);
+                    const address = electra_1.default.getDerivedChainFromMasterNodePrivateKey(masterNodePrivateKey, types_1.WalletAddressCategory.PURSE, addressIndex, false);
+                    yield this.injectAddressInDaemon(address.privateKey);
+                }
+                if (!daemonAddresses.includes(data.addresses[index].change)) {
+                    if (masterNodePrivateKey === undefined) {
+                        masterNodePrivateKey = crypto_1.default.decipherPrivateKey(data.masterNodeAddress.privateKey, passphrase);
+                    }
+                    const addressIndex = data.addresses
+                        .filter(({ category }) => category === data.addresses[index].category)
+                        .findIndex(({ change }) => change === data.addresses[index].change);
+                    const addressChange = electra_1.default.getDerivedChainFromMasterNodePrivateKey(masterNodePrivateKey, types_1.WalletAddressCategory.PURSE, addressIndex, true);
+                    yield this.injectAddressInDaemon(addressChange.privateKey);
+                }
+            }
+            this.MASTER_NODE_ADDRESS = data.masterNodeAddress;
+            this.ADDRESSES = data.addresses;
+            this.RANDOM_ADDRESSES = data.randomAddresses;
+            this.STATE = types_1.WalletState.READY;
+        });
     }
     /**
      * Generate an HD wallet from either the provided mnemonic seed, or a randomly generated one,
@@ -12963,6 +12995,49 @@ class WalletHard {
         const found = this.allAddresses
             .filter(({ change, hash }) => change === addressHash || hash === addressHash);
         return found.length === 0 ? types_1.WalletAddressCategory.EXTERNAL : found[0].category;
+    }
+    /**
+     * Get the daemon addresses.
+     */
+    getDaemonAddresses() {
+        return __awaiter(this, void 0, void 0, function* () {
+            const daemonAddresses = [];
+            const [err, entries] = yield await_to_js_1.default(this.rpc.listAddressGroupings());
+            if (err !== null || entries === undefined)
+                throw err;
+            // tslint:disable-next-line:typedef
+            entries.forEach((group) => group.forEach(([addressHash]) => daemonAddresses.push(addressHash)));
+            return daemonAddresses;
+        });
+    }
+    /**
+     * Get the cumulated staking rewards estimation.
+     */
+    getSavingsCumulatedRewards() {
+        return __awaiter(this, void 0, void 0, function* () {
+            const savingsAddresses = R.uniq(this.allAddresses
+                // tslint:disable-next-line:variable-name
+                .filter(({ category: _category }) => _category === types_1.WalletAddressCategory.SAVINGS)
+                .reduce((hashes, { change, hash }) => [...hashes, hash, change], []));
+            const [err1, unspentTransactions] = yield await_to_js_1.default(this.rpc.listUnspent(1, LIST_TRANSACTIONS_LENGTH, savingsAddresses));
+            if (err1 !== null || unspentTransactions === undefined)
+                throw err1;
+            const nowDate = Math.round(+Date.now() / ONE_THOUSAND);
+            let index = unspentTransactions.length;
+            let total = 0;
+            while (--index >= 0) {
+                const [err2, transaction] = yield await_to_js_1.default(this.rpc.getTransaction(unspentTransactions[index].txid));
+                if (err2 !== null || transaction === undefined)
+                    throw err2;
+                if ((transaction.time + ONE_DAY_IN_SECONDS) > nowDate) {
+                    total += unspentTransactions[index].amount
+                        * STAKING_REWARDS_RATE
+                        * (nowDate - (transaction.time + ONE_DAY_IN_SECONDS))
+                        / ONE_YEAR_IN_SECONDS;
+                }
+            }
+            return total;
+        });
     }
 }
 exports.default = WalletHard;
