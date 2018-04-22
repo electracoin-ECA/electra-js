@@ -1386,12 +1386,8 @@ export default class WalletHard {
    * Get the cumulated staking rewards estimation.
    */
   public async getSavingsCumulatedRewards(): Promise<number> {
-    const savingsAddresses: string[] = R.uniq(
-      this.allAddresses
-        // tslint:disable-next-line:variable-name
-        .filter(({ category: _category }: WalletAddress) => _category === WalletAddressCategory.SAVINGS)
-        .reduce((hashes: string[], { change, hash }: WalletAddress) => [...hashes, hash, change], [])
-    )
+    const savingsAddresses: string[] = this.savingsAddresses
+      .reduce((hashes: string[], { change, hash }: WalletAddress) => [...hashes, hash, change], [])
 
     const [err1, unspentTransactions] = await to(this.rpc.listUnspent(1, LIST_TRANSACTIONS_LENGTH, savingsAddresses))
     if (err1 !== null || unspentTransactions === undefined) throw err1
@@ -1403,10 +1399,10 @@ export default class WalletHard {
       const [err2, transaction] = await to(this.rpc.getTransaction(unspentTransactions[index].txid))
       if (err2 !== null || transaction === undefined) throw err2
 
-      if ((transaction.time as number + ONE_DAY_IN_SECONDS) > nowDate) {
+      if ((transaction.time as number + ONE_DAY_IN_SECONDS) < nowDate) {
         total += unspentTransactions[index].amount
           * STAKING_REWARDS_RATE
-          * (nowDate - (transaction.time as number + ONE_DAY_IN_SECONDS))
+          * (nowDate - transaction.time as number - ONE_DAY_IN_SECONDS)
           / ONE_YEAR_IN_SECONDS
       }
     }
