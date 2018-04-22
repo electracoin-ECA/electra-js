@@ -11870,7 +11870,7 @@ const SETTINGS_DEFAULT = {
  * ElectraJs version.
  * DO NOT CHANGE THIS LINE SINCE THE VERSION IS AUTOMATICALLY INJECTED !
  */
-const VERSION = '0.13.0';
+const VERSION = '0.13.1';
 /**
  * Main ElectraJS class.
  */
@@ -13015,10 +13015,8 @@ class WalletHard {
      */
     getSavingsCumulatedRewards() {
         return __awaiter(this, void 0, void 0, function* () {
-            const savingsAddresses = R.uniq(this.allAddresses
-                // tslint:disable-next-line:variable-name
-                .filter(({ category: _category }) => _category === types_1.WalletAddressCategory.SAVINGS)
-                .reduce((hashes, { change, hash }) => [...hashes, hash, change], []));
+            const savingsAddresses = this.savingsAddresses
+                .reduce((hashes, { change, hash }) => [...hashes, hash, change], []);
             const [err1, unspentTransactions] = yield await_to_js_1.default(this.rpc.listUnspent(1, LIST_TRANSACTIONS_LENGTH, savingsAddresses));
             if (err1 !== null || unspentTransactions === undefined)
                 throw err1;
@@ -13029,10 +13027,10 @@ class WalletHard {
                 const [err2, transaction] = yield await_to_js_1.default(this.rpc.getTransaction(unspentTransactions[index].txid));
                 if (err2 !== null || transaction === undefined)
                     throw err2;
-                if ((transaction.time + ONE_DAY_IN_SECONDS) > nowDate) {
+                if ((transaction.time + ONE_DAY_IN_SECONDS) < nowDate) {
                     total += unspentTransactions[index].amount
                         * STAKING_REWARDS_RATE
-                        * (nowDate - (transaction.time + ONE_DAY_IN_SECONDS))
+                        * (nowDate - transaction.time - ONE_DAY_IN_SECONDS)
                         / ONE_YEAR_IN_SECONDS;
                 }
             }
