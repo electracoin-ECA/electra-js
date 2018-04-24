@@ -1,7 +1,5 @@
 import getBalanceFor from './getBalanceFor'
-import getCurrentPriceIn, { CoinMarketCapCurrency } from './getCurrentPriceIn'
-
-export { CoinMarketCapCurrency }
+import getCurrentPriceIn from './getCurrentPriceIn'
 
 export interface WebServices {
   getBalanceFor: typeof getBalanceFor

@@ -6,46 +6,40 @@ import enumStringArray from '../helpers/enumStringArray'
 // https://coinmarketcap.com/api/
 // tslint:disable-next-line:typedef
 export const CURRENCIES = enumStringArray([
-  'AUD', 'BRL', 'BTC', 'CAD', 'CHF', 'CLP', 'CNY', 'CZK', 'DKK', 'EUR',
-  'GBP', 'HKD', 'HUF', 'IDR', 'ILS', 'INR', 'JPY', 'KRW', 'MXN', 'MYR',
-  'NOK', 'NZD', 'PHP', 'PKR', 'PLN', 'RUB', 'SEK', 'SGD', 'THB', 'TRY',
-  'TWD', 'USD', 'ZAR'
+  'aud', 'brl', 'btc', 'cad', 'chf', 'clp', 'cny', 'czk', 'dkk', 'eur',
+  'gbp', 'hkd', 'huf', 'idr', 'ils', 'inr', 'jpy', 'krw', 'mxn', 'myr',
+  'nok', 'nzd', 'php', 'pkr', 'pln', 'rub', 'sek', 'sgd', 'thb', 'try',
+  'twd', 'usd', 'zar'
 ])
 
-const URI: string = 'https://api.coinmarketcap.com/v1/ticker/electra/'
+const URI: string = 'https://electra-api.herokuapp.com/v1/price'
 
-export type CoinMarketCapCurrency = keyof typeof CURRENCIES
+export type Currency = keyof typeof CURRENCIES
 
-interface CoinMarketCapCoinInfo {
-  id: 'electra'
-  name: 'Electra'
-  symbol: 'ECA'
-  rank: string | null
-  price_usd: string | null
-  price_btc: string | null
-  '24h_volume_usd': string | null
-  market_cap_usd: string | null
-  available_supply: string | null
-  total_supply: string | null
-  max_supply: string | null
-  percent_change_1h: string | null
-  percent_change_24h: string | null
-  percent_change_7d: string | null
-  last_updated: string | null
+interface ElectraApiPriceGetResponse {
+  price: string
+  priceBtc: string
+}
+
+interface CurrencyPrice {
+  price: number
+  priceInBtc: number
 }
 
 /**
  * Get the current price of ECA via CoinMarketCap.
  */
-export default async function(currency: CoinMarketCapCurrency = 'USD'): Promise<number> {
-  const [ err, res ] = await to(Axios.get<CoinMarketCapCoinInfo[]>(URI, { params: { convert: currency } }))
+export default async function(): Promise<CurrencyPrice> {
+  const currency: Currency = 'usd'
+  const [ err, res ] = await to(Axios.get<ElectraApiPriceGetResponse>(`${URI}/${currency}`))
   if (err) throw new Error(`api#webServices(): ${err.message}`)
 
-  if (res === undefined || !Array.isArray(res.data) || res.data.length === 0) {
-    throw new Error(`api#webServices(): We did't get the expected response from CoinMarketCap.`)
+  if (res === undefined) {
+    throw new Error(`api#webServices(): We did't get the expected response from Electra API.`)
   }
 
-  const priceKey: keyof CoinMarketCapCoinInfo = `price_${currency.toLowerCase()}` as keyof CoinMarketCapCoinInfo
-
-  return Number(res.data[0][priceKey])
+  return {
+    price: Number(res.data.price),
+    priceInBtc: Number(res.data.priceBtc),
+  }
 }

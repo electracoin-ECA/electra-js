@@ -57,11 +57,9 @@ export interface ElectraJsError<T extends keyof ElectraJsErrorReference> extends
   message: T;
 }
 
-export type CoinMarketCapCurrency =
-  "AUD" | "BRL" | "BTC" | "CAD" | "CHF" | "CLP" | "CNY" | "CZK" | "DKK" | "EUR" |
-  "GBP" | "HKD" | "HUF" | "IDR" | "ILS" | "INR" | "JPY" | "KRW" | "MXN" | "MYR" |
-  "NOK" | "NZD" | "PHP" | "PKR" | "PLN" | "RUB" | "SEK" | "SGD" | "THB" | "TRY" |
-  "TWD" | "USD" | "ZAR";
+/* ==================================================
+  WALLET
+*/
 
 export interface WalletAddress extends Omit<Address, 'isCiphered' | 'privateKey'> {
   category: OrNull<WalletAddressCategory>
@@ -216,10 +214,24 @@ export interface WalletLight {
   getTransaction(transactionHash: string): Promise<WalletTransaction | undefined>;
 }
 
+/* ==================================================
+  WEB SERVICES
+*/
+
+interface CurrencyPrice {
+  price: number
+  priceInBtc: number
+}
+
+
 export interface WebServices {
   getBalanceFor(address: string): Promise<number>;
-  getCurrentPriceIn(currency?: CoinMarketCapCurrency): Promise<number>;
+  getCurrentPriceIn(): Promise<CurrencyPrice>;
 }
+
+/* ==================================================
+  ERRORS
+*/
 
 export enum EJErrorCode {
   DAEMON_RPC_LOCK_ATTEMPT_ON_UNENCRYPTED_WALLET = 'DAEMON_RPC_LOCK_ATTEMPT_ON_UNENCRYPTED_WALLET',
