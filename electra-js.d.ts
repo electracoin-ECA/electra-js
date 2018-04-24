@@ -218,11 +218,10 @@ export interface WalletLight {
   WEB SERVICES
 */
 
-interface CurrencyPrice {
+export interface CurrencyPrice {
   price: number
   priceInBtc: number
 }
-
 
 export interface WebServices {
   getBalanceFor(address: string): Promise<number>;
