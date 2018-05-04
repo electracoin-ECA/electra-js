@@ -23,7 +23,7 @@ import EJError, { EJErrorCode } from '../../libs/error'
 import Rpc from '../../libs/rpc'
 
 import { RpcMethodResult } from '../../libs/rpc/types'
-import { Address, Omit } from '../../types'
+import { Address } from '../../types'
 import {
   PlatformBinary,
   WalletAddress,
@@ -438,7 +438,7 @@ export default class WalletHard {
         await this.injectAddressInDaemon(addressChange.privateKey)
 
         this.ADDRESSES.push({
-          ...R.omit<Omit<Address, 'isCiphered' | 'privateKey'>>(['isCiphered', 'privateKey'], address),
+          ...R.omit<Address, 'isCiphered' | 'privateKey'>(['isCiphered', 'privateKey'], address),
           category: WalletAddressCategory.PURSE,
           change: addressChange.hash,
           label: null,
@@ -467,7 +467,7 @@ export default class WalletHard {
         await this.injectAddressInDaemon(addressChange.privateKey)
 
         this.ADDRESSES.push({
-          ...R.omit<Omit<Address, 'isCiphered' | 'privateKey'>>(['isCiphered', 'privateKey'], address),
+          ...R.omit<Address, 'isCiphered' | 'privateKey'>(['isCiphered', 'privateKey'], address),
           category: WalletAddressCategory.CHECKING,
           change: addressChange.hash,
           label: null,
@@ -496,7 +496,7 @@ export default class WalletHard {
         await this.injectAddressInDaemon(addressChange.privateKey)
 
         this.ADDRESSES.push({
-          ...R.omit<Omit<Address, 'isCiphered' | 'privateKey'>>(['isCiphered', 'privateKey'], address),
+          ...R.omit<Address, 'isCiphered' | 'privateKey'>(['isCiphered', 'privateKey'], address),
           category: WalletAddressCategory.SAVINGS,
           change: addressChange.hash,
           label: null,
@@ -576,7 +576,7 @@ export default class WalletHard {
     await this.injectAddressInDaemon(addressChange.privateKey)
 
     this.ADDRESSES.push({
-      ...R.omit<Omit<Address, 'isCiphered' | 'privateKey'>>(['isCiphered', 'privateKey'], address),
+      ...R.omit<Address, 'isCiphered' | 'privateKey'>(['isCiphered', 'privateKey'], address),
       category,
       change: addressChange.hash,
       label: null
@@ -711,7 +711,7 @@ export default class WalletHard {
         await this.injectAddressInDaemon(addressChange.privateKey)
 
         this.ADDRESSES.push({
-          ...R.omit<Omit<Address, 'isCiphered' | 'privateKey'>>(['isCiphered', 'privateKey'], address),
+          ...R.omit<Address, 'isCiphered' | 'privateKey'>(['isCiphered', 'privateKey'], address),
           category: WalletAddressCategory.PURSE,
           change: addressChange.hash,
           label: null,
@@ -740,7 +740,7 @@ export default class WalletHard {
         await this.injectAddressInDaemon(addressChange.privateKey)
 
         this.ADDRESSES.push({
-          ...R.omit<Omit<Address, 'isCiphered' | 'privateKey'>>(['isCiphered', 'privateKey'], address),
+          ...R.omit<Address, 'isCiphered' | 'privateKey'>(['isCiphered', 'privateKey'], address),
           category: WalletAddressCategory.CHECKING,
           change: addressChange.hash,
           label: null,
@@ -769,7 +769,7 @@ export default class WalletHard {
         await this.injectAddressInDaemon(addressChange.privateKey)
 
         this.ADDRESSES.push({
-          ...R.omit<Omit<Address, 'isCiphered' | 'privateKey'>>(['isCiphered', 'privateKey'], address),
+          ...R.omit<Address, 'isCiphered' | 'privateKey'>(['isCiphered', 'privateKey'], address),
           category: WalletAddressCategory.SAVINGS,
           change: addressChange.hash,
           label: null,
