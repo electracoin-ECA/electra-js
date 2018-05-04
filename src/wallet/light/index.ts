@@ -244,7 +244,7 @@ export default class WalletLight {
         )
 
         this.ADDRESSES.push({
-          ...R.omit<Address>(['isCiphered', 'privateKey'], address) as AddressWithoutPK,
+          ...R.omit<Address, 'isCiphered' | 'privateKey'>(['isCiphered', 'privateKey'], address) as AddressWithoutPK,
           category: WalletAddressCategory.PURSE,
           change: addressChange.hash,
           label: null,
@@ -270,7 +270,7 @@ export default class WalletLight {
         )
 
         this.ADDRESSES.push({
-          ...R.omit<Address>(['isCiphered', 'privateKey'], address) as AddressWithoutPK,
+          ...R.omit<Address, 'isCiphered' | 'privateKey'>(['isCiphered', 'privateKey'], address) as AddressWithoutPK,
           category: WalletAddressCategory.CHECKING,
           change: addressChange.hash,
           label: null,
@@ -296,7 +296,7 @@ export default class WalletLight {
         )
 
         this.ADDRESSES.push({
-          ...R.omit<Address>(['isCiphered', 'privateKey'], address) as AddressWithoutPK,
+          ...R.omit<Address, 'isCiphered' | 'privateKey'>(['isCiphered', 'privateKey'], address) as AddressWithoutPK,
           category: WalletAddressCategory.SAVINGS,
           change: addressChange.hash,
           label: null,
@@ -441,7 +441,7 @@ export default class WalletLight {
         )
 
         this.ADDRESSES.push({
-          ...R.omit<Address>(['isCiphered', 'privateKey'], address) as AddressWithoutPK,
+          ...R.omit<Address, 'isCiphered' | 'privateKey'>(['isCiphered', 'privateKey'], address) as AddressWithoutPK,
           category: WalletAddressCategory.PURSE,
           change: addressChange.hash,
           label: null,
@@ -467,7 +467,7 @@ export default class WalletLight {
         )
 
         this.ADDRESSES.push({
-          ...R.omit<Address>(['isCiphered', 'privateKey'], address) as AddressWithoutPK,
+          ...R.omit<Address, 'isCiphered' | 'privateKey'>(['isCiphered', 'privateKey'], address) as AddressWithoutPK,
           category: WalletAddressCategory.CHECKING,
           change: addressChange.hash,
           label: null,
@@ -493,7 +493,7 @@ export default class WalletLight {
         )
 
         this.ADDRESSES.push({
-          ...R.omit<Address>(['isCiphered', 'privateKey'], address) as AddressWithoutPK,
+          ...R.omit<Address, 'isCiphered' | 'privateKey'>(['isCiphered', 'privateKey'], address) as AddressWithoutPK,
           category: WalletAddressCategory.SAVINGS,
           change: addressChange.hash,
           label: null,
