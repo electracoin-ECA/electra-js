@@ -11,5 +11,8 @@ node_js:
 addons:
   chrome: stable
 
+before_install:
+  - npm i -g snyk
+
 notifications:
   email: false
