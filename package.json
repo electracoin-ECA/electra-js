@@ -6,8 +6,8 @@
   "main": "dist/index.js",
   "types": "electra-js.d.ts",
   "engines": {
-    "node": "9.4.0",
-    "npm": "5.6.0"
+    "node": ">=10.1.0",
+    "npm": ">=6.1.0"
   },
   "scripts": {
     "build": "webpack --config webpack.prod.js && npm run check",
