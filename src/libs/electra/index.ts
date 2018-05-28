@@ -132,7 +132,7 @@ export default class Electra {
     const masterNodeKeyPair: bitcoinJs.ECPair = bitcoinJs.ECPair.fromWIF(privateKey, ECA_NETWORK)
 
     // TODO Check the "chainCode" buffer
-    return new bitcoinJs.HDNode(masterNodeKeyPair, new Buffer(CHAIN_CODE_BUFFER_SIZE))
+    return new bitcoinJs.HDNode(masterNodeKeyPair, Buffer.alloc(CHAIN_CODE_BUFFER_SIZE))
   }
 
   /**
