@@ -1,7 +1,5 @@
 // tslint:disable
 
-import * as assert from 'assert'
-
 import assertThen from './assertThen'
 import closeElectraDaemons from './closeElectraDaemons'
 
