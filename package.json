@@ -6,7 +6,7 @@
   "main": "dist/index.js",
   "types": "electra-js.d.ts",
   "engines": {
-    "node": ">=10.1.0",
+    "node": ">=10.2.1",
     "npm": ">=6.1.0"
   },
   "scripts": {
