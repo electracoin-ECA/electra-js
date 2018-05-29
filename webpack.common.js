@@ -12,7 +12,7 @@ module.exports = {
 
   module: {
     rules: [
-      { test: /.*\.ts$/, user: 'awesome-typescript-loader' },
+      { test: /.*\.ts$/, use: 'awesome-typescript-loader' },
     ],
   },
 
