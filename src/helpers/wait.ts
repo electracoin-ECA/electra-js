@@ -2,5 +2,6 @@
  * Wait for <forInMs> milliseconds.
  */
 export default async function(forInMs: number): Promise<void> {
-  return new Promise<void>((resolve: () => void): NodeJS.Timer => setTimeout(resolve, forInMs))
+  // tslint:disable-next-line:no-any
+  return new Promise<void>((resolve: () => void): any => setTimeout(resolve, forInMs))
 }
