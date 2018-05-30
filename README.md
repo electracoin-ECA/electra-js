@@ -2,6 +2,7 @@
 
 > Javascript API allowing clients to interact with Electra blockchain.
 
+[![The MIT License](https://img.shields.io/badge/license-MIT-orange.svg?style=flat-square)](http://opensource.org/licenses/MIT)
 [![npm](https://img.shields.io/npm/v/electra-js.svg?style=flat-square)](https://www.npmjs.com/package/electra-js)
 [![Travis](https://img.shields.io/travis/Electra-project/Electra-JS.svg?style=flat-square)](https://travis-ci.org/Electra-project/Electra-JS)
 [![David](https://img.shields.io/david/Electra-project/electra-js.svg?style=flat-square)](https://david-dm.org/Electra-project/electra-js)
