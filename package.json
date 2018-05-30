@@ -12,7 +12,7 @@
   "scripts": {
     "build": "webpack --config webpack.prod.js && npm run check",
     "check": "mocha test/index.js && mocha -r ts-node/register test/index.ts",
-    "postinstall": "node ./tasks/downloadBinaries && node ./tasks/changeBinariesRights && npm run validate:security",
+    "postinstall": "node ./tasks/downloadBinaries && node ./tasks/changeBinariesRights",
     "start": "npm run watch",
     "test": "npm run validate && node ./tasks/downloadTestData && npm run test:unit && npm run test:browser && npm run build",
     "test:browser": "webpack --config webpack.test.js && mocha -r ts-node/register test/browser/index.ts",
