@@ -277,12 +277,11 @@ export default class WalletHard {
    * Stop the hard wallet daemon.
    */
   public async stopDaemon(): Promise<void> {
-    this.DAEMON_STATE = WalletDaemonState.STOPPING
+    this.DAEMON_STATE = WalletDaemonState.STOPPING as WalletDaemonState
 
-    await this.rpc.stop()
-    while ((this.DAEMON_STATE as WalletDaemonState) !== WalletDaemonState.STOPPED) {
-      // tslint:disable-next-line:no-magic-numbers
-      await wait(250)
+    await closeElectraDaemons()
+    if (this.DAEMON_STATE !== WalletDaemonState.STOPPED) {
+      this.DAEMON_STATE = WalletDaemonState.STOPPED
     }
   }
 
