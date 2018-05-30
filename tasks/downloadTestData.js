@@ -1,74 +1,41 @@
-const chalk = require('chalk')
+const log = require('@inspired-beings/log')
+const axios = require('axios')
 const fs = require('fs')
 const path = require('path')
-const Progress = require('progress')
-const request = require('request')
-const requestProgress = require('request-progress')
+
+const download = require('./helpers/download')
 const sha256sum = require('./helpers/sha256sum')
-
-function download(githubPath, name, size) {
-  return new Promise((resolve, reject) => {
-    const bar = new Progress(chalk.green('[:bar] :rate/bps :percent :etas'), {
-      clear: true,
-      complete: '█',
-      incomplete: '-',
-      total: size,
-      width: 20,
-    })
-
-    let lastTransferredSize = 0
-    requestProgress(request(`https://github.com${githubPath}`))
-      .on('progress', state => {
-        bar.tick(state.size.transferred - lastTransferredSize)
-        lastTransferredSize = state.size.transferred
-      })
-      .on('error', reject)
-      .on('end', () => {
-        bar.tick(size - lastTransferredSize)
-        resolve()
-      })
-      .pipe(fs.createWriteStream(path.resolve(__dirname, '../test/data', name)))
-  })
-}
 
 const BINARY = {
   'darwin': {
-    name: 'Electra-darwin.zip',
-    githubPath: '/Electra-project/Electra-JS/releases/download/v0.11.8/Electra-darwin.zip',
     sha256sum: '4e2773f51eea83138c1d159d49be5269fba45deeae648da7f0250a1010b2a736',
-    size: 72837450,
   },
   'linux': {
-    name: 'Electra-linux.zip',
-    githubPath: '/Electra-project/Electra-JS/releases/download/v0.11.8/Electra-linux.zip',
     sha256sum: 'd3166fb24e91c16e3b0027d0e1bd0c36fa267a4d33da6ad2686d0f7e045aef57',
-    size: 68851795,
   },
   'win32': {
-    name: 'Electra-win32.zip',
-    githubPath: '/Electra-project/Electra-JS/releases/download/v0.11.8/Electra-win32.zip',
-    sha256sum: '1d8de45c8abbcfc9235a00f372292d8625467a780bea08a93a04282005d7bc8f',
-    size: 71662526,
+    sha256sum: '9cc234818a78f41513a78f6c2d8ac06256b114bd15591fa08e7aea48ff7d0ed8',
   },
-}
-
-async function getSha256Sum(name) {
-  return await sha256sum(path.resolve(__dirname, '../test/data', name))
 }
 
 async function run() {
-  const { name, githubPath, sha256sum, size } = BINARY[process.platform]
+  const binary = BINARY[process.platform]
+  const name = `Electra-${process.platform}.zip`
+  const filePath = path.resolve(__dirname, '../test/data', name)
 
-  console.log(`ElectraJs: Checking current ${name} binary.`)
-  if (fs.existsSync(path.resolve(__dirname, '../test/data', name)) && await getSha256Sum(name) === sha256sum) return
+  const assetsApiUrl = (await axios.get('https://api.github.com/repos/Electra-project/electra-js-test/releases')).data[0].assets_url
+  const asset = (await axios.get(assetsApiUrl)).data.filter(({ name: _name }) => _name === name)[0]
 
-  console.log(`ElectraJs: Downloading ${name} binary.`)
-  await download(githubPath, name, size)
+  log(`ElectraJs: Checking current ${name} binary.`)
+  if (fs.existsSync(filePath) && await sha256sum(filePath) === binary.sha256sum) return
 
-  console.log(`ElectraJs: Checking downloaded ${name} binary.`)
-  if (await getSha256Sum(name) !== sha256sum) {
-    console.log(chalk.red(`tasks/downloadBinaries: BE CAREFUL ! The hash of bin/${name} didn't match.`))
-    process.exit()
+  log(`ElectraJs: Downloading ${name} binary.`)
+  await download(asset.browser_download_url, filePath, asset.size)
+
+  log(`ElectraJs: Checking downloaded ${name} binary.`)
+  if (await sha256sum(filePath) !== binary.sha256sum) {
+    log.error(`tasks/downloadBinaries: BE CAREFUL ! The hash of bin/${name} didn't match.`)
+    process.exit(1)
   }
 }
 
