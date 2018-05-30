@@ -989,7 +989,6 @@ export default class WalletHard {
    * Get the wallet info.
    */
   public async getInfo(): Promise<WalletInfo> {
-    if (this.STATE !== WalletState.READY) throw new EJError(EJErrorCode.WALLET_STATE_NOT_READY)
     if (this.DAEMON_STATE !== WalletDaemonState.STARTED) throw new EJError(EJErrorCode.WALLET_DAEMON_STATE_NOT_STARTED)
 
     try {
