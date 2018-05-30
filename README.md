@@ -4,11 +4,11 @@
 
 [![The MIT License](https://img.shields.io/badge/license-MIT-orange.svg?style=flat-square)](http://opensource.org/licenses/MIT)
 [![npm](https://img.shields.io/npm/v/electra-js.svg?style=flat-square)](https://www.npmjs.com/package/electra-js)
-[![Travis](https://img.shields.io/travis/Electra-project/Electra-JS.svg?style=flat-square)](https://travis-ci.org/Electra-project/Electra-JS)
+[![Travis](https://img.shields.io/travis/Electra-project/electra-js.svg?style=flat-square)](https://travis-ci.org/Electra-project/electra-js)
 [![David](https://img.shields.io/david/Electra-project/electra-js.svg?style=flat-square)](https://david-dm.org/Electra-project/electra-js)
 [![David](https://img.shields.io/david/dev/Electra-project/electra-js.svg?style=flat-square)](https://david-dm.org/InspiredBeings/electra-js)
 
-[![NSP Status](https://nodesecurity.io/orgs/ivan-gabriele/projects/e8f9941a-7742-4aac-8754-931af71f1e3f/badge)](https://nodesecurity.io/orgs/ivan-gabriele/projects/e8f9941a-7742-4aac-8754-931af71f1e3f)
+[![NSP Status](https://nodesecurity.io/orgs/electra-project/projects/70c6803d-d5ff-4cf0-a54b-d8af3ea7b33d/badge)](https://nodesecurity.io/orgs/electra-project/projects/70c6803d-d5ff-4cf0-a54b-d8af3ea7b33d)
 
 ## Getting Started
 
@@ -318,8 +318,8 @@ number
 
 ### Getting Started
 
-    git clone https://github.com/Electra-project/Electra-JS.git
-    cd Electra-JS
+    git clone https://github.com/Electra-project/electra-js.git
+    cd electra-js
     npm i
 
 ### Start developping
