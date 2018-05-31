@@ -11,7 +11,7 @@ const BINARY = {
     sha256sum: '4e2773f51eea83138c1d159d49be5269fba45deeae648da7f0250a1010b2a736',
   },
   'linux': {
-    sha256sum: 'd3166fb24e91c16e3b0027d0e1bd0c36fa267a4d33da6ad2686d0f7e045aef57',
+    sha256sum: '8c72044f0e6b2428de47ae7c1915b7948f141dce406165c39e54e1922aecd124',
   },
   'win32': {
     sha256sum: '9cc234818a78f41513a78f6c2d8ac06256b114bd15591fa08e7aea48ff7d0ed8',
