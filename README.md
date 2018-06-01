@@ -18,38 +18,14 @@
 
 ### Light Wallet VS Hard Wallet
 
-All the wallet methods are contained within the composed method `.wallet` of the instanciated `ElectraJs` class.
+The hard wallet version (`const electraJs = new ElectraJs({ hard: true })`) **requires a NodeJS-like environment** to be executed. The hard wallet utilizes the Electra code binary daemon to interact with the blockchain.
 
-**Case A: Light Wallet**
+The light wallet version (`const electraJs = new ElectraJs()`) **requires a Browser-like environment** to be executed. The light wallet utilizes public web-services to interact with the blockchain.
 
-In the case of a light wallet (listening and broadcasting to the blockchain via public web-services), you only need to instanciate ElectraJs without any setting:
+### Examples
 
-```typescript
-import ElectraJs from 'electra-js'
-
-const electraJs = new ElectraJs()
-
-// We can then call electraJs.wallet.anyWalletMethod(...) to start using it.
-```
-
-**Case B: Hard Wallet**
-
-
-In the case of a hard wallet, that is utilizing the deamon RPC server, you need to specify the RPC server settings during the ElectraJs instanciation:
-
-```typescript
-import ElectraJs from 'electra-js'
-
-const electraJs = new ElectraJs({
-  rpcServerAuth: {
-    username: 'user',
-    password: 'pass'
-  },
-  rpcServerUri: 'http://127.0.0.1:5788'
-})
-
-// We can then call electraJs.wallet.anyWalletMethod(...) to start using it.
-```
+- [Hard Wallet](https://github.com/Electra-project/electra-js-example-hard)
+- Light Wallet: _Not ready yet._
 
 ### States
 
