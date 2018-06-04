@@ -1,7 +1,9 @@
 const log = require('@inspired-beings/log')
-const download = require('./helpers/download')
+const axios = require('axios')
 const fs = require('fs')
 const path = require('path')
+
+const download = require('./helpers/download')
 const sha256sum = require('./helpers/sha256sum')
 
 const FILES = {
