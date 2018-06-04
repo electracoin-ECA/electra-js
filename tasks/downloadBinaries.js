@@ -37,7 +37,7 @@ async function run() {
 
   log(`ElectraJs: Checking downloaded ${name} binary.`)
   if (await sha256sum(filePath) !== binary.sha256sum) {
-    log.error(`tasks/downloadBinaries: BE CAREFUL ! The hash of bin/${name} didn't match.`)
+    log.err(`tasks/downloadBinaries: BE CAREFUL ! The hash of %s didn't match.`, filePath)
     process.exit(1)
   }
 }
