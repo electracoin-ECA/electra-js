@@ -229,7 +229,7 @@ export default class WalletHard {
 
     const binaryName: string =
       `electrad-${process.platform}-${process.arch}${process.platform === 'win32' ? '.exe' : ''}`
-    const binaryPath: string = `${this.binariesPath}/${binaryName}}`
+    const binaryPath: string = `${this.binariesPath}/${binaryName}`
 
     try {
       // tslint:disable-next-line:no-require-imports
