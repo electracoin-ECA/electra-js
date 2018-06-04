@@ -14,7 +14,7 @@ const FILES = {
     sha256sum: '85bbc02372d295062c97d7ecfd31179e8540b049ec7777f6bacdc0e886ca4bce',
   },
   'electrad-win32-ia32.exe': {
-    sha256sum: '71d5b31bdd465f9ed03c4c69a350e4b9786829a38019b766bef6ba33dfd6ec34',
+    sha256sum: '2c7f87a9dd99f283a3f63f470effc205be8905f60cd10bfa8c6490aad1e85d53',
   },
   'electrad-win32-x64.exe': {
     sha256sum: '71d5b31bdd465f9ed03c4c69a350e4b9786829a38019b766bef6ba33dfd6ec34',
