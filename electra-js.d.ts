@@ -1,5 +1,5 @@
 type Diff<T extends string, U extends string> = ({[P in T]: P } & {[P in U]: never } & { [x: string]: never })[T]
-type Omit<T, K extends keyof T> = Pick<T, Diff<keyof T, K>>
+type Omit<T, K extends Extract<keyof T, string>> = Pick<T, Diff<Extract<keyof T, string>, K>>
 type OrNull<T> = T | null
 type PartialOrNull<T> = OrNull<Partial<T>>
 
