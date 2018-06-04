@@ -1,74 +1,42 @@
-const chalk = require('chalk')
+const log = require('@inspired-beings/log')
+const download = require('./helpers/download')
 const fs = require('fs')
 const path = require('path')
-const Progress = require('progress')
-const request = require('request')
-const requestProgress = require('request-progress')
 const sha256sum = require('./helpers/sha256sum')
 
-function download(githubPath, name, size) {
-  return new Promise((resolve, reject) => {
-    const bar = new Progress(chalk.green('[:bar] :rate/bps :percent :etas'), {
-      clear: true,
-      complete: '█',
-      incomplete: '-',
-      total: size,
-      width: 20,
-    })
-
-    let lastTransferredSize = 0
-    requestProgress(request(`https://github.com${githubPath}`))
-      .on('progress', state => {
-        bar.tick(state.size.transferred - lastTransferredSize)
-        lastTransferredSize = state.size.transferred
-      })
-      .on('error', reject)
-      .on('end', () => {
-        bar.tick(size - lastTransferredSize)
-        resolve()
-      })
-      .pipe(fs.createWriteStream(path.resolve(__dirname, '../bin', name)))
-  })
-}
-
-const BINARY = {
-  'darwin': {
-    name: 'electrad-macos',
-    githubPath: '/Electra-project/Electra/releases/download/v1.2.0-beta.1/electrad-macos',
+const FILES = {
+  'electrad-darwin-x64': {
     sha256sum: 'f296920be5023d19b43b4737ea5dd4b580cbb789d1eb427e70974221c8f31f9c',
-    size: 18828580,
   },
-  'linux': {
-    name: 'electrad-linux',
-    githubPath: '/Electra-project/Electra/releases/download/v1.2.0-beta.1/electrad-linux',
+  'electrad-linux-x64': {
     sha256sum: '85bbc02372d295062c97d7ecfd31179e8540b049ec7777f6bacdc0e886ca4bce',
-    size: 73570640,
   },
-  'win32': {
-    name: 'electrad-windows.exe',
-    githubPath: '/Electra-project/Electra/releases/download/v1.2.0-beta.1/electrad-windows.exe',
+  'electrad-win32-ia32.exe': {
     sha256sum: '71d5b31bdd465f9ed03c4c69a350e4b9786829a38019b766bef6ba33dfd6ec34',
-    size: 7167488,
   },
-}
-
-async function getSha256Sum(name) {
-  return await sha256sum(path.resolve(__dirname, '../bin', name))
+  'electrad-win32-x64.exe': {
+    sha256sum: '71d5b31bdd465f9ed03c4c69a350e4b9786829a38019b766bef6ba33dfd6ec34',
+  },
 }
 
 async function run() {
-  const { name, githubPath, sha256sum, size } = BINARY[process.platform]
+  const name = `electrad-${process.platform}-${process.arch}${process.platform === 'win32' ? '.exe' : ''}`
+  const binary = FILES[name]
+  const filePath = path.resolve(__dirname, '../bin', name)
 
-  console.log(`ElectraJs: Checking current ${name} binary.`)
-  if (fs.existsSync(path.resolve(__dirname, '../bin', name)) && await getSha256Sum(name) === sha256sum) return
+  const assetsApiUrl = (await axios.get('https://api.github.com/repos/Electra-project/Electra/releases')).data[0].assets_url
+  const asset = (await axios.get(assetsApiUrl)).data.filter(({ name: _name }) => _name === name)[0]
 
-  console.log(`ElectraJs: Downloading ${name} binary.`)
-  await download(githubPath, name, size)
+  log(`ElectraJs: Checking current ${name} binary.`)
+  if (fs.existsSync(filePath) && await sha256sum(filePath) === binary.sha256sum) return
 
-  console.log(`ElectraJs: Checking downloaded ${name} binary.`)
-  if (await getSha256Sum(name) !== sha256sum) {
-    console.log(chalk.red(`tasks/downloadBinaries: BE CAREFUL ! The hash of bin/${name} didn't match.`))
-    process.exit()
+  log(`ElectraJs: Downloading ${name} binary.`)
+  await download(asset.browser_download_url, filePath, asset.size)
+
+  log(`ElectraJs: Checking downloaded ${name} binary.`)
+  if (await sha256sum(filePath) !== binary.sha256sum) {
+    log.error(`tasks/downloadBinaries: BE CAREFUL ! The hash of bin/${name} didn't match.`)
+    process.exit(1)
   }
 }
 
