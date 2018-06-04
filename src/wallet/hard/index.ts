@@ -25,7 +25,6 @@ import Rpc from '../../libs/rpc'
 import { RpcMethodResult } from '../../libs/rpc/types'
 import { Address } from '../../types'
 import {
-  PlatformBinary,
   WalletAddress,
   WalletAddressCategory,
   WalletBalance,
@@ -47,11 +46,6 @@ const ONE_DAY_IN_SECONDS: number = 60 * 60 * 24
 const ONE_THOUSAND: number = 1_000
 // tslint:disable-next-line:no-magic-numbers
 const ONE_YEAR_IN_SECONDS: number = 60 * 60 * 24 * 365
-const PLATFORM_BINARY: PlatformBinary = {
-  darwin: 'electrad-macos',
-  linux: 'electrad-linux',
-  win32: 'electrad-windows.exe'
-}
 const STAKING_REWARDS_RATE: number = 0.5
 
 /**
@@ -233,7 +227,9 @@ export default class WalletHard {
     const [err1] = tryCatch(injectElectraConfig)
     if (err1 !== undefined) throw err1
 
-    const binaryPath: string = `${this.binariesPath}/${PLATFORM_BINARY[process.platform]}`
+    const binaryName: string =
+      `electrad-${process.platform}-${process.arch}${process.platform === 'win32' ? '.exe' : ''}`
+    const binaryPath: string = `${this.binariesPath}/${binaryName}}`
 
     try {
       // tslint:disable-next-line:no-require-imports
