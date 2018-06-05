@@ -11,76 +11,82 @@ export interface Address {
 }
 
 export interface DaemonConfig {
-  addnode: string
-  alertnotify: string
-  banscore: string
-  bantime: string
-  bind: string
-  blockmaxsize: string
-  blockminsize: string
-  blocknotify: string
-  blockprioritysize: string
-  checkblocks: string
-  checklevel: string
-  conf: string
-  confchange: boolean
-  connect: string
-  cppolicy: boolean
+  addnode?: string
+  alertnotify?: string
+  banscore?: number
+  bantime?: number
+  bind?: string
+  blockmaxsize?: number
+  blockminsize?: number
+  blocknotify?: string
+  blockprioritysize?: number
+  checkblocks?: number
+  checklevel?: number
+  conf?: string
+  confchange?: boolean
+  connect?: string
+  cppolicy?: boolean
   daemon: boolean
-  datadir: string
-  dbcache: string
-  dblogsize: string
-  debug: boolean
-  debugnet: boolean
-  detachdb: boolean
-  discover: boolean
-  dns: boolean
-  dnsseed: boolean
-  enforcecanonical: boolean
-  externalip: string
-  irc: boolean
-  keypool: string
-  listen: boolean
-  loadblock: string
-  logtimestamps: boolean
-  maxconnections: string
-  maxreceivebuffer: string
-  maxsendbuffer: string
-  mininput: string
-  onlynet: string
-  paytxfee: string
-  pid: string
-  port: string
-  printtoconsole: boolean
-  printtodebugger: boolean
-  proxy: string
-  rescan: boolean
-  rpcallowip: string
-  rpcconnect: string
+  datadir?: string
+  dbcache?: number
+  dblogsize?: number
+  debug?: boolean
+  debugnet?: boolean
+  detachdb?: boolean
+  discover?: boolean
+  dns?: boolean
+  dnsseed?: boolean
+  enforcecanonical?: boolean
+  externalip?: string
+  irc?: boolean
+  keypool?: number
+  listen?: boolean
+  loadblock?: string
+  logtimestamps?: boolean
+  maxconnections?: number
+  maxreceivebuffer?: number
+  maxsendbuffer?: number
+  mininput?: number
+  onlynet?: string
+  paytxfee?: number
+  pid?: string
+  port: number
+  printtoconsole?: boolean
+  printtodebugger?: boolean
+  proxy?: string
+  rescan?: boolean
+  rpcallowip?: string
+  rpcconnect?: string
   rpcpassword: string
-  rpcport: string
-  rpcssl: boolean
-  rpcsslcertificatechainfile: string
-  rpcsslciphers: string
-  rpcsslprivatekeyfile: string
+  rpcport: number
+  rpcssl?: boolean
+  rpcsslcertificatechainfile?: string
+  rpcsslciphers?: string
+  rpcsslprivatekeyfile?: string
   rpcuser: string
-  salvagewallet: boolean
-  seednode: string
-  server: boolean
-  shrinkdebugfile: boolean
-  socks: string
-  staking: boolean
-  synctime: boolean
-  testnet: boolean
-  timeout: string
-  tor: string
-  upgradewallet: boolean
-  upnp: boolean
-  wallet: string
-  walletnotify: string
+  salvagewallet?: boolean
+  seednode?: string
+  server?: boolean
+  shrinkdebugfile?: boolean
+  socks?: number
+  staking?: boolean
+  synctime?: boolean
+  testnet?: boolean
+  timeout?: number
+  tor?: string
+  upgradewallet?: boolean
+  upnp?: boolean
+  wallet?: string
+  walletnotify?: string
 }
 
 export interface Settings {
+  binariesPath: string
+  daemonConfig: DaemonConfig
+  isHard?: boolean
+}
+export interface SettingsPartial {
   binariesPath?: string
+  daemonConfig?: Partial<DaemonConfig>
   isHard?: boolean
 }

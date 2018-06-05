@@ -12,26 +12,26 @@ export interface Address {
 
 export type AddressWithoutPK = Omit<Address, 'isCiphered' | 'privateKey'>
 
-interface DaemonConfig {
+export type DaemonConfig = Partial<{
   addnode: string;
   alertnotify: string;
-  banscore: string;
-  bantime: string;
+  banscore: number;
+  bantime: number;
   bind: string;
-  blockmaxsize: string;
-  blockminsize: string;
+  blockmaxsize: number;
+  blockminsize: number;
   blocknotify: string;
-  blockprioritysize: string;
-  checkblocks: string;
-  checklevel: string;
+  blockprioritysize: number;
+  checkblocks: number;
+  checklevel: number;
   conf: string;
   confchange: boolean;
   connect: string;
   cppolicy: boolean;
   daemon: boolean;
   datadir: string;
-  dbcache: string;
-  dblogsize: string;
+  dbcache: number;
+  dblogsize: number;
   debug: boolean;
   debugnet: boolean;
   detachdb: boolean;
@@ -41,18 +41,18 @@ interface DaemonConfig {
   enforcecanonical: boolean;
   externalip: string;
   irc: boolean;
-  keypool: string;
+  keypool: number;
   listen: boolean;
   loadblock: string;
   logtimestamps: boolean;
-  maxconnections: string;
-  maxreceivebuffer: string;
-  maxsendbuffer: string;
-  mininput: string;
+  maxconnections: number;
+  maxreceivebuffer: number;
+  maxsendbuffer: number;
+  mininput: number;
   onlynet: string;
-  paytxfee: string;
+  paytxfee: number;
   pid: string;
-  port: string;
+  port: number;
   printtoconsole: boolean;
   printtodebugger: boolean;
   proxy: string;
@@ -60,7 +60,7 @@ interface DaemonConfig {
   rpcallowip: string;
   rpcconnect: string;
   rpcpassword: string;
-  rpcport: string;
+  rpcport: number;
   rpcssl: boolean;
   rpcsslcertificatechainfile: string;
   rpcsslciphers: string;
@@ -70,21 +70,22 @@ interface DaemonConfig {
   seednode: string;
   server: boolean;
   shrinkdebugfile: boolean;
-  socks: string;
+  socks: number;
   staking: boolean;
   synctime: boolean;
   testnet: boolean;
-  timeout: string;
+  timeout: number;
   tor: string;
   upgradewallet: boolean;
   upnp: boolean;
   wallet: string;
   walletnotify: string;
-}
+}>
 
-interface Settings {
+export interface SettingsPartial {
   binariesPath?: string
-  isHard?: boolean;
+  daemonConfig?: Partial<DaemonConfig>
+  isHard?: boolean
 }
 
 declare class ElectraJs<T extends WalletHard | WalletLight> {
@@ -102,7 +103,7 @@ declare class ElectraJs<T extends WalletHard | WalletLight> {
 
   webServices: WebServices;
 
-  constructor(settings?: Settings);
+  constructor(settings?: SettingsPartial);
 
   getVersion(): string;
 }

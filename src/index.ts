@@ -3,10 +3,11 @@ import WalletHard from './wallet/hard'
 import WalletLight from './wallet/light'
 import webServices, { WebServices } from './web-services'
 
-import { Settings } from './types'
+import { Settings, SettingsPartial } from './types'
 
-const SETTINGS_DEFAULT: Settings = {
-  isHard: false
+export const SETTINGS_DEFAULT: Settings = {
+  binariesPath: constants.BINARIES_PATH as string,
+  daemonConfig: constants.DAEMON_CONFIG_DEFAULT,
 }
 
 /**
@@ -28,10 +29,22 @@ export default class ElectraJs {
   /** Web services. */
   public webServices: WebServices
 
-  public constructor(settings: Settings = {}) {
-    const { binariesPath, isHard } = { ...SETTINGS_DEFAULT, ...settings }
+  public constructor(settings: SettingsPartial = {}) {
+    const { isHard } = { ...settings }
 
-    this.wallet = Boolean(isHard) ? new WalletHard(binariesPath) : new WalletLight()
+    if (Boolean(isHard)) {
+      settings.daemonConfig = settings.daemonConfig !== undefined
+        ? { ...constants.DAEMON_CONFIG_DEFAULT, ...settings.daemonConfig }
+        : constants.DAEMON_CONFIG_DEFAULT
+
+      // tslint:disable-next-line:no-object-literal-type-assertion
+      const { binariesPath, daemonConfig }: Settings = { ...SETTINGS_DEFAULT, ...settings } as Settings
+
+      this.wallet = new WalletHard(binariesPath, daemonConfig)
+    } else {
+      this.wallet = new WalletLight()
+    }
+
     this.webServices = webServices
   }
 

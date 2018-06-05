@@ -29,14 +29,15 @@ if ((process as NodeJS.Process | undefined) !== undefined) {
 
 export const BINARIES_PATH: string | undefined = binariesPath
 
-export const DAEMON_CONFIG: DaemonConfig = {
-  port: '5817',
+export const DAEMON_CONFIG_DEFAULT: DaemonConfig = {
+  daemon: true,
+  port: 5817,
   rpcpassword: 'pass',
-  rpcport: '5788',
+  rpcport: 5788,
   rpcuser: 'user'
 }
 
-export const DAEMON_URI: string = `http://127.0.0.1:${DAEMON_CONFIG.rpcport}`
+export const DAEMON_URI: string = `http://127.0.0.1:${DAEMON_CONFIG_DEFAULT.rpcport}`
 
 export const DAEMON_USER_DIR_PATH: string | undefined = daemonUserDirPath
 

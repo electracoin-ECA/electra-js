@@ -5,8 +5,6 @@ import { ChildProcess } from 'child_process'
 import * as R from 'ramda'
 
 import {
-  BINARIES_PATH,
-  DAEMON_CONFIG,
   DAEMON_URI,
   DAEMON_USER_DIR_PATH,
   ECA_TRANSACTION_FEE,
@@ -23,7 +21,7 @@ import EJError, { EJErrorCode } from '../../libs/error'
 import Rpc from '../../libs/rpc'
 
 import { RpcMethodResult } from '../../libs/rpc/types'
-import { Address } from '../../types'
+import { Address, DaemonConfig } from '../../types'
 import {
   WalletAddress,
   WalletAddressCategory,
@@ -87,6 +85,9 @@ export default class WalletHard {
   public get daemonState(): WalletDaemonState {
     return this.DAEMON_STATE
   }
+
+  /** Hard wallet daemon Node child process. */
+  private readonly daemonConfig: DaemonConfig
 
   /** Is it a brand new wallet (= no pre-existing ".Electra directory") ? */
   public isNew: boolean
@@ -195,12 +196,13 @@ export default class WalletHard {
     return this.STATE
   }
 
-  public constructor(binariesPath: string = BINARIES_PATH as string) {
+  public constructor(binariesPath: string, daemonConfig: DaemonConfig) {
     this.binariesPath = binariesPath
+    this.daemonConfig = daemonConfig
     this.DAEMON_STATE = WalletDaemonState.STOPPED
     this.rpc = new Rpc(DAEMON_URI, {
-      password: DAEMON_CONFIG.rpcpassword,
-      username: DAEMON_CONFIG.rpcuser
+      password: this.daemonConfig.rpcpassword,
+      username: this.daemonConfig.rpcuser,
     })
     this.STATE = WalletState.EMPTY
 
@@ -213,7 +215,7 @@ export default class WalletHard {
   public async startDaemon(): Promise<void> {
     this.DAEMON_STATE = WalletDaemonState.STARTING
 
-    if (!this.isFirstStart && this.daemon !== undefined && !await isPortAvailable(Number(DAEMON_CONFIG.rpcport))) {
+    if (!this.isFirstStart && this.daemon !== undefined && !await isPortAvailable(Number(this.daemonConfig.rpcport))) {
       this.DAEMON_STATE = WalletDaemonState.STARTED
 
       return
@@ -231,18 +233,15 @@ export default class WalletHard {
       `electrad-${process.platform}-${process.arch}${process.platform === 'win32' ? '.exe' : ''}`
     const binaryPath: string = `${this.binariesPath}/${binaryName}`
 
+    const daemonParams: string[] = Object.keys(this.daemonConfig)
+      .map((key: keyof DaemonConfig) => `--${key}=${typeof this.daemonConfig[key] === 'boolean'
+        ? Number(this.daemonConfig[key])
+        : this.daemonConfig[key]}`
+      )
+
     try {
       // tslint:disable-next-line:no-require-imports
-      this.daemon = require('child_process').spawn(
-        binaryPath,
-        [
-          `--deamon=1`,
-          `--port=${DAEMON_CONFIG.port}`,
-          `--rpcuser=${DAEMON_CONFIG.rpcuser}`,
-          `--rpcpassword=${DAEMON_CONFIG.rpcpassword}`,
-          `--rpcport=${DAEMON_CONFIG.rpcport}`
-        ]
-      ) as ChildProcess
+      this.daemon = require('child_process').spawn(binaryPath, daemonParams) as ChildProcess
     }
     catch (err) {
       throw err
