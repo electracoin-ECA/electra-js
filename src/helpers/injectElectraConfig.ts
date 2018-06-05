@@ -13,11 +13,20 @@ export default function() {
   fs.writeFileSync(electraConfigFilePath, `
     listen=1
     daemon=1
-    server=1
+    server=0
     rpcuser=user
     rpcpassword=pass
     rpcallowip=127.0.0.1
     rpcport=5788
+
+    # Server Nodes
+    # https://docs.google.com/spreadsheets/d/1b2SzZ8a1VVTizPcKq_k4Dxvp6nEh0sPkldgjuAtpqfI/edit?usp=sharing
+    addnode=137.74.196.251:5817
+    addnode=139.99.195.215:5817
+    addnode=139.99.44.97:5817
+    addnode=149.56.102.5:5817
+
+    # Legacy Nodes
     addnode=175.156.111.14:5817
     addnode=174.89.254.197:5817
     addnode=76.176.172.191:5817
