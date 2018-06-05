@@ -2,7 +2,7 @@
 
 import to from 'await-to-js'
 
-import { DAEMON_CONFIG, DAEMON_URI } from '../constants'
+import { DAEMON_CONFIG_DEFAULT, DAEMON_URI } from '../constants'
 import Rpc from '../libs/rpc'
 import isPortAvailable from './isPortAvailable'
 import wait from './wait'
@@ -32,11 +32,11 @@ function toArrayOfLines(output: string): string[] {
 }
 
 export default async function(): Promise<void> {
-  if (await isPortAvailable(Number(DAEMON_CONFIG.rpcport))) return
+  if (await isPortAvailable(Number(DAEMON_CONFIG_DEFAULT.rpcport))) return
 
   const rpc = new Rpc(DAEMON_URI, {
-    password: DAEMON_CONFIG.rpcpassword,
-    username: DAEMON_CONFIG.rpcuser,
+    password: DAEMON_CONFIG_DEFAULT.rpcpassword,
+    username: DAEMON_CONFIG_DEFAULT.rpcuser,
   })
 
   // First, we can try to send a simple "stop" command
@@ -45,7 +45,7 @@ export default async function(): Promise<void> {
 
     // Limit the clean stop attempt to 5s
     let timeLeft: number = 5000
-    while (!await isPortAvailable(Number(DAEMON_CONFIG.rpcport))) {
+    while (!await isPortAvailable(Number(DAEMON_CONFIG_DEFAULT.rpcport))) {
       await wait(250)
       timeLeft -= 250
       if (timeLeft <= 0) break
@@ -57,12 +57,14 @@ export default async function(): Promise<void> {
 
   if (process.platform === 'win32') {
     // Last resort force kill
-    await to(exec(`FOR /F "tokens=4 delims= " %%P IN ('netstat -a -n -o ^| findstr :${DAEMON_CONFIG.rpcport}') DO TaskKill.exe /PID %%P`))
+    await to(exec(
+      `FOR /F "tokens=4 delims= " %%P IN ('netstat -a -n -o ^| findstr :${DAEMON_CONFIG_DEFAULT.rpcport}') DO TaskKill.exe /PID %%P`
+    ))
 
     return
   }
 
-  const [err, stdout] = await to(exec(`lsof | grep :${DAEMON_CONFIG.rpcport}`))
+  const [err, stdout] = await to(exec(`lsof | grep :${DAEMON_CONFIG_DEFAULT.rpcport}`))
   if (err === null && stdout !== undefined) {
     const results1 = toArrayOfLines(stdout)
     // If we find at least one used RPC port, we can try to send a "stop" command
@@ -77,7 +79,7 @@ export default async function(): Promise<void> {
     }
   }
 
-  if (await isPortAvailable(Number(DAEMON_CONFIG.rpcport))) return
+  if (await isPortAvailable(Number(DAEMON_CONFIG_DEFAULT.rpcport))) return
 
   // Last resort force kill
   // TODO Is it a possible case after a tree-kill ?

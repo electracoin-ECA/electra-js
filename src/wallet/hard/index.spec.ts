@@ -12,7 +12,7 @@ import * as ProgressBar from 'progress'
 import * as rimraf from 'rimraf'
 
 import WalletHard from '.'
-import { DAEMON_USER_DIR_PATH } from '../../constants'
+import { BINARIES_PATH, DAEMON_CONFIG_DEFAULT, DAEMON_USER_DIR_PATH } from '../../constants'
 import assertCatch from '../../helpers/assertCatch'
 import assertThen from '../../helpers/assertThen'
 import closeElectraDaemons from '../../helpers/closeElectraDaemons'
@@ -146,7 +146,8 @@ describe.skip('Wallet (hard)', function() {
   })
 
   describe(`WHEN instantiating a new wallet WITH an RPC Server`, function() {
-    it(`new Wallet() SHOULD NOT throw any error`, () => assert.doesNotThrow(() => wallet = new WalletHard()))
+    it(`new Wallet() SHOULD NOT throw any error`, () => assert.doesNotThrow(() =>
+      wallet = new WalletHard(BINARIES_PATH, DAEMON_CONFIG_DEFAULT)))
   })
 
   describe(`WHEN starting the same wallet deamon`, function() {
@@ -166,7 +167,7 @@ describe.skip('Wallet (hard)', function() {
   })
 })
 
-describe('Wallet (hard)', function() {
+describe.only('Wallet (hard)', function() {
   let wallet: WalletHard
 
   this.timeout(30000)
@@ -194,7 +195,8 @@ describe('Wallet (hard)', function() {
   })
 
   describe(`WHEN instantiating a new wallet WITH an RPC Server`, function() {
-    it(`new Wallet() SHOULD NOT throw any error`, () => assert.doesNotThrow(() => wallet = new WalletHard()))
+    it(`new Wallet() SHOULD NOT throw any error`, () => assert.doesNotThrow(() =>
+      wallet = new WalletHard(BINARIES_PATH, DAEMON_CONFIG_DEFAULT)))
   })
 
   describe(`AFTER instantiating this new wallet`, function() {
