@@ -5,11 +5,15 @@ import * as assert from 'assert'
 import chalk from 'chalk'
 import * as crypto from 'crypto'
 import * as dotenv from 'dotenv'
+import * as extractZip from 'extract-zip'
 import * as path from 'path'
+import * as rimraf from 'rimraf'
 import * as typescriptJsonSchema from 'typescript-json-schema'
 
 import Rpc from '.'
-import { BINARIES_PATH, DAEMON_CONFIG_DEFAULT, DAEMON_URI } from '../../constants'
+import { BINARIES_PATH, DAEMON_CONFIG_DEFAULT, DAEMON_URI, DAEMON_USER_DIR_PATH } from '../../constants'
+import closeElectraDaemons from '../../helpers/closeElectraDaemons'
+import wait from '../../helpers/wait'
 import WalletHard from '../../wallet/hard'
 
 describe('Rpc', function() {
@@ -26,12 +30,32 @@ describe('Rpc', function() {
   // We skip the wallet tests in Travis CI for now
   // TODO Integrate an Electra core build in Travis CI
   before(async function() {
-    console.log(chalk.green('    ♦ Parsing types...'))
-    const program = typescriptJsonSchema.getProgramFromFiles([path.resolve(__dirname, 'types.ts')])
-    RpcMethodSchema = typescriptJsonSchema.generateSchema(program, 'RpcMethods').properties
+    // Close potential already running daemons
+    console.log(chalk.green('    ♦ Closing Electra daemons...'))
+    await closeElectraDaemons()
+
+    // Remove the daemon user directory to simulate a brand new installation
+    console.log(chalk.green('    ♦ Removing Electra daemon user directory...'))
+    rimraf.sync(DAEMON_USER_DIR_PATH)
+
+    await wait(1000)
+
+    console.log(chalk.green('    ♦ Copying stored blockchain data...'))
+    await new Promise(resolve => {
+      // Copy the blockchain data
+      extractZip(
+        path.resolve(process.cwd(), `test/data/Electra-${process.platform}.zip`),
+        { dir: path.resolve(DAEMON_USER_DIR_PATH, '..') },
+        resolve
+      )
+    })
 
     console.log(chalk.green('    ♦ Starting Electra daemon...'))
     await wallet.startDaemon()
+
+    console.log(chalk.green('    ♦ Parsing types...'))
+    const program = typescriptJsonSchema.getProgramFromFiles([path.resolve(__dirname, 'types.ts')])
+    RpcMethodSchema = typescriptJsonSchema.generateSchema(program, 'RpcMethods').properties
   })
 
   describe('#check()', function() {
@@ -86,6 +110,8 @@ describe('Rpc', function() {
 
   describe('#listAddressGroupings()', function() {
     it(`SHOULD return the expected schema`, async function() {
+      // Dirty fix for a strange typescript-json-schema behavior adding a { minItems: 3 } from nowhere.
+      delete RpcMethodSchema.listaddressgroupings.items.items.minItems
       assert.strictEqual(ajv.validate(RpcMethodSchema.listaddressgroupings, await rpc.listAddressGroupings()), true)
     })
   })
