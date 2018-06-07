@@ -266,7 +266,7 @@ describe('Wallet (hard)', function() {
   })
 
   describe(`WHEN generating the same wallet WITH <mnemonic>, <mnemonicExtension>, <chainsCount>`, function() {
-    this.timeout(180000)
+    this.timeout(360000)
 
     it(`#generate() SHOULD NOT throw any error`, async () =>
       await assertThen(() => wallet.generate(HD_PASSPHRASE_TEST, HD_MNEMONIC_TEST, HD_MNEMONIC_EXTENSION_TEST, 2, 2, 2)))
