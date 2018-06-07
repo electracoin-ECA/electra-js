@@ -92,9 +92,7 @@ export interface RpcMethods {
     errors: string
   }
   getmininginfo: any
-  getnewaddress: OrNull<{
-    account: string
-  }>
+  getnewaddress: string
   getnewpubkey: any
   getpeerinfo: Array<{
     addr: string
