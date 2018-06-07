@@ -167,7 +167,7 @@ describe.skip('Wallet (hard)', function() {
   })
 })
 
-describe.only('Wallet (hard)', function() {
+describe('Wallet (hard)', function() {
   let wallet: WalletHard
 
   this.timeout(30000)
