@@ -1,160 +1,104 @@
 // tslint:disable
 
+import * as Ajv from 'ajv'
 import * as assert from 'assert'
+import chalk from 'chalk'
 import * as crypto from 'crypto'
 import * as dotenv from 'dotenv'
+import * as path from 'path'
+import * as typescriptJsonSchema from 'typescript-json-schema'
 
 import Rpc from '.'
+import { BINARIES_PATH, DAEMON_CONFIG_DEFAULT, DAEMON_URI } from '../../constants'
+import WalletHard from '../../wallet/hard'
 
-// Loads ".env" variables into process.env properties
-dotenv.config()
+describe('Rpc', function() {
+  this.timeout(10_000)
 
-const {
-  RPC_SERVER_PASSWORD_TEST,
-  RPC_SERVER_URI_TEST,
-  RPC_SERVER_USERNAME_TEST,
-} = process.env
-
-if (([
-  RPC_SERVER_PASSWORD_TEST,
-  RPC_SERVER_URI_TEST,
-  RPC_SERVER_USERNAME_TEST,
-] as any).includes(undefined)) {
-  console.error('Error: You forgot to fill value(s) in your ".env" test wallet data. Please check ".env.sample".')
-  process.exit(1)
-}
-
-describe.skip('Rpc', function() {
-  let testAccount: string
-  let testAddress: string
-  let rpc: Rpc
+  const ajv = new Ajv()
+  const rpc = new Rpc(DAEMON_URI, {
+    password: DAEMON_CONFIG_DEFAULT.rpcpassword,
+    username: DAEMON_CONFIG_DEFAULT.rpcuser,
+  })
+  let RpcMethodSchema
+  const wallet = new WalletHard(BINARIES_PATH, DAEMON_CONFIG_DEFAULT)
 
   // We skip the wallet tests in Travis CI for now
   // TODO Integrate an Electra core build in Travis CI
   before(async function() {
-    if (process.env.NODE_ENV === 'travis') this.skip()
+    console.log(chalk.green('    ♦ Parsing types...'))
+    const program = typescriptJsonSchema.getProgramFromFiles([path.resolve(__dirname, 'types.ts')])
+    RpcMethodSchema = typescriptJsonSchema.generateSchema(program, 'RpcMethods').properties
 
-    rpc = new Rpc(RPC_SERVER_URI_TEST, {
-      username: RPC_SERVER_USERNAME_TEST,
-      password: RPC_SERVER_PASSWORD_TEST
-    })
-    const address = (await rpc.listReceivedByAddress())
-      .filter(address => address.amount > 0)
-      [0]
-    testAccount = address.account
-    testAddress = address.address
-  })
-  beforeEach(function() {
-    if (process.env.NODE_ENV === 'travis') this.skip()
+    console.log(chalk.green('    ♦ Starting Electra daemon...'))
+    await wallet.startDaemon()
   })
 
-  describe.skip('#check()', function() {
-    it(`SHOULD succesfully check the wallet`, async function() {
-      const res = await rpc.check()
-      assert.strictEqual(res['wallet check passed'], true)
+  describe('#check()', function() {
+    it(`SHOULD return the expected schema`, async function() {
+      assert.strictEqual(ajv.validate(RpcMethodSchema.checkwallet, await rpc.check()), true)
     })
   })
 
-  describe('#getAccount()', function() {
+  /*describe('#getAccount()', function() {
     it(`SHOULD return "${testAccount}" with my "${testAccount}" account address`, async function() {
       const account = await rpc.getAccount(testAddress)
       assert.strictEqual(account, testAccount)
     })
-  })
+  })*/
 
   describe('#getBalance()', function() {
-    it(`SHOULD return a number`, async function() {
-      const balance = await rpc.getBalance()
-      assert.strictEqual(typeof balance, 'number')
+    it(`SHOULD return the expected schema`, async function() {
+      assert.strictEqual(ajv.validate(RpcMethodSchema.getbalance, await rpc.getBalance()), true)
     })
   })
 
   describe('#getConnectionCount()', function() {
-    it(`SHOULD return a number`, async function() {
-      const balance = await rpc.getConnectionCount()
-      assert.strictEqual(typeof balance, 'number')
+    it(`SHOULD return the expected schema`, async function() {
+      assert.strictEqual(ajv.validate(RpcMethodSchema.getconnectioncount, await rpc.getConnectionCount()), true)
     })
   })
 
   describe('#getDifficulty()', function() {
-    it(`SHOULD return the expected types`, async function() {
-      const difficulty = await rpc.getDifficulty()
-      assert.strictEqual(typeof difficulty['proof-of-work'], 'number')
-      assert.strictEqual(typeof difficulty['proof-of-stake'], 'number')
-      assert.strictEqual(typeof difficulty['search-interval'], 'number')
+    it(`SHOULD return the expected schema`, async function() {
+      assert.strictEqual(ajv.validate(RpcMethodSchema.getdifficulty, await rpc.getDifficulty()), true)
     })
   })
 
   describe('#getInfo()', function() {
-    it(`SHOULD return the expected types`, async function() {
-      const info = await rpc.getInfo()
-      assert.strictEqual(typeof info.version, 'string')
-      assert.strictEqual(typeof info.protocolversion, 'number')
-      assert.strictEqual(typeof info.walletversion, 'number')
-      assert.strictEqual(typeof info.balance, 'number')
-      assert.strictEqual(typeof info.newmint, 'number')
-      assert.strictEqual(typeof info.stake, 'number')
-      assert.strictEqual(typeof info.blocks, 'number')
-      assert.strictEqual(typeof info.timeoffset, 'number')
-      assert.strictEqual(typeof info.moneysupply, 'number')
-      assert.strictEqual(typeof info.connections, 'number')
-      assert.strictEqual(typeof info.proxy, 'string')
-      assert.strictEqual(typeof info.ip, 'string')
-      assert.strictEqual(typeof info.difficulty['proof-of-work'], 'number')
-      assert.strictEqual(typeof info.difficulty['proof-of-stake'], 'number')
-      assert.strictEqual(typeof info.testnet, 'boolean')
-      assert.strictEqual(typeof info.keypoololdest, 'number')
-      assert.strictEqual(typeof info.keypoolsize, 'number')
-      assert.strictEqual(typeof info.paytxfee, 'number')
-      assert.strictEqual(typeof info.mininput, 'number')
-      assert.strictEqual(typeof info.unlocked_until, 'number')
-      assert.strictEqual(typeof info.errors, 'string')
+    it(`SHOULD return the expected schema`, async function() {
+      assert.strictEqual(ajv.validate(RpcMethodSchema.getinfo, await rpc.getInfo()), true)
     })
   })
 
   describe('#getNewAddress()', function() {
-    it.skip(`SHOULD return a string`, async function() {
-      const newAddress = await rpc.getNewAddress()
-      assert.strictEqual(typeof newAddress, 'string')
+    it(`SHOULD return the expected schema`, async function() {
+      assert.strictEqual(ajv.validate(RpcMethodSchema.getnewaddress, await rpc.getNewAddress()), true)
     })
 
     const account = crypto.randomBytes(20).toString('hex')
-    it.skip(`SHOULD create an address labeled "${account}"`, async function() {
+    it(`SHOULD create an address labeled "${account}"`, async function() {
       await rpc.getNewAddress(account)
       const res = await rpc.listReceivedByAddress(1, true)
       assert.notStrictEqual(res.filter(address => address.account === account).length, 0)
     })
   })
 
-  describe.skip('#listAddressGroupings()', function() {
-    it(`SHOULD return the expected types`, async function() {
-      const res = await rpc.listAddressGroupings()
-      assert.strictEqual(typeof res[0][0][0], 'string')
-      assert.strictEqual(typeof res[0][0][1], 'number')
-      assert.strictEqual(typeof res[0][0][2], 'string')
+  describe('#listAddressGroupings()', function() {
+    it(`SHOULD return the expected schema`, async function() {
+      assert.strictEqual(ajv.validate(RpcMethodSchema.listaddressgroupings, await rpc.listAddressGroupings()), true)
     })
   })
 
   describe('#listReceivedByAddress()', function() {
-    it(`SHOULD return the expected types`, async function() {
-      const res = await rpc.listReceivedByAddress()
-      assert.strictEqual(typeof res[0].address, 'string')
-      assert.strictEqual(typeof res[0].account, 'string')
-      assert.strictEqual(typeof res[0].amount, 'number')
-      assert.strictEqual(typeof res[0].confirmations, 'number')
+    it(`SHOULD return the expected schema`, async function() {
+      assert.strictEqual(ajv.validate(RpcMethodSchema.listreceivedbyaddress, await rpc.listReceivedByAddress()), true)
     })
   })
 
-  describe('#listTransactions()', function() {
-    it(`SHOULD return the expected types`, async function() {
-      const transactions = await rpc.listTransactions()
-      assert.strictEqual(typeof transactions[0].account, 'string')
-      assert.strictEqual(typeof transactions[0].address, 'string')
-      assert.strictEqual(typeof transactions[0].category, 'string')
-      assert.strictEqual(typeof transactions[0].confirmations, 'number')
-      assert.strictEqual(typeof transactions[0].txid, 'string')
-      assert.strictEqual(typeof transactions[0].time, 'number')
-      assert.strictEqual(typeof transactions[0].timereceived, 'number')
+  /*describe('#listTransactions()', function() {
+    it(`SHOULD return the expected schema`, async function() {
+      assert.strictEqual(ajv.validate(RpcMethodSchema.listtransactions, await rpc.listTransactions()), true)
     })
 
     it(`SHOULD all be related to "${testAccount}" account`, async function() {
@@ -164,17 +108,11 @@ describe.skip('Rpc', function() {
         transactions.filter(transaction => transaction.account === testAccount).length
       )
     })
-  })
+  })*/
 
-  describe.skip('#listUnspent()', function() {
-    it(`SHOULD return the expected types`, async function() {
-      const transactions = await rpc.listUnspent()
-      assert.strictEqual(typeof transactions[0].txid, 'string')
-      assert.strictEqual(typeof transactions[0].vout, 'number')
-      assert.strictEqual(typeof transactions[0].address, 'string')
-      assert.strictEqual(typeof transactions[0].scriptPubKey, 'string')
-      assert.strictEqual(typeof transactions[0].amount, 'number')
-      assert.strictEqual(typeof transactions[0].confirmations, 'number')
+  describe('#listUnspent()', function() {
+    it(`SHOULD return the expected schema`, async function() {
+      assert.strictEqual(ajv.validate(RpcMethodSchema.listunspent, await rpc.listUnspent()), true)
     })
   })
 
@@ -188,7 +126,7 @@ describe.skip('Rpc', function() {
     })
   })
 
-  describe('#validateAddress()', function() {
+  /*describe('#validateAddress()', function() {
     it(`SHOULD return the expected result with my "${testAccount}" account address`, async function() {
       const info = await rpc.validateAddress(testAddress)
       assert.strictEqual(info.isvalid, true)
@@ -205,7 +143,7 @@ describe.skip('Rpc', function() {
       const info = await rpc.validateAddress(fakeAddress)
       assert.strictEqual(info.isvalid, false)
     })
-  })
+  })*/
 
   describe('#validatePublicKey()', function() {
     it(`SHOULD return the expected result with a valid public key`, async function() {
@@ -224,5 +162,10 @@ describe.skip('Rpc', function() {
       const info = await rpc.validatePublicKey('1234567890abcdef')
       assert.strictEqual(info.isvalid, false)
     })
+  })
+
+  after(async function() {
+    console.log(chalk.green('    ♦ Closing Electra daemon...'))
+    await wallet.stopDaemon()
   })
 })
