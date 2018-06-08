@@ -17,7 +17,7 @@ import wait from '../../helpers/wait'
 import WalletHard from '../../wallet/hard'
 
 describe('Rpc', function() {
-  this.timeout(10_000)
+  this.timeout(30_000)
 
   const ajv = new Ajv()
   const rpc = new Rpc(DAEMON_URI, {
