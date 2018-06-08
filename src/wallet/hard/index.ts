@@ -541,6 +541,13 @@ export default class WalletHard {
   }
 
   /**
+   * Get raw list of addresses when the #state is not "READY".
+   */
+  public getRawAddresses(): string[] {
+    this.rpc.listAddressGroupings()
+  }
+
+  /**
    * Create a new Comprehensive Accounts address.
    */
   public async createAddress(passphrase: string, category: WalletAddressCategory): Promise<void> {
@@ -1365,7 +1372,7 @@ export default class WalletHard {
   /**
    * Get the daemon addresses.
    */
-  private async getDaemonAddresses(): Promise<string[]> {
+  public async getDaemonAddresses(): Promise<string[]> {
     const daemonAddresses: string[] = []
     const [err, entries] = await to(this.rpc.listAddressGroupings())
     if (err !== null || entries === undefined) throw err
