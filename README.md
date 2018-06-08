@@ -9,6 +9,7 @@
 [![David](https://img.shields.io/david/dev/Electra-project/electra-js.svg?style=flat-square)](https://david-dm.org/InspiredBeings/electra-js)
 
 [![NSP Status](https://nodesecurity.io/orgs/electra-project/projects/70c6803d-d5ff-4cf0-a54b-d8af3ea7b33d/badge)](https://nodesecurity.io/orgs/electra-project/projects/70c6803d-d5ff-4cf0-a54b-d8af3ea7b33d)
+[![Known Vulnerabilities](https://snyk.io/test/github/Electra-project/electra-js/badge.svg)](https://snyk.io/test/github/Electra-project/electra-js)
 
 ## Getting Started
 
