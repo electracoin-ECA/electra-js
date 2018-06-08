@@ -22,6 +22,19 @@ const FILES = {
 }
 
 async function run() {
+  const axiosInstance = axios.create(process.env.TRAVIS
+    ? {
+      auth: {
+        username: process.env.GH_USERNAME,
+        password: process.env.GH_TOKEN,
+      },
+      headers: {
+        'User-Agent': 'Travis/1.0',
+      }
+    }
+    : {}
+  )
+
   const names = process.platform === 'win32'
     ? [
       `electrad-${process.platform}-ia32.exe`,
@@ -34,8 +47,8 @@ async function run() {
     const binary = FILES[name]
     const filePath = path.resolve(__dirname, '../bin', name)
 
-    const assetsApiUrl = (await axios.get('https://api.github.com/repos/Electra-project/Electra/releases')).data[0].assets_url
-    const asset = (await axios.get(assetsApiUrl)).data.filter(({ name: _name }) => _name === name)[0]
+    const assetsApiUrl = (await axiosInstance.get('https://api.github.com/repos/Electra-project/Electra/releases')).data[0].assets_url
+    const asset = (await axiosInstance.get(assetsApiUrl)).data.filter(({ name: _name }) => _name === name)[0]
 
     log(`ElectraJs: Checking current ${name} binary.`)
     if (fs.existsSync(filePath) && await sha256sum(filePath) === binary.sha256sum) return
