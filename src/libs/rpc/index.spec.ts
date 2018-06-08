@@ -44,7 +44,7 @@ describe('Rpc', function() {
     await new Promise(resolve => {
       // Copy the blockchain data
       extractZip(
-        path.resolve(process.cwd(), `test/data/Electra-${process.platform}.zip`),
+        path.resolve(process.cwd(), `test/data/electra-js-test-data-${process.platform}-${process.arch}.zip`),
         { dir: path.resolve(DAEMON_USER_DIR_PATH, '..') },
         resolve
       )
