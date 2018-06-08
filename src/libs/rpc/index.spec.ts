@@ -25,7 +25,7 @@ describe('Rpc', function() {
     username: DAEMON_CONFIG_DEFAULT.rpcuser,
   })
   let RpcMethodSchema
-  const wallet = new WalletHard(BINARIES_PATH, DAEMON_CONFIG_DEFAULT)
+  let wallet
 
   // We skip the wallet tests in Travis CI for now
   // TODO Integrate an Electra core build in Travis CI
@@ -51,6 +51,7 @@ describe('Rpc', function() {
     })
 
     console.log(chalk.green('    ♦ Starting Electra daemon...'))
+    wallet = new WalletHard(BINARIES_PATH, DAEMON_CONFIG_DEFAULT)
     await wallet.startDaemon()
 
     console.log(chalk.green('    ♦ Parsing types...'))
