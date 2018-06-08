@@ -1300,6 +1300,7 @@ export default class WalletHard {
       transactions.push(unspentTransactionsSorted[index])
       if (balance >= amount) break
     }
+    balance = fixAmount(balance)
 
     if (balance < amount) throw new EJError(EJErrorCode.WALLET_TRANSACTION_AMOUNT_HIGHER_THAN_AVAILABLE)
 
