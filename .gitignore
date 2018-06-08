@@ -6,4 +6,5 @@
 
 .DS_Store
 .env
-/bin/electrad-windows.exe
+
+/vim.exe.stackdump
