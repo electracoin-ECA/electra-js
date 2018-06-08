@@ -105,7 +105,7 @@ exports.SETTINGS_DEFAULT = {
  * ElectraJs version.
  * DO NOT CHANGE THIS LINE SINCE THE VERSION IS AUTOMATICALLY INJECTED !
  */
-const VERSION = '0.17.1';
+const VERSION = '0.17.2';
 /**
  * Main ElectraJS class.
  */
@@ -4721,6 +4721,7 @@ class WalletHard {
                 if (balance >= amount)
                     break;
             }
+            balance = fixAmount_1.default(balance);
             if (balance < amount)
                 throw new error_1.default(error_1.EJErrorCode.WALLET_TRANSACTION_AMOUNT_HIGHER_THAN_AVAILABLE);
             return this.normalizeUnspentTransactions(category, transactions);
