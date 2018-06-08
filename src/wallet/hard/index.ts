@@ -10,6 +10,7 @@ import {
   ECA_TRANSACTION_FEE,
 } from '../../constants'
 import closeElectraDaemons from '../../helpers/closeElectraDaemons'
+import fixAmount from '../../helpers/fixAmount'
 import getMaxItemFromList from '../../helpers/getMaxItemFromList'
 import injectElectraConfig from '../../helpers/injectElectraConfig'
 import isPortAvailable from '../../helpers/isPortAvailable'
@@ -911,8 +912,8 @@ export default class WalletHard {
       ])
 
       return {
-        confirmed: confirmedBalance,
-        unconfirmed: fullBalance - confirmedBalance,
+        confirmed: fixAmount(confirmedBalance),
+        unconfirmed: fixAmount(fullBalance) - fixAmount(confirmedBalance),
       }
     }
     catch (err) {
@@ -942,10 +943,10 @@ export default class WalletHard {
 
     const confirmed: number = confirmedTransactions
       // tslint:disable-next-line:no-parameter-reassignment variable-name
-      .reduce((total: number, { amount: _amount }: RpcMethodResult<'listunspent'>[0]) => total += _amount, 0)
+      .reduce((total: number, { amount: _amount }: RpcMethodResult<'listunspent'>[0]) => total += fixAmount(_amount), 0)
     const confirmedAndUnconfirmed: number = allTransactions
       // tslint:disable-next-line:no-parameter-reassignment variable-name
-      .reduce((total: number, { amount: _amount }: RpcMethodResult<'listunspent'>[0]) => total += _amount, 0)
+      .reduce((total: number, { amount: _amount }: RpcMethodResult<'listunspent'>[0]) => total += fixAmount(_amount), 0)
 
     return {
       confirmed,
@@ -967,10 +968,10 @@ export default class WalletHard {
 
     const confirmed: number = confirmedTransactions
       // tslint:disable-next-line:no-parameter-reassignment variable-name
-      .reduce((total: number, { amount: _amount }: RpcMethodResult<'listunspent'>[0]) => total += _amount, 0)
+      .reduce((total: number, { amount: _amount }: RpcMethodResult<'listunspent'>[0]) => total += fixAmount(_amount), 0)
     const confirmedAndUnconfirmed: number = allTransactions
       // tslint:disable-next-line:no-parameter-reassignment variable-name
-      .reduce((total: number, { amount: _amount }: RpcMethodResult<'listunspent'>[0]) => total += _amount, 0)
+      .reduce((total: number, { amount: _amount }: RpcMethodResult<'listunspent'>[0]) => total += fixAmount(_amount), 0)
 
     return {
       confirmed,
@@ -1053,14 +1054,14 @@ export default class WalletHard {
 
       if (transactionRawFound.category === 'generate') {
         transactionList.push({
-          amount: transactionRawFound.amount,
+          amount: fixAmount(transactionRawFound.amount),
           confimationsCount: transactionRawFound.confirmations,
           date: transactionRawFound.time,
           from: [],
           hash: transactionsIdList[index],
           to: [{
             address: transactionRawFound.address,
-            amount: transactionRawFound.amount,
+            amount: fixAmount(transactionRawFound.amount),
             category: this.getAddressCategory(transactionRawFound.address)
           }],
           type: WalletTransactionType.GENERATED,
@@ -1096,7 +1097,7 @@ export default class WalletHard {
             const fromIndex: number = R.findIndex<WalletTransactionEndpoint>(
               R.propEq('address', fromAddress)
             )(fromEndpoints)
-            fromEndpoints[fromIndex].amount += value
+            fromEndpoints[fromIndex].amount += fixAmount(value)
           })
       }
 
@@ -1107,11 +1108,11 @@ export default class WalletHard {
         .forEach(({ address, amount }: RpcMethodResult<'gettransaction'>['details'][0]) => {
           toEndpoints.push({
             address,
-            amount,
+            amount: fixAmount(amount),
             category: this.getAddressCategory(address),
           })
 
-          amountTotal += amount
+          amountTotal += fixAmount(amount)
         })
 
       transactionList.push({
@@ -1183,6 +1184,9 @@ export default class WalletHard {
    */
   // tslint:disable-next-line:cyclomatic-complexity
   public async send(amount: number, category: WalletAddressCategory, toAddressHash: string): Promise<void> {
+    // tslint:disable-next-line:no-parameter-reassignment
+    amount = fixAmount(amount)
+
     if (this.STATE !== WalletState.READY) throw new EJError(EJErrorCode.WALLET_STATE_NOT_READY)
     if (this.LOCK_STATE !== WalletLockState.UNLOCKED) throw new EJError(EJErrorCode.WALLET_LOCK_STATE_NOT_UNLOCKED)
     if (this.DAEMON_STATE !== WalletDaemonState.STARTED) throw new EJError(EJErrorCode.WALLET_DAEMON_STATE_NOT_STARTED)
@@ -1197,7 +1201,7 @@ export default class WalletHard {
 
     const transactionsAmountTotal: number = inputTransactionsRaw
       // tslint:disable-next-line:no-parameter-reassignment variable-name
-      .reduce((total: number, { amount: _amount }: WalletUnspentTransaction) => total += _amount, 0)
+      .reduce((total: number, { amount: _amount }: WalletUnspentTransaction) => total += fixAmount(_amount), 0)
 
     const inputTransactions: Array<{ txid: string, vout: number }> = inputTransactionsRaw
       .map(({ txid, vout }: WalletUnspentTransaction) => ({ txid, vout }))
@@ -1292,7 +1296,7 @@ export default class WalletHard {
     let index: number = unspentTransactionsSorted.length
     const transactions: RpcMethodResult<'listunspent'> = []
     while (--index >= 0) {
-      balance += unspentTransactionsSorted[index].amount
+      balance += fixAmount(unspentTransactionsSorted[index].amount)
       transactions.push(unspentTransactionsSorted[index])
       if (balance >= amount) break
     }
@@ -1312,7 +1316,7 @@ export default class WalletHard {
     return transactionsRaw.map((transactionRaw: RpcMethodResult<'listunspent'>[0]) => {
       const transaction: Pick<WalletUnspentTransaction, 'address' | 'amount' | 'txid' | 'vout'> = {
         address: transactionRaw.address,
-        amount: transactionRaw.amount,
+        amount: fixAmount(transactionRaw.amount),
         txid: transactionRaw.txid,
         vout: transactionRaw.vout,
       }
@@ -1399,6 +1403,6 @@ export default class WalletHard {
       }
     }
 
-    return total
+    return fixAmount(total)
   }
 }
