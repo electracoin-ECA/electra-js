@@ -541,13 +541,6 @@ export default class WalletHard {
   }
 
   /**
-   * Get raw list of addresses when the #state is not "READY".
-   */
-  public getRawAddresses(): string[] {
-    this.rpc.listAddressGroupings()
-  }
-
-  /**
    * Create a new Comprehensive Accounts address.
    */
   public async createAddress(passphrase: string, category: WalletAddressCategory): Promise<void> {
@@ -964,7 +957,6 @@ export default class WalletHard {
    * Get the <address> balance, confirmed and unconfirmed.
    */
   public async getAddressBalance(addressHash: string): Promise<WalletBalance> {
-    if (this.STATE !== WalletState.READY) throw new EJError(EJErrorCode.WALLET_STATE_NOT_READY)
     if (this.DAEMON_STATE !== WalletDaemonState.STARTED) throw new EJError(EJErrorCode.WALLET_DAEMON_STATE_NOT_STARTED)
 
     const [err1, confirmedTransactions] = await to(this.rpc.listUnspent(1, LIST_TRANSACTIONS_LENGTH, [addressHash]))
