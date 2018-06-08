@@ -22,23 +22,32 @@ const FILES = {
 }
 
 async function run() {
-  const name = `electrad-${process.platform}-${process.arch}${process.platform === 'win32' ? '.exe' : ''}`
-  const binary = FILES[name]
-  const filePath = path.resolve(__dirname, '../bin', name)
+  const names = process.platform === 'win32'
+    ? [
+      `electrad-${process.platform}-ia32.exe`,
+      `electrad-${process.platform}-x64.exe`,
+    ]
+    : [`electrad-${process.platform}-${process.arch}`]
 
-  const assetsApiUrl = (await axios.get('https://api.github.com/repos/Electra-project/Electra/releases')).data[0].assets_url
-  const asset = (await axios.get(assetsApiUrl)).data.filter(({ name: _name }) => _name === name)[0]
+  for (let i = 0; i < names.length; i++) {
+    const name = names[i]
+    const binary = FILES[name]
+    const filePath = path.resolve(__dirname, '../bin', name)
 
-  log(`ElectraJs: Checking current ${name} binary.`)
-  if (fs.existsSync(filePath) && await sha256sum(filePath) === binary.sha256sum) return
+    const assetsApiUrl = (await axios.get('https://api.github.com/repos/Electra-project/Electra/releases')).data[0].assets_url
+    const asset = (await axios.get(assetsApiUrl)).data.filter(({ name: _name }) => _name === name)[0]
 
-  log(`ElectraJs: Downloading ${name} binary.`)
-  await download(asset.browser_download_url, filePath, asset.size)
+    log(`ElectraJs: Checking current ${name} binary.`)
+    if (fs.existsSync(filePath) && await sha256sum(filePath) === binary.sha256sum) return
 
-  log(`ElectraJs: Checking downloaded ${name} binary.`)
-  if (await sha256sum(filePath) !== binary.sha256sum) {
-    log.err(`tasks/downloadBinaries: BE CAREFUL ! The hash of %s didn't match.`, filePath)
-    process.exit(1)
+    log(`ElectraJs: Downloading ${name} binary.`)
+    await download(asset.browser_download_url, filePath, asset.size)
+
+    log(`ElectraJs: Checking downloaded ${name} binary.`)
+    if (await sha256sum(filePath) !== binary.sha256sum) {
+      log.err(`tasks/downloadBinaries: BE CAREFUL ! The hash of %s didn't match.`, filePath)
+      process.exit(1)
+    }
   }
 }
 
