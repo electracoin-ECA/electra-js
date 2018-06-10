@@ -223,7 +223,6 @@ export interface WalletHard {
   isNew: boolean;
   lockState: WalletLockState;
   masterNodeAddress: Address;
-  mnemonic: string;
   purseAddresses: WalletAddress[];
   randomAddresses: WalletAddress[];
   savingsAddresses: WalletAddress[];
