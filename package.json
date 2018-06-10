@@ -23,6 +23,7 @@
     "validate:tsc": "tsc -p tsconfig.json --noEmit --pretty",
     "preversion": "npm test",
     "version": "node ./tasks/injectVersion && git add .",
+    "postversion": "git push origin head && git push --tags && npm publish",
     "watch": "concurrently \"npm run watch:build\" \"npm run watch:validate\"",
     "watch:build": "webpack --config webpack.dev.js --watch",
     "watch:validate": "npm run validate:tsc -- -w"
