@@ -289,7 +289,6 @@ export default class WalletHard {
     if (this.STATE !== WalletState.EMPTY) {
       throw new Error(`ElectraJs.Wallet:
         The #start() method can only be called on an empty wallet (#state = "EMPTY").
-        Maybe you want to #reset() it first ?
       `)
     }
 
@@ -540,6 +539,13 @@ export default class WalletHard {
     }))
 
     this.STATE = WalletState.READY
+
+    /*
+      --------------------------------------------------
+      STEP 5: RESET DAEMON DATA
+    */
+
+    await this.reset()
   }
 
   /**
@@ -807,6 +813,13 @@ export default class WalletHard {
     catch (err) { throw err }
 
     this.STATE = WalletState.READY
+
+    /*
+      --------------------------------------------------
+      STEP 4: RESET DAEMON DATA
+    */
+
+    await this.reset()
   }
 
   /**
