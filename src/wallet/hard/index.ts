@@ -141,25 +141,6 @@ export default class WalletHard {
     return this.MASTER_NODE_ADDRESS as Address
   }
 
-  /** Mnenonic. */
-  private MNEMONIC: string | undefined
-  /**
-   * Mnenonic.
-   *
-   * @note
-   * ONLY available when generating a brand new Wallet, which happens after calling #generate()
-   * with an undefined <mnemonic> parameter on a Wallet instance with an "EMPTY" #state.
-   */
-  public get mnemonic(): string {
-    if (this.STATE !== WalletState.READY) throw new EJError(EJErrorCode.WALLET_STATE_NOT_READY)
-
-    if (this.MNEMONIC === undefined) {
-      throw new Error(`ElectraJs.Wallet: #mnemonic is only available after a brand new Wallet has been generated.`)
-    }
-
-    return this.MNEMONIC
-  }
-
   /** List of the wallet CA Purse addresses. */
   public get purseAddresses(): WalletAddress[] {
     if (this.STATE !== WalletState.READY) throw new EJError(EJErrorCode.WALLET_STATE_NOT_READY)
@@ -355,6 +336,8 @@ export default class WalletHard {
    * Generate an HD wallet from either the provided mnemonic seed, or a randomly generated one,
    * including ‒ at least ‒ the first derived address.
    *
+   * Return the mnemonic generated or provided.
+   *
    * @note In case the [mnemonicExtension] is specified, it MUST be encoded in UTF-8 using NFKD.
    *
    * @see https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki#wordlist
@@ -368,7 +351,7 @@ export default class WalletHard {
     purseAddressesCount: number = 1,
     checkingAddressesCount: number = 1,
     savingsAddressesCount: number = 1,
-  ): Promise<void> {
+  ): Promise<string> {
     if (this.STATE !== WalletState.EMPTY) throw new EJError(EJErrorCode.WALLET_STATE_NOT_EMPTY)
     if (this.LOCK_STATE !== WalletLockState.UNLOCKED) throw new EJError(EJErrorCode.WALLET_LOCK_STATE_NOT_UNLOCKED)
     if (this.DAEMON_STATE !== WalletDaemonState.STARTED) throw new EJError(EJErrorCode.WALLET_DAEMON_STATE_NOT_STARTED)
@@ -386,7 +369,6 @@ export default class WalletHard {
       try {
         // tslint:disable-next-line:no-parameter-reassignment
         mnemonic = Electra.getRandomMnemonic()
-        this.MNEMONIC = mnemonic
       }
       catch (err) { throw err }
     }
@@ -546,6 +528,8 @@ export default class WalletHard {
     */
 
     await this.reset()
+
+    return mnemonic
   }
 
   /**
