@@ -14,6 +14,7 @@ import fixAmount from '../../helpers/fixAmount'
 import getMaxItemFromList from '../../helpers/getMaxItemFromList'
 import injectElectraConfig from '../../helpers/injectElectraConfig'
 import isPortAvailable from '../../helpers/isPortAvailable'
+import resetElectraDaemonData from '../../helpers/resetElectraDaemonData'
 import tryCatch from '../../helpers/tryCatch'
 import wait from '../../helpers/wait'
 import Crypto from '../../libs/crypto'
@@ -877,19 +878,17 @@ export default class WalletHard {
   }
 
   /**
-   * Reset the current wallet properties and switch the #state to "EMPTY".
+   * Reset the daemon user data (but keep the wallet.dat), restart it and restore the #state to "READY".
    */
-  public reset(): void {
+  public async reset(): Promise<void> {
     if (this.STATE !== WalletState.READY) {
       throw new Error(`ElectraJs.Wallet: You can't #reset() a wallet that is not ready (#state = "READY").`)
     }
 
-    delete this.MASTER_NODE_ADDRESS
-    delete this.MNEMONIC
-
-    this.ADDRESSES = []
-    this.RANDOM_ADDRESSES = []
-    this.STATE = WalletState.EMPTY
+    if (this.DAEMON_STATE === WalletDaemonState.STARTED) await this.stopDaemon()
+    resetElectraDaemonData()
+    await this.startDaemon()
+    this.STATE = WalletState.READY
   }
 
   /**
