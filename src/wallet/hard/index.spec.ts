@@ -316,8 +316,6 @@ describe('Wallet (hard)', function() {
     it(`#send() SHOULD throw an error`, async () => await assertCatch(() => wallet.send(TEST_AMOUNT, WalletAddressCategory.CHECKING, HD_CHECKING_1_EXTERNAL_HASH_TEST)))
     it(`#unlock(, false) SHOULD not throw any error`, async () => await assertThen(() => wallet.unlock(HD_PASSPHRASE_TEST, false)))
     it(`#lockState SHOULD be "UNLOCKED"`, () => assert.strictEqual(wallet.lockState, 'UNLOCKED'))
-
-    it(`#generate() SHOULD throw an error`, async () => await assertCatch(() => wallet.generate(HD_PASSPHRASE_TEST)))
   })
 
   describe(`WHILE downloading the blockchain`, function() {
