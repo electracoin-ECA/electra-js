@@ -352,9 +352,12 @@ export default class WalletHard {
     checkingAddressesCount: number = 1,
     savingsAddressesCount: number = 1,
   ): Promise<string> {
-    if (this.STATE !== WalletState.EMPTY) throw new EJError(EJErrorCode.WALLET_STATE_NOT_EMPTY)
-    if (this.LOCK_STATE !== WalletLockState.UNLOCKED) throw new EJError(EJErrorCode.WALLET_LOCK_STATE_NOT_UNLOCKED)
     if (this.DAEMON_STATE !== WalletDaemonState.STARTED) throw new EJError(EJErrorCode.WALLET_DAEMON_STATE_NOT_STARTED)
+
+    if (this.LOCK_STATE !== WalletLockState.UNLOCKED) {
+      try { await this.unlock(passphrase, false) }
+      catch (err) { throw err }
+    }
 
     /*
       --------------------------------------------------
