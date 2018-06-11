@@ -319,7 +319,7 @@ describe('Wallet (hard)', function() {
   })
 
   describe(`WHILE downloading the blockchain`, function() {
-    this.timeout(3600000)
+    this.timeout(7200000)
 
     it(`#getInfo() SHOULD NOT throw any error`, async () => {
       let info
