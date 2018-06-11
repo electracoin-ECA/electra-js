@@ -105,7 +105,7 @@ exports.SETTINGS_DEFAULT = {
  * ElectraJs version.
  * DO NOT CHANGE THIS LINE SINCE THE VERSION IS AUTOMATICALLY INJECTED !
  */
-const VERSION = '0.18.0';
+const VERSION = '0.18.1';
 /**
  * Main ElectraJS class.
  */
@@ -3975,12 +3975,16 @@ class WalletHard {
      */
     generate(passphrase, mnemonic, mnemonicExtension, purseAddressesCount = 1, checkingAddressesCount = 1, savingsAddressesCount = 1) {
         return __awaiter(this, void 0, void 0, function* () {
-            if (this.STATE !== types_1.WalletState.EMPTY)
-                throw new error_1.default(error_1.EJErrorCode.WALLET_STATE_NOT_EMPTY);
-            if (this.LOCK_STATE !== types_1.WalletLockState.UNLOCKED)
-                throw new error_1.default(error_1.EJErrorCode.WALLET_LOCK_STATE_NOT_UNLOCKED);
             if (this.DAEMON_STATE !== types_1.WalletDaemonState.STARTED)
                 throw new error_1.default(error_1.EJErrorCode.WALLET_DAEMON_STATE_NOT_STARTED);
+            if (this.LOCK_STATE !== types_1.WalletLockState.UNLOCKED) {
+                try {
+                    yield this.unlock(passphrase, false);
+                }
+                catch (err) {
+                    throw err;
+                }
+            }
             /*
               --------------------------------------------------
               STEP 1: MNEMONIC
