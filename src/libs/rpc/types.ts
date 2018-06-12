@@ -261,7 +261,7 @@ export interface RpcMethods {
     ismine?: boolean
     iscompressed?: boolean
   }
-  verifymessage: any
+  verifymessage: boolean
   walletlock: void
   walletpassphrase: void
   walletpassphrasechange: any
