@@ -267,6 +267,13 @@ export default class Rpc {
   }
 
   /**
+   * Sign a message.
+   */
+  public async signMessage(address: string, message: string): Promise<RpcMethodResult<'signmessage'>> {
+    return this.query('signmessage', Array.prototype.slice.call(arguments))
+  }
+
+  /**
    * Sign a raw transaction.
    */
   public async signRawTransaction(unsignedTransactionHash: string): Promise<RpcMethodResult<'signrawtransaction'>> {
@@ -304,5 +311,16 @@ export default class Rpc {
    */
   public async validatePublicKey(publicKey: string): Promise<RpcMethodResult<'validatepubkey'>> {
     return this.query('validatepubkey', Array.prototype.slice.call(arguments))
+  }
+
+  /**
+   * Verify a signed a message.
+   */
+  public async verifyMessage(
+    address: string,
+    signature: string,
+    message: string,
+  ): Promise<RpcMethodResult<'verifymessage'>> {
+    return this.query('verifymessage', Array.prototype.slice.call(arguments))
   }
 }
