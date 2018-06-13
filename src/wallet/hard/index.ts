@@ -9,11 +9,11 @@ import {
   DAEMON_USER_DIR_PATH,
   ECA_TRANSACTION_FEE,
 } from '../../constants'
+import checkDaemons from '../../helpers/checkDaemons'
 import closeElectraDaemons from '../../helpers/closeElectraDaemons'
 import fixAmount from '../../helpers/fixAmount'
 import getMaxItemFromList from '../../helpers/getMaxItemFromList'
 import injectElectraConfig from '../../helpers/injectElectraConfig'
-import isPortAvailable from '../../helpers/isPortAvailable'
 import resetElectraDaemonData from '../../helpers/resetElectraDaemonData'
 import tryCatch from '../../helpers/tryCatch'
 import wait from '../../helpers/wait'
@@ -40,6 +40,7 @@ import {
   WalletUnspentTransaction,
 } from '../types'
 
+const ASYNC_LOOP_DELAY: number = 250
 const LIST_TRANSACTIONS_LENGTH: number = 1_000_000
 // tslint:disable-next-line:no-magic-numbers
 const ONE_DAY_IN_SECONDS: number = 60 * 60 * 24
@@ -93,9 +94,6 @@ export default class WalletHard {
 
   /** Is it a brand new wallet (= no pre-existing ".Electra directory") ? */
   public isNew: boolean
-
-  /** Does this wallet instance have been started before ? */
-  public isFirstStart: boolean = true
 
   /** Is this wallet locked ? */
   private LOCK_STATE: WalletLockState | undefined
@@ -198,15 +196,16 @@ export default class WalletHard {
   public async startDaemon(): Promise<void> {
     this.DAEMON_STATE = WalletDaemonState.STARTING
 
-    if (!this.isFirstStart && this.daemon !== undefined && !await isPortAvailable(Number(this.daemonConfig.rpcport))) {
-      this.DAEMON_STATE = WalletDaemonState.STARTED
-
-      return
-    }
-
     // Stop any existing Electra deamon process first
-    if (this.isFirstStart) this.isFirstStart = false
-    await closeElectraDaemons()
+    if (((await checkDaemons()).isRunning)) {
+      await closeElectraDaemons()
+
+      while ((this.DAEMON_STATE as WalletDaemonState) !== WalletDaemonState.STOPPED) {
+        await wait(ASYNC_LOOP_DELAY)
+      }
+
+      this.DAEMON_STATE = WalletDaemonState.STARTING
+    }
 
     // Inject Electra.conf file if it doesn't already exist
     const [err1] = tryCatch(injectElectraConfig)
@@ -248,6 +247,8 @@ export default class WalletHard {
         this.LOCK_STATE = await this.getDaemonLockState()
         this.DAEMON_STATE = WalletDaemonState.STARTED
       }
+
+      await wait(ASYNC_LOOP_DELAY)
     }
   }
 
@@ -258,8 +259,8 @@ export default class WalletHard {
     this.DAEMON_STATE = WalletDaemonState.STOPPING as WalletDaemonState
 
     await closeElectraDaemons()
-    if (this.DAEMON_STATE !== WalletDaemonState.STOPPED) {
-      this.DAEMON_STATE = WalletDaemonState.STOPPED
+    while (this.DAEMON_STATE !== WalletDaemonState.STOPPED) {
+      await wait(ASYNC_LOOP_DELAY)
     }
   }
 
@@ -542,6 +543,8 @@ export default class WalletHard {
     */
 
     await this.reset()
+    try { await this.unlock(passphrase, false) }
+    catch (err) { throw err }
 
     return mnemonic
   }
@@ -603,8 +606,7 @@ export default class WalletHard {
 
       // Dirty hack since we have no idea how long the deamon process will take to exit
       while ((this.DAEMON_STATE as WalletDaemonState) !== WalletDaemonState.STOPPED) {
-        // tslint:disable-next-line:no-magic-numbers
-        await wait(250)
+        await wait(ASYNC_LOOP_DELAY)
       }
 
       // Encrypting the wallet has stopped the deamon, so we need to start it again
@@ -899,6 +901,7 @@ export default class WalletHard {
     if (this.DAEMON_STATE === WalletDaemonState.STARTED) await this.stopDaemon()
     resetElectraDaemonData()
     await this.startDaemon()
+    this.LOCK_STATE = await this.getDaemonLockState()
     this.STATE = WalletState.READY
   }
 
