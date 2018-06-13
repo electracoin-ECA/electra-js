@@ -244,6 +244,7 @@ export interface WalletHard {
   lock(passphrase?: string): Promise<void>;
   reset(): Promise<void>;
   send(amount: number, category: WalletAddressCategory, toAddressHash: string): Promise<void>;
+  signMessage(message: string): Promise<string>;
   start(data: WalletStartDataHard, passphrase: string): Promise<void>;
   startDaemon(): Promise<void>;
   stopDaemon(): Promise<void>;
