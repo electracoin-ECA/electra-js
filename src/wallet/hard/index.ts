@@ -284,6 +284,13 @@ export default class WalletHard {
     this.ADDRESSES = []
     this.RANDOM_ADDRESSES = []
 
+    // We ensure that no HD address has been inserted in random addresses as well
+    data.randomAddresses = data.randomAddresses
+      .filter(({ hash }: WalletAddress) => (
+        R.find(R.propEq('hash', hash))(data.addresses) === undefined &&
+        R.find(R.propEq('change', hash))(data.addresses) === undefined
+      ))
+
     // We export all the addresses from the RPC daemon
     const daemonAddresses: string[] = await this.getDaemonAddresses()
 
