@@ -239,7 +239,7 @@ export interface RpcMethods {
   sendtoaddress: string
   setaccount: any
   settxfee: any
-  signmessage: any
+  signmessage: string
   signrawtransaction: {
     hex: string
     complete: boolean
