@@ -280,6 +280,10 @@ export default class WalletHard {
       `)
     }
 
+    // We re-initialize HD & random address
+    this.ADDRESSES = []
+    this.RANDOM_ADDRESSES = []
+
     // We export all the addresses from the RPC daemon
     const daemonAddresses: string[] = await this.getDaemonAddresses()
 
