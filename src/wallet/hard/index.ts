@@ -1417,6 +1417,9 @@ export default class WalletHard {
     return fixAmount(total)
   }
 
+  /**
+   * Sign a message with the first CA Purse address private key.
+   */
   public async signMessage(message: string): Promise<string> {
     if (this.STATE !== WalletState.READY) throw new EJError(EJErrorCode.WALLET_STATE_NOT_READY)
     if (this.LOCK_STATE !== WalletLockState.UNLOCKED) throw new EJError(EJErrorCode.WALLET_LOCK_STATE_NOT_UNLOCKED)
