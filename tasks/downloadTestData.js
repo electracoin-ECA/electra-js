@@ -39,7 +39,8 @@ async function run() {
   const assetsApiUrl = (await axiosInstance.get('https://api.github.com/repos/Electra-project/storage/releases')).data[0].assets_url
   const asset = (await axiosInstance.get(assetsApiUrl)).data.filter(({ name: _name }) => _name === name)[0]
 
-  // log(`ElectraJs: Checking current ${name} test data.`)
+  log(`ElectraJs: Checking current ${name} test data.`)
+  if (fs.existsSync(filePath)) return
   // if (fs.existsSync(filePath) && await sha256sum(filePath) === binary.sha256sum) return
 
   log(`ElectraJs: Downloading ${name} test data.`)
