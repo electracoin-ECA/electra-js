@@ -3,6 +3,9 @@ import * as childProcess from 'child_process'
 
 import { DAEMON_CONFIG_DEFAULT } from '../constants'
 
+/**
+ * Look for running Electra daemons via their P2P port 5718 and return the result.
+ */
 export default async function(): Promise<{ isRunning: boolean, output?: string }> {
   const [err, output] = process.platform === 'win32'
     ? await to(exec(`netstat -a -n -o | findstr :${DAEMON_CONFIG_DEFAULT.port}`))
@@ -14,15 +17,18 @@ export default async function(): Promise<{ isRunning: boolean, output?: string }
   }
 }
 
+/**
+ * Execute a command in a child process.
+ */
 async function exec(command: string): Promise<string> {
   return new Promise((resolve: (stdout: string) => void, reject: (err: Error) => void): void => {
     const childProcessInstance: childProcess.ChildProcess = childProcess.exec(
       command,
-      (err: Error, stdout: string, stderr: string): void => {
+      (err: Error | null, stdout: string, stderr: string): void => {
         childProcessInstance.kill()
 
         if (err !== null || stderr.length !== 0) {
-          reject(err || new Error(stderr))
+          reject(err !== null ? err : new Error(stderr))
 
           return
         }
