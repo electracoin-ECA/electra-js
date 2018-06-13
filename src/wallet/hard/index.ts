@@ -1416,4 +1416,15 @@ export default class WalletHard {
 
     return fixAmount(total)
   }
+
+  public async signMessage(message: string): Promise<string> {
+    if (this.STATE !== WalletState.READY) throw new EJError(EJErrorCode.WALLET_STATE_NOT_READY)
+    if (this.LOCK_STATE !== WalletLockState.UNLOCKED) throw new EJError(EJErrorCode.WALLET_LOCK_STATE_NOT_UNLOCKED)
+    if (this.DAEMON_STATE !== WalletDaemonState.STARTED) throw new EJError(EJErrorCode.WALLET_DAEMON_STATE_NOT_STARTED)
+
+    const [err, signature] = await to(this.rpc.signMessage(this.purseAddresses[0].hash, message))
+    if (err !== null || signature === undefined) throw err
+
+    return signature
+  }
 }
