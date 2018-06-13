@@ -44,7 +44,6 @@
     "ramda": "^0.25.0",
     "request": "^2.87.0",
     "request-progress": "^3.0.0",
-    "tree-kill": "^1.2.0",
     "wif": "^2.0.6"
   },
   "devDependencies": {
