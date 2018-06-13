@@ -167,7 +167,7 @@ describe.skip('Wallet (hard)', function() {
   })
 })
 
-describe('Wallet (hard)', function() {
+describe.only('Wallet (hard)', function() {
   let wallet: WalletHard
 
   this.timeout(30000)
@@ -249,8 +249,6 @@ describe('Wallet (hard)', function() {
     it(`#daemonState SHOULD be "STARTED"`, () => assert.strictEqual(wallet.daemonState, 'STARTED'))
     it(`#isNew SHOULD be FALSE`, () => assert.strictEqual(wallet.isNew, false))
 
-    it(`#lockState SHOULD be "UNLOCKED"`, () => assert.strictEqual(wallet.lockState, 'UNLOCKED'))
-    it(`#lock() SHOULD not throw any error`, async () => await assertThen(() => wallet.lock()))
     it(`#lockState SHOULD be "LOCKED"`, () => assert.strictEqual(wallet.lockState, 'LOCKED'))
     it(`#unlock() SHOULD not throw any error`, async () => await assertThen(() => wallet.unlock(HD_PASSPHRASE_TEST, false)))
     it(`#lockState SHOULD be "UNLOCKED"`, () => assert.strictEqual(wallet.lockState, 'UNLOCKED'))
@@ -307,6 +305,8 @@ describe('Wallet (hard)', function() {
     it(`#randomAddresses SHOULD contain at least 1 address`, () => assert.strictEqual(wallet.randomAddresses.length >= 1, true))
     it(`#randomAddresses SHOULD contain ${RANDOM_ADDRESS_HASH_TEST}`, () => assert.strictEqual(wallet.randomAddresses.filter(a => a.hash === RANDOM_ADDRESS_HASH_TEST).length, 1))
 
+    it(`#lockState SHOULD be "UNLOCKED"`, () => assert.strictEqual(wallet.lockState, 'UNLOCKED'))
+    it(`#lock() SHOULD not throw any error`, async () => await assertThen(() => wallet.lock()))
     it(`#lockState SHOULD be "LOCKED"`, () => assert.strictEqual(wallet.lockState, 'LOCKED'))
     it(`#unlock(, true) SHOULD not throw any error`, async () => await assertThen(() => wallet.unlock(HD_PASSPHRASE_TEST, true)))
     it(`#lockState SHOULD be "STAKING"`, () => assert.strictEqual(wallet.lockState, 'STAKING'))
