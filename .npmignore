@@ -6,7 +6,8 @@
 /.env
 /.env.sample
 /.travis.yml
-/bin/electrad*
+/bin/electrad-darwin*
+/bin/electrad-linux*
 /tsconfig.dist.json
 /tsconfig.json
 /tslint.json
