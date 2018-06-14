@@ -3,6 +3,7 @@
 import log from '@inspired-beings/log'
 
 import { DAEMON_CONFIG_DEFAULT, DAEMON_URI } from '../constants'
+import EJError, { EJErrorCode } from '../libs/error'
 import Rpc from '../libs/rpc'
 import checkDaemons from './checkDaemons'
 import wait from './wait'
@@ -23,17 +24,28 @@ export default async function(): Promise<void> {
   const res = await checkDaemons()
   if (!res.isRunning) return
 
-  const outputLines: string[] = toArrayOfLines(res.output as string)
-  const processId: number = process.platform === 'win32'
-    ? Number((outputLines[0].match(/\d+$/) as RegExpMatchArray)[0])
-    : Number((outputLines[0].match(/\s(\d+)/) as RegExpMatchArray)[1])
-
   // Then we try to kill its process
+  const outputLines: string[] = toArrayOfLines(res.output as string)
+  let index = -1
+  let processId = 0
+  while (processId === 0 && ++index < outputLines.length) {
+    processId = process.platform === 'win32'
+      ? Number((outputLines[index].match(/\d+$/) as RegExpMatchArray)[0])
+      : Number((outputLines[index].match(/\s(\d+)/) as RegExpMatchArray)[1])
+  }
+
+  if (processId === 0) throw new EJError(EJErrorCode.DAEMON_PROCESS_CANNOT_BE_KILLED)
   await killDaemonViaProcessId(processId)
 }
 
 async function killDaemonViaProcessId(processId: number): Promise<void> {
-  process.kill(processId)
+  try {
+    process.kill(processId)
+  }
+  catch (err) {
+    log.err(err)
+    throw new EJError(EJErrorCode.DAEMON_PROCESS_CANNOT_BE_KILLED)
+  }
 
   // Limit the process killing attempt to 5s
   let timeLeft: number = 5000
