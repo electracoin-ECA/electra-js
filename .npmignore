@@ -1,5 +1,4 @@
-/bin
-!/bin/.gitkeep
+/bin/*
 /build
 /src
 /test
