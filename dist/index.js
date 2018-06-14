@@ -105,7 +105,7 @@ exports.SETTINGS_DEFAULT = {
  * ElectraJs version.
  * DO NOT CHANGE THIS LINE SINCE THE VERSION IS AUTOMATICALLY INJECTED !
  */
-const VERSION = '0.19.1';
+const VERSION = '0.19.2';
 /**
  * Main ElectraJS class.
  */
@@ -3703,6 +3703,7 @@ exports.default = EJError;
 Object.defineProperty(exports, "__esModule", { value: true });
 var EJErrorCode;
 (function (EJErrorCode) {
+    EJErrorCode["DAEMON_PROCESS_CANNOT_BE_KILLED"] = "DAEMON_PROCESS_CANNOT_BE_KILLED";
     EJErrorCode["DAEMON_RPC_LOCK_ATTEMPT_ON_UNENCRYPTED_WALLET"] = "DAEMON_RPC_LOCK_ATTEMPT_ON_UNENCRYPTED_WALLET";
     EJErrorCode["DAEMON_RPC_METHOD_NOT_FOUND"] = "DAEMON_RPC_METHOD_NOT_FOUND";
     EJErrorCode["WALLET_DAEMON_STATE_NOT_STARTED"] = "WALLET_DAEMON_STATE_NOT_STARTED";
@@ -18873,7 +18874,8 @@ const constants_1 = __webpack_require__(1);
 function default_1() {
     return __awaiter(this, void 0, void 0, function* () {
         const [err, output] = process.platform === 'win32'
-            ? yield await_to_js_1.default(exec(`netstat -a -n -o | findstr :${constants_1.DAEMON_CONFIG_DEFAULT.port}`))
+            // https://ss64.com/nt/findstr.html
+            ? yield await_to_js_1.default(exec(`netstat -a -n -o | findstr LISTENING | findstr :${constants_1.DAEMON_CONFIG_DEFAULT.port}`))
             : yield await_to_js_1.default(exec(`lsof -n -i4TCP:${constants_1.DAEMON_CONFIG_DEFAULT.port} | grep LISTEN`));
         return {
             isRunning: err === null && typeof output === 'string' && output.length !== 0,
@@ -18925,6 +18927,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 const log_1 = __webpack_require__(376);
 const constants_1 = __webpack_require__(1);
+const error_1 = __webpack_require__(50);
 const rpc_1 = __webpack_require__(4);
 const checkDaemons_1 = __webpack_require__(373);
 const wait_1 = __webpack_require__(377);
@@ -18943,18 +18946,30 @@ function default_1() {
         const res = yield checkDaemons_1.default();
         if (!res.isRunning)
             return;
-        const outputLines = toArrayOfLines(res.output);
-        const processId = process.platform === 'win32'
-            ? Number(outputLines[0].match(/\d+$/)[0])
-            : Number(outputLines[0].match(/\s(\d+)/)[1]);
         // Then we try to kill its process
+        const outputLines = toArrayOfLines(res.output);
+        let index = -1;
+        let processId = 0;
+        while (processId === 0 && ++index < outputLines.length) {
+            processId = process.platform === 'win32'
+                ? Number(outputLines[index].match(/\d+$/)[0])
+                : Number(outputLines[index].match(/\s(\d+)/)[1]);
+        }
+        if (processId === 0)
+            throw new error_1.default(error_1.EJErrorCode.DAEMON_PROCESS_CANNOT_BE_KILLED);
         yield killDaemonViaProcessId(processId);
     });
 }
 exports.default = default_1;
 function killDaemonViaProcessId(processId) {
     return __awaiter(this, void 0, void 0, function* () {
-        process.kill(processId);
+        try {
+            process.kill(processId);
+        }
+        catch (err) {
+            log_1.default.err(err);
+            throw new error_1.default(error_1.EJErrorCode.DAEMON_PROCESS_CANNOT_BE_KILLED);
+        }
         // Limit the process killing attempt to 5s
         let timeLeft = 5000;
         while ((yield checkDaemons_1.default()).isRunning) {
