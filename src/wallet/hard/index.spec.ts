@@ -167,7 +167,7 @@ describe.skip('Wallet (hard)', function() {
   })
 })
 
-describe.only('Wallet (hard)', function() {
+describe('Wallet (hard)', function() {
   let wallet: WalletHard
 
   this.timeout(30000)
@@ -195,8 +195,7 @@ describe.only('Wallet (hard)', function() {
   })
 
   describe(`WHEN instantiating a new wallet WITH an RPC Server`, function() {
-    it(`new Wallet() SHOULD NOT throw any error`, () => assert.doesNotThrow(() =>
-      wallet = new WalletHard(BINARIES_PATH, DAEMON_CONFIG_DEFAULT)))
+    it(`new Wallet() SHOULD NOT throw any error`, () => assert.doesNotThrow(() => wallet = new WalletHard(BINARIES_PATH, DAEMON_CONFIG_DEFAULT)))
   })
 
   describe(`AFTER instantiating this new wallet`, function() {
@@ -316,6 +315,78 @@ describe.only('Wallet (hard)', function() {
     it(`#send() SHOULD throw an error`, async () => await assertCatch(() => wallet.send(TEST_AMOUNT, WalletAddressCategory.CHECKING, HD_CHECKING_1_EXTERNAL_HASH_TEST)))
     it(`#unlock(, false) SHOULD not throw any error`, async () => await assertThen(() => wallet.unlock(HD_PASSPHRASE_TEST, false)))
     it(`#lockState SHOULD be "UNLOCKED"`, () => assert.strictEqual(wallet.lockState, 'UNLOCKED'))
+  })
+
+  describe(`WHEN stopping the same wallet deamon`, function () {
+    it(`#stopDeamon() SHOULD NOT throw any error`, async () => await assertThen(() => wallet.stopDaemon()))
+  })
+
+  describe(`AFTER stopping the same wallet deamon`, function () {
+    it(`#state SHOULD be "STOPPED"`, async () => assert.strictEqual(wallet.daemonState, 'STOPPED'))
+  })
+
+  describe(`WHEN instantiating a new wallet WITH an RPC Server`, function () {
+    before(async function () {
+      // Remove the daemon user directory to simulate a brand new installation
+      console.log(chalk.green('    ♦ Removing Electra daemon user directory...'))
+      rimraf.sync(DAEMON_USER_DIR_PATH)
+
+      await wait(1000)
+
+      console.log(chalk.green('    ♦ Copying stored blockchain data...'))
+      await new Promise(resolve => {
+        // Copy the blockchain data
+        extractZip(
+          path.resolve(process.cwd(), `test/data/electra-js-test-data-${process.platform}-${process.arch}.zip`),
+          { dir: path.resolve(DAEMON_USER_DIR_PATH, '..') },
+          resolve
+        )
+      })
+    })
+
+    it(`new Wallet() SHOULD NOT throw any error`, () => assert.doesNotThrow(() => wallet = new WalletHard(BINARIES_PATH, DAEMON_CONFIG_DEFAULT)))
+  })
+
+  describe(`WHEN starting the same wallet deamon`, function () {
+    it(`#startDeamon() SHOULD NOT throw any error`, async () => await assertThen(() => wallet.startDaemon()))
+  })
+
+  describe(`WHEN fast-starting the same wallet`, function () {
+    it(`#start() SHOULD NOT throw any error`, async () => await assertThen(() => wallet.start(START_DATA_TEST, HD_PASSPHRASE_TEST)))
+  })
+
+  describe(`WHILE downloading the blockchain`, function() {
+    this.timeout(7200000)
+
+    it(`#getInfo() SHOULD NOT throw any error`, async () => {
+      let info
+      let localBlockchainHeight = 0
+      let networkBlockchainHeight = 0
+
+      console.log(chalk.green('      ♦ Waiting for peers connection...'))
+      while (networkBlockchainHeight <= 0) {
+        await wait(250)
+        info = await wallet.getInfo()
+        networkBlockchainHeight = info.networkBlockchainHeight
+      }
+
+      var bar = new ProgressBar(chalk.green('      ♦ Downloading blockchain [:bar] :rate/bps :percent :etas'), {
+        clear: true,
+        complete: '=',
+        incomplete: ' ',
+        width: 20,
+        total: networkBlockchainHeight - localBlockchainHeight
+      })
+
+      while (info.localBlockchainHeight < networkBlockchainHeight) {
+        await wait(250)
+        info = await wallet.getInfo()
+        bar.tick(info.localBlockchainHeight - localBlockchainHeight, '>')
+        localBlockchainHeight = info.localBlockchainHeight
+      }
+
+      assert.ok(true)
+    })
   })
 
   describe(`WHILE downloading the blockchain`, function() {
