@@ -1,4 +1,3 @@
-/bin/*
 /build
 /src
 /test
@@ -7,6 +6,7 @@
 /.env
 /.env.sample
 /.travis.yml
+/bin/electrad*
 /tsconfig.dist.json
 /tsconfig.json
 /tslint.json
