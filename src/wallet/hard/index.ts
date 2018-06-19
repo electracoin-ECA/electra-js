@@ -1439,7 +1439,6 @@ export default class WalletHard {
    */
   public getFirstPurseAddressPrivateKey(passphrase: string): string {
     if (this.STATE !== WalletState.READY) throw new EJError(EJErrorCode.WALLET_STATE_NOT_READY)
-    if (this.LOCK_STATE !== WalletLockState.UNLOCKED) throw new EJError(EJErrorCode.WALLET_LOCK_STATE_NOT_UNLOCKED)
     if (this.DAEMON_STATE !== WalletDaemonState.STARTED) throw new EJError(EJErrorCode.WALLET_DAEMON_STATE_NOT_STARTED)
 
     const masterNodePrivateKey: string =
