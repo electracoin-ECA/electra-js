@@ -1441,16 +1441,22 @@ export default class WalletHard {
     if (this.STATE !== WalletState.READY) throw new EJError(EJErrorCode.WALLET_STATE_NOT_READY)
     if (this.DAEMON_STATE !== WalletDaemonState.STARTED) throw new EJError(EJErrorCode.WALLET_DAEMON_STATE_NOT_STARTED)
 
-    const masterNodePrivateKey: string =
-      Crypto.decipherPrivateKey((this.MASTER_NODE_ADDRESS as Address).privateKey, passphrase)
+    try {
+      const masterNodePrivateKey: string =
+        Crypto.decipherPrivateKey((this.MASTER_NODE_ADDRESS as Address).privateKey, passphrase)
 
-    const purseAddress: Address = Electra.getDerivedChainFromMasterNodePrivateKey(
-      masterNodePrivateKey,
-      WalletAddressCategory.PURSE,
-      0,
-      false,
-    )
+      const purseAddress: Address = Electra.getDerivedChainFromMasterNodePrivateKey(
+        masterNodePrivateKey,
+        WalletAddressCategory.PURSE,
+        0,
+        false,
+      )
 
-    return purseAddress.privateKey
+      return purseAddress.privateKey
+    }
+    catch (err) {
+      console.error(`WalletHard#getFirstPurseAddressPrivateKey(): ${err.message}`)
+      throw new EJError(EJErrorCode.WALLET_PASSPHRASE_WRONG)
+    }
   }
 }
