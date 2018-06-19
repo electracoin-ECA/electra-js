@@ -105,7 +105,7 @@ exports.SETTINGS_DEFAULT = {
  * ElectraJs version.
  * DO NOT CHANGE THIS LINE SINCE THE VERSION IS AUTOMATICALLY INJECTED !
  */
-const VERSION = '0.20.2';
+const VERSION = '0.20.3';
 /**
  * Main ElectraJS class.
  */
@@ -3713,6 +3713,7 @@ var EJErrorCode;
     EJErrorCode["WALLET_STATE_NOT_EMPTY"] = "WALLET_STATE_NOT_EMPTY";
     EJErrorCode["WALLET_STATE_NOT_READY"] = "WALLET_STATE_NOT_READY";
     EJErrorCode["WALLET_TRANSACTION_AMOUNT_HIGHER_THAN_AVAILABLE"] = "WALLET_TRANSACTION_AMOUNT_HIGHER_THAN_AVAILABLE";
+    EJErrorCode["WALLET_PASSPHRASE_WRONG"] = "WALLET_PASSPHRASE_WRONG";
 })(EJErrorCode = exports.EJErrorCode || (exports.EJErrorCode = {}));
 
 
@@ -4881,9 +4882,15 @@ class WalletHard {
             throw new error_1.default(error_1.EJErrorCode.WALLET_STATE_NOT_READY);
         if (this.DAEMON_STATE !== types_1.WalletDaemonState.STARTED)
             throw new error_1.default(error_1.EJErrorCode.WALLET_DAEMON_STATE_NOT_STARTED);
-        const masterNodePrivateKey = crypto_1.default.decipherPrivateKey(this.MASTER_NODE_ADDRESS.privateKey, passphrase);
-        const purseAddress = electra_1.default.getDerivedChainFromMasterNodePrivateKey(masterNodePrivateKey, types_1.WalletAddressCategory.PURSE, 0, false);
-        return purseAddress.privateKey;
+        try {
+            const masterNodePrivateKey = crypto_1.default.decipherPrivateKey(this.MASTER_NODE_ADDRESS.privateKey, passphrase);
+            const purseAddress = electra_1.default.getDerivedChainFromMasterNodePrivateKey(masterNodePrivateKey, types_1.WalletAddressCategory.PURSE, 0, false);
+            return purseAddress.privateKey;
+        }
+        catch (err) {
+            console.error(`WalletHard#getFirstPurseAddressPrivateKey(): ${err.message}`);
+            throw new error_1.default(error_1.EJErrorCode.WALLET_PASSPHRASE_WRONG);
+        }
     }
 }
 exports.default = WalletHard;
