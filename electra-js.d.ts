@@ -235,7 +235,7 @@ export interface WalletHard {
   getAddressCategory(addressHash: string): WalletAddressCategory;
   getBalance(): Promise<WalletBalance>;
   getCategoryBalance(category: WalletAddressCategory): Promise<WalletBalance>;
-  getFirstPurseAddressPrivateKey(): string;
+  getFirstPurseAddressPrivateKey(passphrase: string): string;
   getInfo(): Promise<WalletInfo>;
   getSavingsCumulatedRewards(): Promise<number>;
   getTransaction(transactionHash: string): Promise<WalletTransaction | undefined>;

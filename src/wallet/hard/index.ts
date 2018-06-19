@@ -1435,15 +1435,18 @@ export default class WalletHard {
   }
 
   /**
-   * Get first (third degree derivation index = 0) Purse address private key.
+   * Get first (HD addressIndex = 0) Purse address private key.
    */
-  public getFirstPurseAddressPrivateKey(): string {
+  public getFirstPurseAddressPrivateKey(passphrase: string): string {
     if (this.STATE !== WalletState.READY) throw new EJError(EJErrorCode.WALLET_STATE_NOT_READY)
     if (this.LOCK_STATE !== WalletLockState.UNLOCKED) throw new EJError(EJErrorCode.WALLET_LOCK_STATE_NOT_UNLOCKED)
     if (this.DAEMON_STATE !== WalletDaemonState.STARTED) throw new EJError(EJErrorCode.WALLET_DAEMON_STATE_NOT_STARTED)
 
+    const masterNodePrivateKey: string =
+      Crypto.decipherPrivateKey((this.MASTER_NODE_ADDRESS as Address).privateKey, passphrase)
+
     const purseAddress: Address = Electra.getDerivedChainFromMasterNodePrivateKey(
-      (this.MASTER_NODE_ADDRESS as Address).privateKey,
+      masterNodePrivateKey,
       WalletAddressCategory.PURSE,
       0,
       false,
