@@ -105,7 +105,7 @@ exports.SETTINGS_DEFAULT = {
  * ElectraJs version.
  * DO NOT CHANGE THIS LINE SINCE THE VERSION IS AUTOMATICALLY INJECTED !
  */
-const VERSION = '0.19.4';
+const VERSION = '0.20.0';
 /**
  * Main ElectraJS class.
  */
@@ -4872,6 +4872,19 @@ class WalletHard {
                 throw err;
             return signature;
         });
+    }
+    /**
+     * Get first (third degree derivation index = 0) Purse address private key.
+     */
+    getFirstPurseAddressPrivateKey() {
+        if (this.STATE !== types_1.WalletState.READY)
+            throw new error_1.default(error_1.EJErrorCode.WALLET_STATE_NOT_READY);
+        if (this.LOCK_STATE !== types_1.WalletLockState.UNLOCKED)
+            throw new error_1.default(error_1.EJErrorCode.WALLET_LOCK_STATE_NOT_UNLOCKED);
+        if (this.DAEMON_STATE !== types_1.WalletDaemonState.STARTED)
+            throw new error_1.default(error_1.EJErrorCode.WALLET_DAEMON_STATE_NOT_STARTED);
+        const purseAddress = electra_1.default.getDerivedChainFromMasterNodePrivateKey(this.MASTER_NODE_ADDRESS.privateKey, types_1.WalletAddressCategory.PURSE, 0, false);
+        return purseAddress.privateKey;
     }
 }
 exports.default = WalletHard;
