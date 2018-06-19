@@ -105,7 +105,7 @@ exports.SETTINGS_DEFAULT = {
  * ElectraJs version.
  * DO NOT CHANGE THIS LINE SINCE THE VERSION IS AUTOMATICALLY INJECTED !
  */
-const VERSION = '0.20.1';
+const VERSION = '0.20.2';
 /**
  * Main ElectraJS class.
  */
@@ -4879,8 +4879,6 @@ class WalletHard {
     getFirstPurseAddressPrivateKey(passphrase) {
         if (this.STATE !== types_1.WalletState.READY)
             throw new error_1.default(error_1.EJErrorCode.WALLET_STATE_NOT_READY);
-        if (this.LOCK_STATE !== types_1.WalletLockState.UNLOCKED)
-            throw new error_1.default(error_1.EJErrorCode.WALLET_LOCK_STATE_NOT_UNLOCKED);
         if (this.DAEMON_STATE !== types_1.WalletDaemonState.STARTED)
             throw new error_1.default(error_1.EJErrorCode.WALLET_DAEMON_STATE_NOT_STARTED);
         const masterNodePrivateKey = crypto_1.default.decipherPrivateKey(this.MASTER_NODE_ADDRESS.privateKey, passphrase);
