@@ -16,7 +16,6 @@
     "start": "npm run watch",
     "test": "snyk test && npm run validate && npm run test:unit && npm run test:browser && npm run build",
     "test:browser": "webpack --config webpack.test.js && mocha -r ts-node/register test/browser/index.ts",
-    "test:unit": "node ./tasks/downloadTestData && cross-env mocha --bail -r ts-node/register 'src/**/*.spec.ts'",
     "validate": "npm run validate:lint && npm run validate:tsc && npm run validate:security",
     "validate:lint": "tslint -p tsconfig.json",
     "validate:security": "snyk test",
