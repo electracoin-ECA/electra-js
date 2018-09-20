@@ -7,5 +7,6 @@
 
 .DS_Store
 .env
+.snyk
 
 /vim.exe.stackdump
