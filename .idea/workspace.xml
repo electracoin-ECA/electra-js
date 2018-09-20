@@ -2,6 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="c0d00204-ea6c-4fe9-b9f9-a95b56cc7b76" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/.tmp/" />
@@ -66,7 +68,7 @@
           <entry key="gitignore" value="2" />
           <entry key="html" value="1" />
           <entry key="js" value="10" />
-          <entry key="json" value="4" />
+          <entry key="json" value="5" />
           <entry key="md" value="2" />
           <entry key="sample" value="1" />
           <entry key="snyk" value="1" />
@@ -76,7 +78,7 @@
       <usages-collector id="statistics.file.types.open">
         <counts>
           <entry key="HTML" value="1" />
-          <entry key="JSON" value="4" />
+          <entry key="JSON" value="5" />
           <entry key="JavaScript" value="10" />
           <entry key="Markdown" value="2" />
           <entry key="PLAIN_TEXT" value="5" />
@@ -94,16 +96,16 @@
           <entry key="env" value="210" />
           <entry key="gitignore" value="7" />
           <entry key="js" value="4" />
-          <entry key="json" value="9" />
+          <entry key="json" value="18" />
           <entry key="ts" value="78" />
-          <entry key="txt" value="118" />
+          <entry key="txt" value="132" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
-          <entry key="JSON" value="9" />
+          <entry key="JSON" value="18" />
           <entry key="JavaScript" value="4" />
-          <entry key="PLAIN_TEXT" value="335" />
+          <entry key="PLAIN_TEXT" value="349" />
           <entry key="TypeScript" value="78" />
         </counts>
       </usages-collector>
@@ -130,10 +132,10 @@
         </entry>
       </file>
       <file pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/package.json">
+        <entry file="file://$PROJECT_DIR$/package-lock.json">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="30">
-              <caret line="2" column="18" selection-start-line="2" selection-start-column="18" selection-end-line="2" selection-end-column="18" />
+              <caret line="2" column="20" selection-start-line="2" selection-start-column="20" selection-end-line="2" selection-end-column="20" />
             </state>
           </provider>
         </entry>
@@ -236,6 +238,7 @@
         <option value="$PROJECT_DIR$/.env" />
         <option value="$PROJECT_DIR$/src/libs/electra/index.spec.ts" />
         <option value="$PROJECT_DIR$/package.json" />
+        <option value="$PROJECT_DIR$/package-lock.json" />
       </list>
     </option>
   </component>
@@ -364,7 +367,7 @@
       <workItem from="1535108362995" duration="53000" />
       <workItem from="1535109674723" duration="10179000" />
       <workItem from="1536921650541" duration="598000" />
-      <workItem from="1537407132512" duration="15632000" />
+      <workItem from="1537407132512" duration="15810000" />
     </task>
     <task id="LOCAL-00001" summary="New Version for Electra Daemons for version 1.3.0">
       <created>1537437064947</created>
@@ -401,7 +404,21 @@
       <option name="project" value="LOCAL" />
       <updated>1537470514321</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="update version">
+      <created>1537470658558</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1537470658558</updated>
+    </task>
+    <task id="LOCAL-00007" summary="update version">
+      <created>1537470776344</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1537470776344</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="TestHistory">
@@ -410,7 +427,7 @@
     </history-entry>
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="28778000" />
+    <option name="totallyTimeSpent" value="28956000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -425,7 +442,7 @@
     <frame x="20" y="43" width="1400" height="765" extended-state="0" />
     <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.25960842" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.25960842" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="npm" order="2" side_tool="true" />
       <window_info id="Favorites" order="3" side_tool="true" />
@@ -440,7 +457,7 @@
       <window_info anchor="bottom" id="Docker" order="7" show_stripe_button="false" />
       <window_info anchor="bottom" id="Version Control" order="8" weight="0.32986626" />
       <window_info anchor="bottom" id="Event Log" order="9" side_tool="true" />
-      <window_info active="true" anchor="bottom" id="Terminal" order="10" visible="true" weight="0.32986626" />
+      <window_info anchor="bottom" id="Terminal" order="10" visible="true" weight="0.32986626" />
       <window_info anchor="bottom" id="TypeScript" order="11" weight="0.32986626" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
@@ -488,7 +505,8 @@
     <MESSAGE value="New Version for Electra Daemons for version 1.3.0" />
     <MESSAGE value="remove dist folder from git" />
     <MESSAGE value="remove test from package.json" />
-    <option name="LAST_COMMIT_MESSAGE" value="remove test from package.json" />
+    <MESSAGE value="update version" />
+    <option name="LAST_COMMIT_MESSAGE" value="update version" />
   </component>
   <component name="editorHistoryManager">
     <entry file="file://$PROJECT_DIR$/webpack.dev.js">
@@ -596,9 +614,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/package-lock.json">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
     <entry file="file://$PROJECT_DIR$/test/index.js">
       <provider selected="true" editor-type-id="text-editor" />
     </entry>
@@ -681,17 +696,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/README.md">
-      <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
-        <state split_layout="SPLIT">
-          <first_editor relative-caret-position="240">
-            <caret line="16" selection-start-line="16" selection-end-line="16" />
-          </first_editor>
-          <second_editor />
-        </state>
-      </provider>
-      <provider editor-type-id="text-editor" />
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/wallet/hard/index.spec.ts">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="-3410">
@@ -716,7 +720,25 @@
     <entry file="file://$PROJECT_DIR$/package.json">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="30">
-          <caret line="2" column="18" selection-start-line="2" selection-start-column="18" selection-end-line="2" selection-end-column="18" />
+          <caret line="2" column="20" selection-start-line="2" selection-start-column="20" selection-end-line="2" selection-end-column="20" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/README.md">
+      <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
+        <state split_layout="SPLIT">
+          <first_editor relative-caret-position="240">
+            <caret line="16" selection-start-line="16" selection-end-line="16" />
+          </first_editor>
+          <second_editor />
+        </state>
+      </provider>
+      <provider editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/package-lock.json">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="30">
+          <caret line="2" column="20" selection-start-line="2" selection-start-column="20" selection-end-line="2" selection-end-column="20" />
         </state>
       </provider>
     </entry>
