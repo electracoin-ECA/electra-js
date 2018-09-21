@@ -6,8 +6,8 @@ os:
 
 node_js:
   - "10"
-  - "9"
-  - "8"
+  # - "9"
+  # - "8"
 
 addons:
   chrome: stable

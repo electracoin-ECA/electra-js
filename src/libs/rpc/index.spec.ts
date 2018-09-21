@@ -16,8 +16,13 @@ import closeElectraDaemons from '../../helpers/closeElectraDaemons'
 import wait from '../../helpers/wait'
 import WalletHard from '../../wallet/hard'
 
+// Loads ".env" variables into process.env properties
+dotenv.config()
+
+const { RANDOM_ADDRESS_HASH_TEST, HD_PASSPHRASE_TEST } = process.env
+
 describe('Rpc', function() {
-  this.timeout(10_000)
+  this.timeout(30_000)
 
   const ajv = new Ajv()
   const rpc = new Rpc(DAEMON_URI, {
@@ -53,6 +58,9 @@ describe('Rpc', function() {
     console.log(chalk.green('    ♦ Starting Electra daemon...'))
     wallet = new WalletHard(BINARIES_PATH, DAEMON_CONFIG_DEFAULT)
     await wallet.startDaemon()
+
+    console.log(chalk.green('    ♦ Unlocking Electra daemon...'))
+    await wallet.unlock(HD_PASSPHRASE_TEST, false)
 
     console.log(chalk.green('    ♦ Parsing types...'))
     const program = typescriptJsonSchema.getProgramFromFiles([path.resolve(__dirname, 'types.ts')])
@@ -153,6 +161,24 @@ describe('Rpc', function() {
     })
   })
 
+  describe('#signMessage()', function() {
+    const message = 'This is a test.'
+
+    it(`SHOULD return the expected schema`, async function() {
+      assert.strictEqual(ajv.validate(RpcMethodSchema.signmessage, await rpc.signMessage(RANDOM_ADDRESS_HASH_TEST, message)), true)
+    })
+    it(`SHOULD return a valid signature`, async function() {
+      assert.strictEqual(
+        await rpc.verifyMessage(
+          RANDOM_ADDRESS_HASH_TEST,
+          await rpc.signMessage(RANDOM_ADDRESS_HASH_TEST, message),
+          message
+        ),
+        true
+      )
+    })
+  })
+
   /*describe('#validateAddress()', function() {
     it(`SHOULD return the expected result with my "${testAccount}" account address`, async function() {
       const info = await rpc.validateAddress(testAddress)
@@ -188,6 +214,24 @@ describe('Rpc', function() {
     it(`SHOULD return isvalid as FALSE with a fake public key`, async function() {
       const info = await rpc.validatePublicKey('1234567890abcdef')
       assert.strictEqual(info.isvalid, false)
+    })
+  })
+
+  describe('#verifyMessage()', function() {
+    const message = 'This is a test.'
+    const rightSignature = 'H+QvbXnmggLI1tLHv6wjISK23PWG54IVujHmBiAUpP3XdEZ6E+NfBbPHuSif4GxxNbuU6Rwd1OYQ2V92QmXEf/c='
+    // "This is a test" instead of "This is a test."
+    const wrongSignature = 'IPTGygBPoKwOjrmBuDtu971ivfGy3pGlHe6ej2bWEAE7mO4JJlzvar55k9Gk5ljHryQexZEu63G9B/lr0KU6H48='
+
+    it(`SHOULD return the expected schema`, async function() {
+      assert.strictEqual(
+        ajv.validate(RpcMethodSchema.verifymessage, await rpc.verifyMessage(RANDOM_ADDRESS_HASH_TEST, rightSignature, message)),
+        true
+      )
+    })
+    it(`SHOULD return the expected values`, async function() {
+      assert.strictEqual(await rpc.verifyMessage(RANDOM_ADDRESS_HASH_TEST, rightSignature, message), true)
+      assert.strictEqual(await rpc.verifyMessage(RANDOM_ADDRESS_HASH_TEST, wrongSignature, message), false)
     })
   })
 

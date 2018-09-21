@@ -223,7 +223,6 @@ export interface WalletHard {
   isNew: boolean;
   lockState: WalletLockState;
   masterNodeAddress: Address;
-  mnemonic: string;
   purseAddresses: WalletAddress[];
   randomAddresses: WalletAddress[];
   savingsAddresses: WalletAddress[];
@@ -231,11 +230,12 @@ export interface WalletHard {
 
   createAddress(passphrase: string, category: WalletAddressCategory): Promise<void>
   export(passphrase: string): Promise<string>;
-  generate(passphrase: string, mnemonic?: string, mnemonicExtension?: string, purseAddressesCount?: number, checkingAddressesCount?: number, savingsAddressesCount?: number): Promise<void>;
+  generate(passphrase: string, mnemonic?: string, mnemonicExtension?: string, purseAddressesCount?: number, checkingAddressesCount?: number, savingsAddressesCount?: number): Promise<string>;
   getAddressBalance(addressHash: string): Promise<WalletBalance>;
   getAddressCategory(addressHash: string): WalletAddressCategory;
   getBalance(): Promise<WalletBalance>;
   getCategoryBalance(category: WalletAddressCategory): Promise<WalletBalance>;
+  getFirstPurseAddressPrivateKey(passphrase: string): string;
   getInfo(): Promise<WalletInfo>;
   getSavingsCumulatedRewards(): Promise<number>;
   getTransaction(transactionHash: string): Promise<WalletTransaction | undefined>;
@@ -243,8 +243,9 @@ export interface WalletHard {
   import(wefData: WalletExchangeFormat, passphrase: string): Promise<void>;
   importRandomAddress(privateKey: string, passphrase: string): Promise<void>;
   lock(passphrase?: string): Promise<void>;
-  reset(): void;
+  reset(): Promise<void>;
   send(amount: number, category: WalletAddressCategory, toAddressHash: string): Promise<void>;
+  signMessage(message: string): Promise<string>;
   start(data: WalletStartDataHard, passphrase: string): Promise<void>;
   startDaemon(): Promise<void>;
   stopDaemon(): Promise<void>;

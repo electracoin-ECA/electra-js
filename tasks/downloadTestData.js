@@ -19,14 +19,28 @@ const sha256sum = require('./helpers/sha256sum')
 // }
 
 async function run() {
+  const axiosInstance = axios.create(process.env.TRAVIS
+    ? {
+      auth: {
+        username: process.env.GH_USERNAME,
+        password: process.env.GH_TOKEN,
+      },
+      headers: {
+        'User-Agent': 'Travis/1.0',
+      }
+    }
+    : {}
+  )
+
   const name = `electra-js-test-data-${process.platform}-${process.arch}.zip`
   // const binary = FILES[name]
   const filePath = path.resolve(__dirname, '../test/data', name)
 
-  const assetsApiUrl = (await axios.get('https://api.github.com/repos/Electra-project/storage/releases')).data[0].assets_url
-  const asset = (await axios.get(assetsApiUrl)).data.filter(({ name: _name }) => _name === name)[0]
+  const assetsApiUrl = (await axiosInstance.get('https://api.github.com/repos/Electra-project/storage/releases')).data[0].assets_url
+  const asset = (await axiosInstance.get(assetsApiUrl)).data.filter(({ name: _name }) => _name === name)[0]
 
-  // log(`ElectraJs: Checking current ${name} test data.`)
+  log(`ElectraJs: Checking current ${name} test data.`)
+  if (fs.existsSync(filePath)) return
   // if (fs.existsSync(filePath) && await sha256sum(filePath) === binary.sha256sum) return
 
   log(`ElectraJs: Downloading ${name} test data.`)

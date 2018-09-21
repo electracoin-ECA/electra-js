@@ -239,7 +239,7 @@ export interface RpcMethods {
   sendtoaddress: string
   setaccount: any
   settxfee: any
-  signmessage: any
+  signmessage: string
   signrawtransaction: {
     hex: string
     complete: boolean
@@ -261,7 +261,7 @@ export interface RpcMethods {
     ismine?: boolean
     iscompressed?: boolean
   }
-  verifymessage: any
+  verifymessage: boolean
   walletlock: void
   walletpassphrase: void
   walletpassphrasechange: any

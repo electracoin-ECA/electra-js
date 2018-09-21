@@ -9,10 +9,12 @@ import {
   DAEMON_USER_DIR_PATH,
   ECA_TRANSACTION_FEE,
 } from '../../constants'
+import checkDaemons from '../../helpers/checkDaemons'
 import closeElectraDaemons from '../../helpers/closeElectraDaemons'
+import fixAmount from '../../helpers/fixAmount'
 import getMaxItemFromList from '../../helpers/getMaxItemFromList'
 import injectElectraConfig from '../../helpers/injectElectraConfig'
-import isPortAvailable from '../../helpers/isPortAvailable'
+import resetElectraDaemonData from '../../helpers/resetElectraDaemonData'
 import tryCatch from '../../helpers/tryCatch'
 import wait from '../../helpers/wait'
 import Crypto from '../../libs/crypto'
@@ -38,6 +40,7 @@ import {
   WalletUnspentTransaction,
 } from '../types'
 
+const ASYNC_LOOP_DELAY: number = 250
 const LIST_TRANSACTIONS_LENGTH: number = 1_000_000
 // tslint:disable-next-line:no-magic-numbers
 const ONE_DAY_IN_SECONDS: number = 60 * 60 * 24
@@ -92,9 +95,6 @@ export default class WalletHard {
   /** Is it a brand new wallet (= no pre-existing ".Electra directory") ? */
   public isNew: boolean
 
-  /** Does this wallet instance have been started before ? */
-  public isFirstStart: boolean = true
-
   /** Is this wallet locked ? */
   private LOCK_STATE: WalletLockState | undefined
   /**
@@ -137,25 +137,6 @@ export default class WalletHard {
     }
 
     return this.MASTER_NODE_ADDRESS as Address
-  }
-
-  /** Mnenonic. */
-  private MNEMONIC: string | undefined
-  /**
-   * Mnenonic.
-   *
-   * @note
-   * ONLY available when generating a brand new Wallet, which happens after calling #generate()
-   * with an undefined <mnemonic> parameter on a Wallet instance with an "EMPTY" #state.
-   */
-  public get mnemonic(): string {
-    if (this.STATE !== WalletState.READY) throw new EJError(EJErrorCode.WALLET_STATE_NOT_READY)
-
-    if (this.MNEMONIC === undefined) {
-      throw new Error(`ElectraJs.Wallet: #mnemonic is only available after a brand new Wallet has been generated.`)
-    }
-
-    return this.MNEMONIC
   }
 
   /** List of the wallet CA Purse addresses. */
@@ -215,15 +196,16 @@ export default class WalletHard {
   public async startDaemon(): Promise<void> {
     this.DAEMON_STATE = WalletDaemonState.STARTING
 
-    if (!this.isFirstStart && this.daemon !== undefined && !await isPortAvailable(Number(this.daemonConfig.rpcport))) {
-      this.DAEMON_STATE = WalletDaemonState.STARTED
-
-      return
-    }
-
     // Stop any existing Electra deamon process first
-    if (this.isFirstStart) this.isFirstStart = false
-    await closeElectraDaemons()
+    if (((await checkDaemons()).isRunning)) {
+      await closeElectraDaemons()
+
+      while ((this.DAEMON_STATE as WalletDaemonState) !== WalletDaemonState.STOPPED) {
+        await wait(ASYNC_LOOP_DELAY)
+      }
+
+      this.DAEMON_STATE = WalletDaemonState.STARTING
+    }
 
     // Inject Electra.conf file if it doesn't already exist
     const [err1] = tryCatch(injectElectraConfig)
@@ -265,6 +247,8 @@ export default class WalletHard {
         this.LOCK_STATE = await this.getDaemonLockState()
         this.DAEMON_STATE = WalletDaemonState.STARTED
       }
+
+      await wait(ASYNC_LOOP_DELAY)
     }
   }
 
@@ -275,8 +259,8 @@ export default class WalletHard {
     this.DAEMON_STATE = WalletDaemonState.STOPPING as WalletDaemonState
 
     await closeElectraDaemons()
-    if (this.DAEMON_STATE !== WalletDaemonState.STOPPED) {
-      this.DAEMON_STATE = WalletDaemonState.STOPPED
+    while (this.DAEMON_STATE !== WalletDaemonState.STOPPED) {
+      await wait(ASYNC_LOOP_DELAY)
     }
   }
 
@@ -287,7 +271,6 @@ export default class WalletHard {
     if (this.STATE !== WalletState.EMPTY) {
       throw new Error(`ElectraJs.Wallet:
         The #start() method can only be called on an empty wallet (#state = "EMPTY").
-        Maybe you want to #reset() it first ?
       `)
     }
 
@@ -297,6 +280,17 @@ export default class WalletHard {
         You need to #startDaemon() first.
       `)
     }
+
+    // We re-initialize HD & random address
+    this.ADDRESSES = []
+    this.RANDOM_ADDRESSES = []
+
+    // We ensure that no HD address has been inserted in random addresses as well
+    data.randomAddresses = data.randomAddresses
+      .filter(({ hash }: WalletAddress) => (
+        R.find(R.propEq('hash', hash))(data.addresses) === undefined &&
+        R.find(R.propEq('change', hash))(data.addresses) === undefined
+      ))
 
     // We export all the addresses from the RPC daemon
     const daemonAddresses: string[] = await this.getDaemonAddresses()
@@ -354,6 +348,8 @@ export default class WalletHard {
    * Generate an HD wallet from either the provided mnemonic seed, or a randomly generated one,
    * including ‒ at least ‒ the first derived address.
    *
+   * Return the mnemonic generated or provided.
+   *
    * @note In case the [mnemonicExtension] is specified, it MUST be encoded in UTF-8 using NFKD.
    *
    * @see https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki#wordlist
@@ -367,10 +363,13 @@ export default class WalletHard {
     purseAddressesCount: number = 1,
     checkingAddressesCount: number = 1,
     savingsAddressesCount: number = 1,
-  ): Promise<void> {
-    if (this.STATE !== WalletState.EMPTY) throw new EJError(EJErrorCode.WALLET_STATE_NOT_EMPTY)
-    if (this.LOCK_STATE !== WalletLockState.UNLOCKED) throw new EJError(EJErrorCode.WALLET_LOCK_STATE_NOT_UNLOCKED)
+  ): Promise<string> {
     if (this.DAEMON_STATE !== WalletDaemonState.STARTED) throw new EJError(EJErrorCode.WALLET_DAEMON_STATE_NOT_STARTED)
+
+    if (this.LOCK_STATE !== WalletLockState.UNLOCKED) {
+      try { await this.unlock(passphrase, false) }
+      catch (err) { throw err }
+    }
 
     /*
       --------------------------------------------------
@@ -385,7 +384,6 @@ export default class WalletHard {
       try {
         // tslint:disable-next-line:no-parameter-reassignment
         mnemonic = Electra.getRandomMnemonic()
-        this.MNEMONIC = mnemonic
       }
       catch (err) { throw err }
     }
@@ -538,6 +536,17 @@ export default class WalletHard {
     }))
 
     this.STATE = WalletState.READY
+
+    /*
+      --------------------------------------------------
+      STEP 5: RESET DAEMON DATA
+    */
+
+    await this.reset()
+    try { await this.unlock(passphrase, false) }
+    catch (err) { throw err }
+
+    return mnemonic
   }
 
   /**
@@ -597,8 +606,7 @@ export default class WalletHard {
 
       // Dirty hack since we have no idea how long the deamon process will take to exit
       while ((this.DAEMON_STATE as WalletDaemonState) !== WalletDaemonState.STOPPED) {
-        // tslint:disable-next-line:no-magic-numbers
-        await wait(250)
+        await wait(ASYNC_LOOP_DELAY)
       }
 
       // Encrypting the wallet has stopped the deamon, so we need to start it again
@@ -805,6 +813,13 @@ export default class WalletHard {
     catch (err) { throw err }
 
     this.STATE = WalletState.READY
+
+    /*
+      --------------------------------------------------
+      STEP 4: RESET DAEMON DATA
+    */
+
+    await this.reset()
   }
 
   /**
@@ -876,19 +891,18 @@ export default class WalletHard {
   }
 
   /**
-   * Reset the current wallet properties and switch the #state to "EMPTY".
+   * Reset the daemon user data (but keep the wallet.dat), restart it and restore the #state to "READY".
    */
-  public reset(): void {
+  public async reset(): Promise<void> {
     if (this.STATE !== WalletState.READY) {
       throw new Error(`ElectraJs.Wallet: You can't #reset() a wallet that is not ready (#state = "READY").`)
     }
 
-    delete this.MASTER_NODE_ADDRESS
-    delete this.MNEMONIC
-
-    this.ADDRESSES = []
-    this.RANDOM_ADDRESSES = []
-    this.STATE = WalletState.EMPTY
+    if (this.DAEMON_STATE === WalletDaemonState.STARTED) await this.stopDaemon()
+    resetElectraDaemonData()
+    await this.startDaemon()
+    this.LOCK_STATE = await this.getDaemonLockState()
+    this.STATE = WalletState.READY
   }
 
   /**
@@ -911,8 +925,8 @@ export default class WalletHard {
       ])
 
       return {
-        confirmed: confirmedBalance,
-        unconfirmed: fullBalance - confirmedBalance,
+        confirmed: fixAmount(confirmedBalance),
+        unconfirmed: fixAmount(fullBalance) - fixAmount(confirmedBalance),
       }
     }
     catch (err) {
@@ -942,10 +956,10 @@ export default class WalletHard {
 
     const confirmed: number = confirmedTransactions
       // tslint:disable-next-line:no-parameter-reassignment variable-name
-      .reduce((total: number, { amount: _amount }: RpcMethodResult<'listunspent'>[0]) => total += _amount, 0)
+      .reduce((total: number, { amount: _amount }: RpcMethodResult<'listunspent'>[0]) => total += fixAmount(_amount), 0)
     const confirmedAndUnconfirmed: number = allTransactions
       // tslint:disable-next-line:no-parameter-reassignment variable-name
-      .reduce((total: number, { amount: _amount }: RpcMethodResult<'listunspent'>[0]) => total += _amount, 0)
+      .reduce((total: number, { amount: _amount }: RpcMethodResult<'listunspent'>[0]) => total += fixAmount(_amount), 0)
 
     return {
       confirmed,
@@ -967,10 +981,10 @@ export default class WalletHard {
 
     const confirmed: number = confirmedTransactions
       // tslint:disable-next-line:no-parameter-reassignment variable-name
-      .reduce((total: number, { amount: _amount }: RpcMethodResult<'listunspent'>[0]) => total += _amount, 0)
+      .reduce((total: number, { amount: _amount }: RpcMethodResult<'listunspent'>[0]) => total += fixAmount(_amount), 0)
     const confirmedAndUnconfirmed: number = allTransactions
       // tslint:disable-next-line:no-parameter-reassignment variable-name
-      .reduce((total: number, { amount: _amount }: RpcMethodResult<'listunspent'>[0]) => total += _amount, 0)
+      .reduce((total: number, { amount: _amount }: RpcMethodResult<'listunspent'>[0]) => total += fixAmount(_amount), 0)
 
     return {
       confirmed,
@@ -1053,14 +1067,14 @@ export default class WalletHard {
 
       if (transactionRawFound.category === 'generate') {
         transactionList.push({
-          amount: transactionRawFound.amount,
+          amount: fixAmount(transactionRawFound.amount),
           confimationsCount: transactionRawFound.confirmations,
           date: transactionRawFound.time,
           from: [],
           hash: transactionsIdList[index],
           to: [{
             address: transactionRawFound.address,
-            amount: transactionRawFound.amount,
+            amount: fixAmount(transactionRawFound.amount),
             category: this.getAddressCategory(transactionRawFound.address)
           }],
           type: WalletTransactionType.GENERATED,
@@ -1096,7 +1110,7 @@ export default class WalletHard {
             const fromIndex: number = R.findIndex<WalletTransactionEndpoint>(
               R.propEq('address', fromAddress)
             )(fromEndpoints)
-            fromEndpoints[fromIndex].amount += value
+            fromEndpoints[fromIndex].amount += fixAmount(value)
           })
       }
 
@@ -1107,11 +1121,11 @@ export default class WalletHard {
         .forEach(({ address, amount }: RpcMethodResult<'gettransaction'>['details'][0]) => {
           toEndpoints.push({
             address,
-            amount,
+            amount: fixAmount(amount),
             category: this.getAddressCategory(address),
           })
 
-          amountTotal += amount
+          amountTotal += fixAmount(amount)
         })
 
       transactionList.push({
@@ -1183,6 +1197,9 @@ export default class WalletHard {
    */
   // tslint:disable-next-line:cyclomatic-complexity
   public async send(amount: number, category: WalletAddressCategory, toAddressHash: string): Promise<void> {
+    // tslint:disable-next-line:no-parameter-reassignment
+    amount = fixAmount(amount)
+
     if (this.STATE !== WalletState.READY) throw new EJError(EJErrorCode.WALLET_STATE_NOT_READY)
     if (this.LOCK_STATE !== WalletLockState.UNLOCKED) throw new EJError(EJErrorCode.WALLET_LOCK_STATE_NOT_UNLOCKED)
     if (this.DAEMON_STATE !== WalletDaemonState.STARTED) throw new EJError(EJErrorCode.WALLET_DAEMON_STATE_NOT_STARTED)
@@ -1197,7 +1214,7 @@ export default class WalletHard {
 
     const transactionsAmountTotal: number = inputTransactionsRaw
       // tslint:disable-next-line:no-parameter-reassignment variable-name
-      .reduce((total: number, { amount: _amount }: WalletUnspentTransaction) => total += _amount, 0)
+      .reduce((total: number, { amount: _amount }: WalletUnspentTransaction) => total += fixAmount(_amount), 0)
 
     const inputTransactions: Array<{ txid: string, vout: number }> = inputTransactionsRaw
       .map(({ txid, vout }: WalletUnspentTransaction) => ({ txid, vout }))
@@ -1292,10 +1309,11 @@ export default class WalletHard {
     let index: number = unspentTransactionsSorted.length
     const transactions: RpcMethodResult<'listunspent'> = []
     while (--index >= 0) {
-      balance += unspentTransactionsSorted[index].amount
+      balance += fixAmount(unspentTransactionsSorted[index].amount)
       transactions.push(unspentTransactionsSorted[index])
       if (balance >= amount) break
     }
+    balance = fixAmount(balance)
 
     if (balance < amount) throw new EJError(EJErrorCode.WALLET_TRANSACTION_AMOUNT_HIGHER_THAN_AVAILABLE)
 
@@ -1312,7 +1330,7 @@ export default class WalletHard {
     return transactionsRaw.map((transactionRaw: RpcMethodResult<'listunspent'>[0]) => {
       const transaction: Pick<WalletUnspentTransaction, 'address' | 'amount' | 'txid' | 'vout'> = {
         address: transactionRaw.address,
-        amount: transactionRaw.amount,
+        amount: fixAmount(transactionRaw.amount),
         txid: transactionRaw.txid,
         vout: transactionRaw.vout,
       }
@@ -1399,6 +1417,46 @@ export default class WalletHard {
       }
     }
 
-    return total
+    return fixAmount(total)
+  }
+
+  /**
+   * Sign a message with the first CA Purse address private key.
+   */
+  public async signMessage(message: string): Promise<string> {
+    if (this.STATE !== WalletState.READY) throw new EJError(EJErrorCode.WALLET_STATE_NOT_READY)
+    if (this.LOCK_STATE !== WalletLockState.UNLOCKED) throw new EJError(EJErrorCode.WALLET_LOCK_STATE_NOT_UNLOCKED)
+    if (this.DAEMON_STATE !== WalletDaemonState.STARTED) throw new EJError(EJErrorCode.WALLET_DAEMON_STATE_NOT_STARTED)
+
+    const [err, signature] = await to(this.rpc.signMessage(this.purseAddresses[0].hash, message))
+    if (err !== null || signature === undefined) throw err
+
+    return signature
+  }
+
+  /**
+   * Get first (HD addressIndex = 0) Purse address private key.
+   */
+  public getFirstPurseAddressPrivateKey(passphrase: string): string {
+    if (this.STATE !== WalletState.READY) throw new EJError(EJErrorCode.WALLET_STATE_NOT_READY)
+    if (this.DAEMON_STATE !== WalletDaemonState.STARTED) throw new EJError(EJErrorCode.WALLET_DAEMON_STATE_NOT_STARTED)
+
+    try {
+      const masterNodePrivateKey: string =
+        Crypto.decipherPrivateKey((this.MASTER_NODE_ADDRESS as Address).privateKey, passphrase)
+
+      const purseAddress: Address = Electra.getDerivedChainFromMasterNodePrivateKey(
+        masterNodePrivateKey,
+        WalletAddressCategory.PURSE,
+        0,
+        false,
+      )
+
+      return purseAddress.privateKey
+    }
+    catch (err) {
+      console.error(`WalletHard#getFirstPurseAddressPrivateKey(): ${err.message}`)
+      throw new EJError(EJErrorCode.WALLET_PASSPHRASE_WRONG)
+    }
   }
 }

@@ -45,6 +45,8 @@ const {
 } = process.env
 
 describe('libs/Electra', function() {
+  this.timeout(5000)
+
   let purseExternalAddress1, purseChangeAddress1,
       purseExternalAddress2, purseChangeAddress2,
       checkingExternalAddress1, checkingChangeAddress1,

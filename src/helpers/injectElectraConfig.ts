@@ -22,11 +22,15 @@ export default function() {
     # Bootstrap Nodes
     # https://docs.google.com/spreadsheets/d/1b2SzZ8a1VVTizPcKq_k4Dxvp6nEh0sPkldgjuAtpqfI/edit?usp=sharing
     addnode=137.74.196.251:5817
+    addnode=139.162.70.108:5817
     addnode=139.99.195.215:5817
     addnode=139.99.44.97:5817
+    addnode=149.28.199.218:5817
     addnode=149.56.102.5:5817
+    addnode=159.89.171.67:5817
     addnode=192.241.193.192:5817
     addnode=192.241.238.155:5817
+    addnode=192.171.18.198:5817
     addnode=51.38.115.250:5817
     addnode=54.38.53.207:5817
   `

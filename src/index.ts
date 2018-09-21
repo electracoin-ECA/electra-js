@@ -1,4 +1,5 @@
 import * as constants from './constants'
+import Rpc from './libs/rpc'
 import WalletHard from './wallet/hard'
 import WalletLight from './wallet/light'
 import webServices, { WebServices } from './web-services'
@@ -23,6 +24,9 @@ export default class ElectraJs {
   /** Electra blockchain specific constants. */
   public readonly constants: typeof constants = constants
 
+  /** RPC services. */
+  public rpc: Rpc | undefined
+
   /** Wallet management. */
   public wallet: WalletHard | WalletLight
 
@@ -40,6 +44,13 @@ export default class ElectraJs {
       // tslint:disable-next-line:no-object-literal-type-assertion
       const { binariesPath, daemonConfig }: Settings = { ...SETTINGS_DEFAULT, ...settings } as Settings
 
+      this.rpc = new Rpc(
+        this.constants.DAEMON_URI,
+        {
+          password: daemonConfig.rpcpassword,
+          username: daemonConfig.rpcuser,
+        }
+      )
       this.wallet = new WalletHard(binariesPath, daemonConfig)
     } else {
       this.wallet = new WalletLight()
