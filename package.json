@@ -1,6 +1,6 @@
 {
   "name": "electra-js",
-  "version": "0.21.0",
+  "version": "0.16.2",
   "description": "Javascript API middleware allowing clients to interact with Electra blockchain.",
   "license": "MIT",
   "main": "dist/index.js",
@@ -14,7 +14,7 @@
     "check": "mocha test/index.js && mocha -r ts-node/register test/index.ts",
     "postinstall": "node ./tasks/downloadBinaries && node ./tasks/changeBinariesRights",
     "start": "npm run watch",
-    "test": "snyk test && npm run validate && npm run test:browser && npm run build",
+    "test": "npm run validate && npm run test:unit && npm run test:browser && npm run build",
     "test:browser": "webpack --config webpack.test.js && mocha -r ts-node/register test/browser/index.ts",
     "test:unit": "node ./tasks/downloadTestData && cross-env mocha --bail -r ts-node/register 'src/**/*.spec.ts'",
     "validate": "npm run validate:lint && npm run validate:tsc && npm run validate:security",
@@ -72,8 +72,7 @@
     "typescript-json-schema": "^0.24.1",
     "webpack": "^4.11.1",
     "webpack-cli": "^2.1.5",
-    "webpack-merge": "^4.1.2",
-    "snyk": "^1.96.0"
+    "webpack-merge": "^4.1.2"
   },
   "author": {
     "name": "Electra",
