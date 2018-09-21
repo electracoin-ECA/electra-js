@@ -6,5 +6,6 @@
 
 .DS_Store
 .env
+.idea
 
 /vim.exe.stackdump
