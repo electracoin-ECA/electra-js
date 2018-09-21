@@ -14,7 +14,7 @@
     "check": "mocha test/index.js && mocha -r ts-node/register test/index.ts",
     "postinstall": "node ./tasks/downloadBinaries && node ./tasks/changeBinariesRights",
     "start": "npm run watch",
-    "test": "npm run validate && npm run test:unit && npm run test:browser && npm run build",
+    "test": "npm run validate && npm run test:browser && npm run build",
     "test:browser": "webpack --config webpack.test.js && mocha -r ts-node/register test/browser/index.ts",
     "test:unit": "node ./tasks/downloadTestData && cross-env mocha --bail -r ts-node/register 'src/**/*.spec.ts'",
     "validate": "npm run validate:lint && npm run validate:tsc && npm run validate:security",
