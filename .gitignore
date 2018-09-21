@@ -1,6 +1,7 @@
 /.vscode
 /bin/*
 /build
+/dist
 /node_modules
 /test/data/*
 
