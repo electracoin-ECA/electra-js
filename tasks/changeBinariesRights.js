@@ -1,3 +1,4 @@
+const log = require('@inspired-beings/log')
 const childProcess = require('child_process')
 const path = require('path')
 
@@ -9,6 +10,6 @@ const binaryPath = path.resolve(
 )
 
 if (['darwin', 'linux'].includes(process.platform)) {
-  console.log('Updating MacOS binary rights...')
+  log.info(`Updating binary rights...`)
   const process = childProcess.spawn('chmod', ['755', binaryPath])
 }

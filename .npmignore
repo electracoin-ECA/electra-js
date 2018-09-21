@@ -3,8 +3,11 @@
 /test
 
 /.editorconfig
+/.env
 /.env.sample
 /.travis.yml
+/bin/electrad-darwin*
+/bin/electrad-linux*
 /tsconfig.dist.json
 /tsconfig.json
 /tslint.json

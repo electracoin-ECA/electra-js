@@ -4,6 +4,9 @@ const path = require('path')
 const webpack = require('webpack')
 
 module.exports = merge(common, {
+  // We don't want any automated minifaction here because it breaks the types-checking.
+  // https://webpack.js.org/concepts/mode/#mode-none
+  mode: 'none',
   devtool: false,
 
   output: {

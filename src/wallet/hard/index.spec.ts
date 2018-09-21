@@ -195,8 +195,7 @@ describe('Wallet (hard)', function() {
   })
 
   describe(`WHEN instantiating a new wallet WITH an RPC Server`, function() {
-    it(`new Wallet() SHOULD NOT throw any error`, () => assert.doesNotThrow(() =>
-      wallet = new WalletHard(BINARIES_PATH, DAEMON_CONFIG_DEFAULT)))
+    it(`new Wallet() SHOULD NOT throw any error`, () => assert.doesNotThrow(() => wallet = new WalletHard(BINARIES_PATH, DAEMON_CONFIG_DEFAULT)))
   })
 
   describe(`AFTER instantiating this new wallet`, function() {
@@ -205,7 +204,6 @@ describe('Wallet (hard)', function() {
     it(`#daemonState SHOULD be "STOPPED"`, () => assert.strictEqual(wallet.daemonState, 'STOPPED'))
     it(`#isNew SHOULD be FALSE`, () => assert.strictEqual(wallet.isNew, false))
     it(`#lockState SHOULD throw an error`, () => assert.throws(() => wallet.lockState))
-    it(`#mnemonic SHOULD throw an error`, () => assert.throws(() => wallet.mnemonic))
     it(`#randomAddresses SHOULD throw an error`, () => assert.throws(() => wallet.randomAddresses))
     it(`#state SHOULD be "EMPTY"`, () => assert.strictEqual(wallet.state, 'EMPTY'))
 
@@ -250,8 +248,6 @@ describe('Wallet (hard)', function() {
     it(`#daemonState SHOULD be "STARTED"`, () => assert.strictEqual(wallet.daemonState, 'STARTED'))
     it(`#isNew SHOULD be FALSE`, () => assert.strictEqual(wallet.isNew, false))
 
-    it(`#lockState SHOULD be "UNLOCKED"`, () => assert.strictEqual(wallet.lockState, 'UNLOCKED'))
-    it(`#lock() SHOULD not throw any error`, async () => await assertThen(() => wallet.lock()))
     it(`#lockState SHOULD be "LOCKED"`, () => assert.strictEqual(wallet.lockState, 'LOCKED'))
     it(`#unlock() SHOULD not throw any error`, async () => await assertThen(() => wallet.unlock(HD_PASSPHRASE_TEST, false)))
     it(`#lockState SHOULD be "UNLOCKED"`, () => assert.strictEqual(wallet.lockState, 'UNLOCKED'))
@@ -267,12 +263,18 @@ describe('Wallet (hard)', function() {
 
   describe(`WHEN generating the same wallet WITH <mnemonic>, <mnemonicExtension>, <chainsCount>`, function() {
     this.timeout(360000)
+    let mnemonic
 
     it(`#generate() SHOULD NOT throw any error`, async () =>
-      await assertThen(() => wallet.generate(HD_PASSPHRASE_TEST, HD_MNEMONIC_TEST, HD_MNEMONIC_EXTENSION_TEST, 2, 2, 2)))
+      await assertThen(async () => {
+        mnemonic = await wallet.generate(HD_PASSPHRASE_TEST, HD_MNEMONIC_TEST, HD_MNEMONIC_EXTENSION_TEST, 2, 2, 2)
+      })
+    )
+    it(`#generate() SHOULD return the expected mnemonic`, () => assert.strictEqual(mnemonic, HD_MNEMONIC_TEST))
   })
 
   describe(`AFTER generating the same wallet`, function() {
+    it(`#daemonState SHOULD be "STARTED"`, () => assert.strictEqual(wallet.daemonState, 'STARTED'))
     it(`#state SHOULD be "READY"`, () => assert.strictEqual(wallet.state, 'READY'))
 
     it(`#addresses SHOULD be an array`, () => assert.strictEqual(Array.isArray(wallet.addresses), true))
@@ -303,25 +305,92 @@ describe('Wallet (hard)', function() {
     it(`#randomAddresses SHOULD contain ${RANDOM_ADDRESS_HASH_TEST}`, () => assert.strictEqual(wallet.randomAddresses.filter(a => a.hash === RANDOM_ADDRESS_HASH_TEST).length, 1))
 
     it(`#lockState SHOULD be "UNLOCKED"`, () => assert.strictEqual(wallet.lockState, 'UNLOCKED'))
-    it(`#mnemonic SHOULD throw an error`, () => assert.throws(() => wallet.mnemonic))
-
     it(`#lock() SHOULD not throw any error`, async () => await assertThen(() => wallet.lock()))
     it(`#lockState SHOULD be "LOCKED"`, () => assert.strictEqual(wallet.lockState, 'LOCKED'))
-    it(`#unlock() SHOULD not throw any error`, async () => await assertThen(() => wallet.unlock(HD_PASSPHRASE_TEST, true)))
+    it(`#unlock(, true) SHOULD not throw any error`, async () => await assertThen(() => wallet.unlock(HD_PASSPHRASE_TEST, true)))
     it(`#lockState SHOULD be "STAKING"`, () => assert.strictEqual(wallet.lockState, 'STAKING'))
     it(`#send() SHOULD throw an error`, async () => await assertCatch(() => wallet.send(TEST_AMOUNT, WalletAddressCategory.CHECKING, HD_CHECKING_1_EXTERNAL_HASH_TEST)))
     it(`#lock() SHOULD not throw any error`, async () => await assertThen(() => wallet.lock()))
     it(`#lockState SHOULD be "LOCKED"`, () => assert.strictEqual(wallet.lockState, 'LOCKED'))
     it(`#send() SHOULD throw an error`, async () => await assertCatch(() => wallet.send(TEST_AMOUNT, WalletAddressCategory.CHECKING, HD_CHECKING_1_EXTERNAL_HASH_TEST)))
-    it(`#unlock(<forStakingOnly=FALSE>) SHOULD not throw any error`, async () =>
-      await assertThen(() => wallet.unlock(HD_PASSPHRASE_TEST, false)))
+    it(`#unlock(, false) SHOULD not throw any error`, async () => await assertThen(() => wallet.unlock(HD_PASSPHRASE_TEST, false)))
     it(`#lockState SHOULD be "UNLOCKED"`, () => assert.strictEqual(wallet.lockState, 'UNLOCKED'))
+  })
 
-    it(`#generate() SHOULD throw an error`, async () => await assertCatch(() => wallet.generate(HD_PASSPHRASE_TEST)))
+  describe(`WHEN stopping the same wallet deamon`, function () {
+    it(`#stopDeamon() SHOULD NOT throw any error`, async () => await assertThen(() => wallet.stopDaemon()))
+  })
+
+  describe(`AFTER stopping the same wallet deamon`, function () {
+    it(`#state SHOULD be "STOPPED"`, async () => assert.strictEqual(wallet.daemonState, 'STOPPED'))
+  })
+
+  describe(`WHEN instantiating a new wallet WITH an RPC Server`, function () {
+    before(async function () {
+      // Remove the daemon user directory to simulate a brand new installation
+      console.log(chalk.green('    ♦ Removing Electra daemon user directory...'))
+      rimraf.sync(DAEMON_USER_DIR_PATH)
+
+      await wait(1000)
+
+      console.log(chalk.green('    ♦ Copying stored blockchain data...'))
+      await new Promise(resolve => {
+        // Copy the blockchain data
+        extractZip(
+          path.resolve(process.cwd(), `test/data/electra-js-test-data-${process.platform}-${process.arch}.zip`),
+          { dir: path.resolve(DAEMON_USER_DIR_PATH, '..') },
+          resolve
+        )
+      })
+    })
+
+    it(`new Wallet() SHOULD NOT throw any error`, () => assert.doesNotThrow(() => wallet = new WalletHard(BINARIES_PATH, DAEMON_CONFIG_DEFAULT)))
+  })
+
+  describe(`WHEN starting the same wallet deamon`, function () {
+    it(`#startDeamon() SHOULD NOT throw any error`, async () => await assertThen(() => wallet.startDaemon()))
+  })
+
+  describe(`WHEN fast-starting the same wallet`, function () {
+    it(`#start() SHOULD NOT throw any error`, async () => await assertThen(() => wallet.start(START_DATA_TEST, HD_PASSPHRASE_TEST)))
   })
 
   describe(`WHILE downloading the blockchain`, function() {
-    this.timeout(3600000)
+    this.timeout(7200000)
+
+    it(`#getInfo() SHOULD NOT throw any error`, async () => {
+      let info
+      let localBlockchainHeight = 0
+      let networkBlockchainHeight = 0
+
+      console.log(chalk.green('      ♦ Waiting for peers connection...'))
+      while (networkBlockchainHeight <= 0) {
+        await wait(250)
+        info = await wallet.getInfo()
+        networkBlockchainHeight = info.networkBlockchainHeight
+      }
+
+      var bar = new ProgressBar(chalk.green('      ♦ Downloading blockchain [:bar] :rate/bps :percent :etas'), {
+        clear: true,
+        complete: '=',
+        incomplete: ' ',
+        width: 20,
+        total: networkBlockchainHeight - localBlockchainHeight
+      })
+
+      while (info.localBlockchainHeight < networkBlockchainHeight) {
+        await wait(250)
+        info = await wallet.getInfo()
+        bar.tick(info.localBlockchainHeight - localBlockchainHeight, '>')
+        localBlockchainHeight = info.localBlockchainHeight
+      }
+
+      assert.ok(true)
+    })
+  })
+
+  describe(`WHILE downloading the blockchain`, function() {
+    this.timeout(7200000)
 
     it(`#getInfo() SHOULD NOT throw any error`, async () => {
       let info
@@ -399,41 +468,6 @@ describe('Wallet (hard)', function() {
 
   describe(`WHEN starting the same wallet`, function () {
     it(`#start() SHOULD throw an error`, async () => await assertCatch(() => wallet.start(START_DATA_TEST, HD_PASSPHRASE_TEST)))
-  })
-
-  describe(`WHEN resetting the same wallet`, function () {
-    it(`#reset() SHOULD NOT throw any error`, () => assert.doesNotThrow(() => wallet.reset()))
-  })
-
-  describe(`AFTER resetting the same wallet`, function () {
-    it(`#state SHOULD be "EMPTY"`, () => assert.strictEqual(wallet.state, 'EMPTY'))
-  })
-
-  describe(`WHEN starting the same wallet`, function () {
-    it(`#start() SHOULD NOT throw any error`, async () => await assertThen(() => wallet.start(START_DATA_TEST, HD_PASSPHRASE_TEST)))
-  })
-
-  describe(`WHEN starting (again) the same wallet deamon`, function () {
-    it(`#startDeamon() SHOULD NOT throw any error`, async () => await assertThen(() => wallet.startDaemon()))
-  })
-
-  describe(`AFTER starting (again) the same wallet deamon`, function () {
-    it(`#daemonState SHOULD be "STARTED"`, () => assert.strictEqual(wallet.daemonState, 'STARTED'))
-    it(`#isNew SHOULD be FALSE`, () => assert.strictEqual(wallet.isNew, false))
-
-    it(`#lockState SHOULD be "UNLOCKED"`, () => assert.strictEqual(wallet.lockState, 'UNLOCKED'))
-    it(`#lock() SHOULD not throw any error`, async () => await assertThen(() => wallet.lock()))
-    it(`#lockState SHOULD be "LOCKED"`, () => assert.strictEqual(wallet.lockState, 'LOCKED'))
-    it(`#unlock() SHOULD not throw any error`, async () => await assertThen(() => wallet.unlock(HD_PASSPHRASE_TEST, false)))
-    it(`#lockState SHOULD be "UNLOCKED"`, () => assert.strictEqual(wallet.lockState, 'UNLOCKED'))
-    it(`#lock() SHOULD not throw any error`, async () => await assertThen(() => wallet.lock()))
-    it(`#lockState SHOULD be "LOCKED"`, () => assert.strictEqual(wallet.lockState, 'LOCKED'))
-    it(`#unlock() SHOULD not throw any error`, async () => await assertThen(() => wallet.unlock(HD_PASSPHRASE_TEST, true)))
-    it(`#lockState SHOULD be "STAKING"`, () => assert.strictEqual(wallet.lockState, 'STAKING'))
-    it(`#lock() SHOULD not throw any error`, async () => await assertThen(() => wallet.lock()))
-    it(`#lockState SHOULD be "LOCKED"`, () => assert.strictEqual(wallet.lockState, 'LOCKED'))
-    it(`#unlock() SHOULD not throw any error`, async () => await assertThen(() => wallet.unlock(HD_PASSPHRASE_TEST, false)))
-    it(`#lockState SHOULD be "UNLOCKED"`, () => assert.strictEqual(wallet.lockState, 'UNLOCKED'))
   })
 
   describe(`WHEN stopping the same wallet deamon`, function() {

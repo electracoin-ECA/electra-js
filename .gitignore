@@ -1,10 +1,12 @@
 /.vscode
 /bin/*
 /build
+/dist
 /node_modules
 /test/data/*
 
 .DS_Store
 .env
+.idea
 
 /vim.exe.stackdump
