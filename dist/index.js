@@ -105,7 +105,7 @@ exports.SETTINGS_DEFAULT = {
  * ElectraJs version.
  * DO NOT CHANGE THIS LINE SINCE THE VERSION IS AUTOMATICALLY INJECTED !
  */
-const VERSION = '__ELECTRA-JS_VERSION__';
+const VERSION = '0.21.0';
 /**
  * Main ElectraJS class.
  */
