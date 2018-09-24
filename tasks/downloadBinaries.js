@@ -8,13 +8,13 @@ const sha256sum = require('./helpers/sha256sum')
 
 const FILES = {
   'electrad-darwin-x64': {
-    sha256sum: 'bfcc2980dbb9d29323927a9e28f9ea71d42d2cf37d58bf518c88ce7a107d9549',
+    sha256sum: '79d8504ae0eb9e14bcfa2fe4245ca5b6846dbc175b9255ddb3d3ffddbf2f0971',
   },
   'electrad-linux-x64': {
-    sha256sum: 'fd4a780d842b903ac9e18f34506b87bd957c1d08ec35e386a3cf40e6879a2ed5',
+    sha256sum: '7fd175fc721871fa1721daf87e3b575dcb2bce57798fbd6cd1c3b3a8086c712f',
   },
   'electrad-win32-ia32.exe': {
-    sha256sum: '2c7f87a9dd99f283a3f63f470effc205be8905f60cd10bfa8c6490aad1e85d53',
+    sha256sum: 'b62b61014cb5a51c81b096b182dc88518bda18ed29edba8b7f39f5fae5c51cfe',
   },
   'electrad-win32-x64.exe': {
     sha256sum: '29540d3d4cf9b64beda4520b0858167dfdecbd72ab4323ebb7ffef243262e7d5',
