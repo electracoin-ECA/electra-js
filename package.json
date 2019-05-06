@@ -26,7 +26,9 @@
     "postversion": "git push origin head && git push --tags && npm publish",
     "watch": "concurrently \"npm run watch:build\" \"npm run watch:validate\"",
     "watch:build": "webpack --config webpack.dev.js --watch",
-    "watch:validate": "npm run validate:tsc -- -w"
+    "watch:validate": "npm run validate:tsc -- -w",
+    "snyk-protect": "snyk protect",
+    "prepare": "npm run snyk-protect"
   },
   "dependencies": {
     "@inspired-beings/log": "^1.2.0",
@@ -44,7 +46,8 @@
     "ramda": "^0.25.0",
     "request": "^2.87.0",
     "request-progress": "^3.0.0",
-    "wif": "^2.0.6"
+    "wif": "^2.0.6",
+    "snyk": "^1.161.1"
   },
   "devDependencies": {
     "@types/bip38": "^2.0.0",
@@ -73,8 +76,7 @@
     "typescript-json-schema": "^0.24.1",
     "webpack": "^4.12.0",
     "webpack-cli": "^2.1.5",
-    "webpack-merge": "^4.1.2",
-    "snyk": "^1.96.0"
+    "webpack-merge": "^4.1.2"
   },
   "author": {
     "name": "Electra",
@@ -102,5 +104,6 @@
     "electra",
     "javascript",
     "typescript"
-  ]
+  ],
+  "snyk": true
 }
